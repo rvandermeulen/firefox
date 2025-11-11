@@ -169,6 +169,9 @@ linux64-upx:
     treeherder:
         symbol: TL(upx)
         tier: 1
+    fetches:
+        fetch:
+            - upx
     run:
         script: build-upx.sh
         toolchain-artifact: public/build/upx.tar.zst
