@@ -690,13 +690,13 @@ symbol-scrapers:
         repo: https://github.com/mozilla/symbol-scrapers
         revision: c9f6fe6a16cb9bba11976d85fc924efaad643a9d
 
-xz-5.8.1:
-    description: xz 5.8.1 source code
+xz:
+    description: xz 5.8.2 source code
     fetch:
         type: static-url
-        url: https://github.com/tukaani-project/xz/releases/download/v5.8.1/xz-5.8.1.tar.xz
-        sha256: 0b54f79df85912504de0b14aec7971e3f964491af1812d83447005807513cd9e
-        size: 1461872
+        url: https://github.com/tukaani-project/xz/releases/download/v5.8.2/xz-5.8.2.tar.xz
+        sha256: 890966ec3f5d5cc151077879e157c0593500a522f413ac50ba26d22a9a145214
+        size: 1511132
         artifact-name: xz-source.tar.zst
         strip-components: 1
         add-prefix: xz-source/
