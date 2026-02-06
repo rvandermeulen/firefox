@@ -456,23 +456,23 @@ win64-ninja:
         add-prefix: ninja/bin/
 
 macosx64-cmake:
-    description: cmake 4.1.2
+    description: cmake 4.2.3
     fetch:
         type: static-url
-        url: https://github.com/Kitware/CMake/releases/download/v4.1.2/cmake-4.1.2-macos-universal.tar.gz
-        sha256: 3be85f5b999e327b1ac7d804cbc9acd767059e9f603c42ec2765f6ab68fbd367
-        size: 80750689
+        url: https://github.com/Kitware/CMake/releases/download/v4.2.3/cmake-4.2.3-macos-universal.tar.gz
+        sha256: c2302d3e9c48daabee5ea7c4db4b2b93b989bcc89dae8b760880e00120641b5b
+        size: 84254384
         artifact-name: cmake.tar.zst
         strip-components: 3
         add-prefix: cmake/
 
 cmake:
-    description: cmake 4.1.2 source code
+    description: cmake 4.2.3 source code
     fetch:
         type: static-url
-        url: https://github.com/Kitware/CMake/releases/download/v4.1.2/cmake-4.1.2.tar.gz
-        sha256: 643f04182b7ba323ab31f526f785134fb79cba3188a852206ef0473fee282a15
-        size: 12048810
+        url: https://github.com/Kitware/CMake/releases/download/v4.2.3/cmake-4.2.3.tar.gz
+        sha256: 7efaccde8c5a6b2968bad6ce0fe60e19b6e10701a12fce948c2bf79bac8a11e9
+        size: 12345147
         artifact-name: cmake.tar.zst
         strip-components: 1
         add-prefix: cmake/
