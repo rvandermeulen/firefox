@@ -98,11 +98,14 @@ import mozilla.components.feature.prompts.PromptFeature.Companion.PIN_REQUEST
 import mozilla.components.feature.prompts.address.AddressDelegate
 import mozilla.components.feature.prompts.address.AddressSelectBar
 import mozilla.components.feature.prompts.concept.AutocompletePrompt
+import mozilla.components.feature.prompts.concept.EmailMaskPromptView
 import mozilla.components.feature.prompts.concept.PasswordPromptView
 import mozilla.components.feature.prompts.creditcard.CreditCardDelegate
 import mozilla.components.feature.prompts.creditcard.CreditCardSelectBar
 import mozilla.components.feature.prompts.dialog.FullScreenNotificationToast
 import mozilla.components.feature.prompts.dialog.GestureNavUtils
+import mozilla.components.feature.prompts.emailmask.EmailMaskDelegate
+import mozilla.components.feature.prompts.emailmask.EmailMaskPromptBarView
 import mozilla.components.feature.prompts.file.AndroidPhotoPicker
 import mozilla.components.feature.prompts.identitycredential.DialogColors
 import mozilla.components.feature.prompts.identitycredential.DialogColorsProvider
@@ -174,6 +177,7 @@ import org.mozilla.fenix.browser.tabstrip.TabStrip
 import org.mozilla.fenix.components.AppStore
 import org.mozilla.fenix.components.Components
 import org.mozilla.fenix.components.FenixAutocompletePrompt
+import org.mozilla.fenix.components.FenixEmailMaskPrompt
 import org.mozilla.fenix.components.FenixSuggestStrongPasswordPrompt
 import org.mozilla.fenix.components.FindInPageIntegration
 import org.mozilla.fenix.components.accounts.FxaWebChannelIntegration
@@ -274,6 +278,7 @@ abstract class BaseBrowserFragment :
     private var addressSelectBar: AutocompletePrompt<Address>? = null
     private var creditCardSelectBar: AutocompletePrompt<CreditCardEntry>? = null
     private var suggestStrongPasswordBar: PasswordPromptView? = null
+    private var emailMaskBar: EmailMaskPromptView? = null
 
     private lateinit var browserAnimator: BrowserAnimator
     private lateinit var startForResult: ActivityResultLauncher<Intent>
@@ -1101,6 +1106,18 @@ abstract class BaseBrowserFragment :
             onHide = ::onAutocompleteBarHide,
         )
 
+        emailMaskBar = FenixEmailMaskPrompt(
+            viewProvider = {
+                view.findViewById(R.id.emailMaskBar)
+                    ?: binding.emailMaskBarStub.inflate() as EmailMaskPromptBarView
+            },
+            toolbarPositionProvider = {
+                requireContext().settings().toolbarPosition
+            },
+            onShow = ::onAutocompleteBarShow,
+            onHide = ::onAutocompleteBarHide,
+        )
+
         promptsFeature.set(
             feature = PromptFeature(
                 activity = activity,
@@ -1161,6 +1178,17 @@ abstract class BaseBrowserFragment :
                 suggestStrongPasswordDelegate = object : SuggestStrongPasswordDelegate {
                     override val strongPasswordPromptViewListenerView
                         get() = suggestStrongPasswordBar
+                },
+                emailMaskDelegate = object : EmailMaskDelegate {
+                    override val emailMaskPromptViewListenerView
+                        get() = emailMaskBar
+
+                    override suspend fun onEmailMaskClick(generatedFor: String) = withContext(IO) {
+                        val relay = relayFeature.get() ?: return@withContext null
+                        val created =
+                            relay.getOrCreateNewMask(generatedFor) ?: return@withContext null
+                        created.fullAddress
+                    }
                 },
                 shouldAutomaticallyShowSuggestedPassword = { context.settings().isFirstTimeEngagingWithSignup },
                 onFirstTimeEngagedWithSignup = {
@@ -2493,6 +2521,7 @@ abstract class BaseBrowserFragment :
         addressSelectBar = null
         creditCardSelectBar = null
         suggestStrongPasswordBar = null
+        emailMaskBar = null
 
         _findInPageLauncher = null
         _browserToolbarMenuController = null

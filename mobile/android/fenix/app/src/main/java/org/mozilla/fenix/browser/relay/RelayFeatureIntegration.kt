@@ -7,6 +7,7 @@ package org.mozilla.fenix.browser.relay
 import android.content.Context
 import mozilla.components.concept.engine.Engine
 import mozilla.components.service.fxa.manager.FxaAccountManager
+import mozilla.components.service.fxrelay.EmailMask
 import mozilla.components.service.fxrelay.eligibility.RelayEligibilityStore
 import mozilla.components.service.fxrelay.eligibility.RelayFeature
 import mozilla.components.support.base.feature.LifecycleAwareFeature
@@ -51,4 +52,14 @@ class RelayFeatureIntegration(
         emailMaskEngineUpdater.stop()
         emailMaskInfoPrompter.stop()
     }
+
+    /**
+     * Creates a new email mask with the specified data, otherwise, falls back to using an existing one.
+     *
+     * @param generatedFor The website for which the address is generated.
+     *
+     * @return the newly created email mask or `null` if the operation fails.
+     */
+    suspend fun getOrCreateNewMask(generatedFor: String): EmailMask? =
+        relayFeature.getOrCreateNewMask(generatedFor)
 }
