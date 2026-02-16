@@ -43,18 +43,21 @@ class ApplicationPanel {
   }
 
   /**
-   * Called by toolbox.js on `Esc` keydown.
+   * Called by toolbox.js on `Esc` keydown to check if the application panel
+   * should prevent the split console from being toggled.
    *
-   * @param {AbortController} abortController
+   * @returns {boolean} true if the split console toggle should be prevented.
    */
-  onToolboxChromeEventHandlerEscapeKeyDown(abortController) {
-    // If a popover is displayed, prevent the Esc event listener of the toolbox to occur
-    // (i.e. don't toggle split console)
+  shouldPreventSplitConsoleToggle() {
+    // If a popover is displayed, hide it and prevent the split console from
+    // being toggled.
     const popoverEl = this.panelWin.document.querySelector(":popover-open");
     if (popoverEl) {
-      abortController.abort();
       popoverEl.hidePopover();
+      return true;
     }
+
+    return false;
   }
 }
 

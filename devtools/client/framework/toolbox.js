@@ -1221,7 +1221,7 @@ class Toolbox extends EventEmitter {
 
     // We want to have both keydown and keypress: the split console should be toggled
     // after an Escape keypress, but we might want to prevent the event to be fired
-    // if the current panel onToolboxChromeEventHandlerEscapeKeyDown do need to handle
+    // if the current panel's `shouldPreventSplitConsoleToggle` needs to handle
     // the Escape key before that. For example, if we have opened popover in a panel,
     // the keypress event happens too late and the popover is already dismissed,
     // so we can't check if we should toggle the split console or not.
@@ -1781,13 +1781,9 @@ class Toolbox extends EventEmitter {
     }
 
     const currentPanel = this.getCurrentPanel();
-    if (
-      typeof currentPanel.onToolboxChromeEventHandlerEscapeKeyDown ===
-      "function"
-    ) {
-      const ac = new this.win.AbortController();
-      currentPanel.onToolboxChromeEventHandlerEscapeKeyDown(ac);
-      if (ac.signal.aborted) {
+    // Allow the current panel to prevent the split console from being toggled.
+    if (typeof currentPanel.shouldPreventSplitConsoleToggle === "function") {
+      if (currentPanel.shouldPreventSplitConsoleToggle()) {
         // this prevents the `keypress` event to be dispatched.
         e.preventDefault();
       }
