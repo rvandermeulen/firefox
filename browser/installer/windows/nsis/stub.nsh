@@ -1152,10 +1152,14 @@ Function LaunchApp
   ${GetParameters} $0
   ${GetOptions} "$0" "/UAC:" $1
   ${If} ${Errors}
+    ClearErrors
     ${If} $CheckboxCleanupProfile == 1
       ${ExecAndWaitForInputIdle} "$\"$INSTDIR\${FileMainEXE}$\" -reset-profile -migration -first-startup"
     ${Else}
       ${ExecAndWaitForInputIdle} "$\"$INSTDIR\${FileMainEXE}$\" -first-startup"
+    ${EndIf}
+    ${If} ${Errors}
+      StrCpy $FirefoxLaunchCode "0"
     ${EndIf}
   ${Else}
     StrCpy $R1 $CheckboxCleanupProfile
@@ -1170,10 +1174,14 @@ FunctionEnd
 Function LaunchAppFromElevatedProcess
   ; Set the current working directory to the installation directory
   SetOutPath "$INSTDIR"
+  ClearErrors
   ${If} $R1 == 1
     ${ExecAndWaitForInputIdle} "$\"$INSTDIR\${FileMainEXE}$\" -reset-profile -migration -first-startup"
   ${Else}
     ${ExecAndWaitForInputIdle} "$\"$INSTDIR\${FileMainEXE}$\" -first-startup"
+  ${EndIf}
+  ${If} ${Errors}
+    StrCpy $FirefoxLaunchCode "0"
   ${EndIf}
 FunctionEnd
 

@@ -8364,6 +8364,7 @@
   Push $0
   Push $1
   Push $2
+  Push $3
 
   ; Command line
   StrCpy $0 "${CMDLINE}"
@@ -8384,12 +8385,20 @@
   ${If} $0 <> 0
     System::Call "*$2(i . r0, i . r1)"
     ; $0: hProcess, $1: hThread
-    System::Call "user32::WaitForInputIdle(i $0, i 10000)"
+    System::Call "user32::WaitForInputIdle(i $0, i 10000) i . r3"
     System::Call "kernel32::CloseHandle(i $0)"
     System::Call "kernel32::CloseHandle(i $1)"
+    ; WaitForInputIdle returns 0 on success
+    ${If} $3 <> 0
+      SetErrors
+    ${EndIf}
+  ${Else}
+    ; CreateProcessW failed
+    SetErrors
   ${EndIf}
   System::Free $2
 
+  Pop $3
   Pop $2
   Pop $1
   Pop $0
