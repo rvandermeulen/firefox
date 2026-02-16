@@ -1450,7 +1450,7 @@ already_AddRefed<ShadowRoot> Element::AttachShadowWithoutNameChecks(
     ShadowRootSerializable aSerializable, const nsAString& aReferenceTarget) {
   nsAutoScriptBlocker scriptBlocker;
 
-  auto* nim = mNodeInfo->NodeInfoManager();
+  auto* nim = NodeInfoManager();
   RefPtr<mozilla::dom::NodeInfo> nodeInfo = nim->GetDocumentFragmentNodeInfo();
 
   // If there are no children, the flat tree is not changing due to the presence
@@ -1797,8 +1797,8 @@ void Element::SetAttributeNS(const nsAString& aNamespaceURI,
                              ErrorResult& aError) {
   RefPtr<mozilla::dom::NodeInfo> ni;
   aError = nsContentUtils::GetNodeInfoFromQName(
-      aNamespaceURI, aQualifiedName, mNodeInfo->NodeInfoManager(),
-      ATTRIBUTE_NODE, getter_AddRefs(ni));
+      aNamespaceURI, aQualifiedName, NodeInfoManager(), ATTRIBUTE_NODE,
+      getter_AddRefs(ni));
   if (aError.Failed()) {
     return;
   }
@@ -1884,8 +1884,8 @@ void Element::SetAttributeNS(
     nsIPrincipal* aTriggeringPrincipal, ErrorResult& aError) {
   RefPtr<mozilla::dom::NodeInfo> ni;
   aError = nsContentUtils::GetNodeInfoFromQName(
-      aNamespaceURI, aQualifiedName, mNodeInfo->NodeInfoManager(),
-      ATTRIBUTE_NODE, getter_AddRefs(ni));
+      aNamespaceURI, aQualifiedName, NodeInfoManager(), ATTRIBUTE_NODE,
+      getter_AddRefs(ni));
   if (aError.Failed()) {
     return;
   }
@@ -3271,7 +3271,7 @@ already_AddRefed<mozilla::dom::NodeInfo> Element::GetExistingAttrNameFromQName(
 
   RefPtr<mozilla::dom::NodeInfo> nodeInfo;
   if (name->IsAtom()) {
-    nodeInfo = mNodeInfo->NodeInfoManager()->GetNodeInfo(
+    nodeInfo = NodeInfoManager()->GetNodeInfo(
         name->Atom(), nullptr, kNameSpaceID_None, ATTRIBUTE_NODE);
   } else {
     nodeInfo = name->NodeInfo();
@@ -3694,9 +3694,8 @@ nsresult Element::SetAttrAndNotify(
       }
     }
   } else {
-    RefPtr<mozilla::dom::NodeInfo> ni =
-        mNodeInfo->NodeInfoManager()->GetNodeInfo(aName, aPrefix, aNamespaceID,
-                                                  ATTRIBUTE_NODE);
+    RefPtr<mozilla::dom::NodeInfo> ni = NodeInfoManager()->GetNodeInfo(
+        aName, aPrefix, aNamespaceID, ATTRIBUTE_NODE);
     MOZ_TRY(SetAndSwapAttr(ni, aParsedValue, &oldValueSet));
   }
 
@@ -5123,8 +5122,8 @@ void Element::SetOuterHTML(const TrustedHTMLOrNullIsEmptyString& aOuterHTML,
       localName = nsGkAtoms::body;
       namespaceID = kNameSpaceID_XHTML;
     }
-    RefPtr<DocumentFragment> fragment = new (OwnerDoc()->NodeInfoManager())
-        DocumentFragment(OwnerDoc()->NodeInfoManager());
+    auto* nim = NodeInfoManager();
+    RefPtr<DocumentFragment> fragment = new (nim) DocumentFragment(nim);
     nsContentUtils::ParseFragmentHTML(
         *compliantString, fragment, localName, namespaceID,
         OwnerDoc()->GetCompatibilityMode() == eCompatibility_NavQuirks, true);
@@ -5139,9 +5138,8 @@ void Element::SetOuterHTML(const TrustedHTMLOrNullIsEmptyString& aOuterHTML,
     NS_ASSERTION(
         parent->NodeType() == DOCUMENT_FRAGMENT_NODE,
         "How come the parent isn't a document, a fragment or an element?");
-    RefPtr<mozilla::dom::NodeInfo> info =
-        OwnerDoc()->NodeInfoManager()->GetNodeInfo(
-            nsGkAtoms::body, nullptr, kNameSpaceID_XHTML, ELEMENT_NODE);
+    RefPtr<mozilla::dom::NodeInfo> info = NodeInfoManager()->GetNodeInfo(
+        nsGkAtoms::body, nullptr, kNameSpaceID_XHTML, ELEMENT_NODE);
     context = NS_NewHTMLBodyElement(info.forget(), FROM_PARSER_FRAGMENT);
   }
 

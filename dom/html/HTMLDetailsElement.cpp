@@ -99,7 +99,7 @@ void HTMLDetailsElement::SetupShadowTree() {
     return;
   }
 
-  nsNodeInfoManager* nim = OwnerDoc()->NodeInfoManager();
+  nsNodeInfoManager* nim = NodeInfoManager();
   RefPtr<NodeInfo> slotNodeInfo = nim->GetNodeInfo(
       nsGkAtoms::slot, nullptr, kNameSpaceID_XHTML, nsINode::ELEMENT_NODE);
   sr->AppendBuiltInStyleSheet(BuiltInStyleSheet::Details);

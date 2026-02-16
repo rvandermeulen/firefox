@@ -356,7 +356,7 @@ already_AddRefed<Element> nsTextControlFrame::MakeAnonDivWithTextNode(
   RefPtr<Element> div = MakeAnonElement(aPseudoType);
 
   // Create the text node for the anonymous <div> element.
-  nsNodeInfoManager* nim = div->OwnerDoc()->NodeInfoManager();
+  nsNodeInfoManager* nim = div->NodeInfoManager();
   RefPtr<nsTextNode> textNode = new (nim) nsTextNode(nim);
   // If the anonymous div element is not for the placeholder, we should
   // mark the text node as "maybe modified frequently" for avoiding ASCII

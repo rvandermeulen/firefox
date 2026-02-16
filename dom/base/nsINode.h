@@ -802,6 +802,11 @@ class nsINode : public mozilla::dom::EventTarget {
     return mNodeInfo->GetDocument();
   }
 
+  // Returns our owning NodeInfo manager.
+  nsNodeInfoManager* NodeInfoManager() const {
+    return mNodeInfo->NodeInfoManager();
+  }
+
   /**
    * Return the "owner document" of this node as an nsINode*.  Implemented
    * in Document.h.

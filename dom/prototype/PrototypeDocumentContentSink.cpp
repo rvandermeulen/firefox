@@ -358,9 +358,8 @@ nsresult PrototypeDocumentContentSink::CreateAndInsertPI(
   MOZ_ASSERT(aProtoPI, "null ptr");
   MOZ_ASSERT(aParent, "null ptr");
 
-  RefPtr<ProcessingInstruction> node =
-      NS_NewXMLProcessingInstruction(aParent->OwnerDoc()->NodeInfoManager(),
-                                     aProtoPI->mTarget, aProtoPI->mData);
+  RefPtr<ProcessingInstruction> node = NS_NewXMLProcessingInstruction(
+      aParent->NodeInfoManager(), aProtoPI->mTarget, aProtoPI->mData);
 
   nsresult rv;
   if (aProtoPI->mTarget.EqualsLiteral("xml-stylesheet")) {

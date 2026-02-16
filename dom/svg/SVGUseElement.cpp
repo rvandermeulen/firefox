@@ -456,7 +456,7 @@ void SVGUseElement::UpdateShadowTree() {
     const bool isCrossDocument = targetElement->OwnerDoc() != OwnerDoc();
 
     nsNodeInfoManager* nodeInfoManager =
-        isCrossDocument ? OwnerDoc()->NodeInfoManager() : nullptr;
+        isCrossDocument ? NodeInfoManager() : nullptr;
 
     nsCOMPtr<nsINode> newNode =
         targetElement->Clone(true, nodeInfoManager, IgnoreErrors());

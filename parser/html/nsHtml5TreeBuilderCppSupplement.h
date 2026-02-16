@@ -143,10 +143,11 @@ nsIContentHandle* nsHtml5TreeBuilder::createElement(
         aIntendedParent ? static_cast<nsIContent*>(aIntendedParent) : nullptr;
 
     // intendedParent == nullptr is a special case where the
-    // intended parent is the document.
-    nsNodeInfoManager* nodeInfoManager =
-        intendedParent ? intendedParent->OwnerDoc()->NodeInfoManager()
-                       : mBuilder->GetNodeInfoManager();
+    // intended parent is the document. FIXME(emilio): Seems using
+    // mBuilder->GetNodeInfoManager() should always be fine?
+    nsNodeInfoManager* nodeInfoManager = intendedParent
+                                             ? intendedParent->NodeInfoManager()
+                                             : mBuilder->GetNodeInfoManager();
 
     nsIContent* elem;
     if (aNamespace == kNameSpaceID_XHTML) {
