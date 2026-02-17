@@ -628,6 +628,18 @@ export class openAIEngine {
         return relevantMemoriesContextPrompt;
       }
 
+      // real time context
+      case MODEL_FEATURES.REAL_TIME_CONTEXT_DATE: {
+        const { realTimeContextDatePrompt } =
+          await import("moz-src:///browser/components/aiwindow/models/prompts/ContextPrompts.sys.mjs");
+        return realTimeContextDatePrompt;
+      }
+      case MODEL_FEATURES.REAL_TIME_CONTEXT_TAB: {
+        const { realTimeContextTabPrompt } =
+          await import("moz-src:///browser/components/aiwindow/models/prompts/ContextPrompts.sys.mjs");
+        return realTimeContextTabPrompt;
+      }
+
       default:
         throw new Error(`No local prompt found for feature: ${feature}`);
     }
