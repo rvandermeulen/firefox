@@ -237,35 +237,47 @@ nsresult Http3Session::Init(const nsHttpConnectionInfo* aConnInfo,
   // connection to the WebTransport server should authenticate using the
   // expected certificate hash. Therefore, 0RTT should be disabled in this
   // context to ensure the certificate hash is checked.
-  if (StaticPrefs::network_http_http3_enable_0rtt() && !hasServCertHashes() &&
-      NS_SUCCEEDED(SSLTokensCache::Get(peerId, token, info))) {
-    LOG(("Found a resumption token in the cache."));
-    mHttp3Connection->SetResumptionToken(token);
-    mSocketControl->SetSessionCacheInfo(std::move(info));
-    if (mHttp3Connection->IsZeroRtt()) {
-      LOG(("Can send ZeroRtt data"));
-      RefPtr<Http3Session> self(this);
-      mState = ZERORTT;
-      udpConn->ChangeConnectionState(ConnectionState::ZERORTT);
-      mZeroRttStarted = TimeStamp::Now();
-      // Let the nsHttpConnectionMgr know that the connection can accept
-      // transactions.
-      // We need to dispatch the following function to this thread so that
-      // it is executed after the current function. At this point a
-      // Http3Session is still being initialized and ReportHttp3Connection
-      // will try to dispatch transaction on this session therefore it
-      // needs to be executed after the initializationg is done.
-      nsCOMPtr<nsIRunnable> event =
-          NS_NewRunnableFunction("Http3Session::ReportHttp3Connection",
-                                 [self]() { self->ReportHttp3Connection(); });
-      if (StaticPrefs::network_trr_high_priority_events() &&
-          mConnInfo->GetIsTrrServiceChannel()) {
-        event = new PrioritizableRunnable(
-            event.forget(), nsIRunnablePriority::PRIORITY_MEDIUMHIGH);
+  if (StaticPrefs::network_http_http3_enable_0rtt() && !hasServCertHashes()) {
+    uint32_t maxAttempts =
+        StaticPrefs::network_ssl_tokens_cache_records_per_entry();
+    for (uint32_t attempt = 0; attempt < maxAttempts; ++attempt) {
+      if (NS_FAILED(SSLTokensCache::Get(peerId, token, info))) {
+        break;
       }
-      DebugOnly<nsresult> rv = NS_DispatchToCurrentThread(event);
-      NS_WARNING_ASSERTION(NS_SUCCEEDED(rv),
-                           "NS_DispatchToCurrentThread failed");
+      LOG(("Found a resumption token in the cache [attempt=%u].", attempt));
+      nsresult rv = mHttp3Connection->SetResumptionToken(token);
+      if (NS_FAILED(rv)) {
+        LOG(("SetResumptionToken failed [attempt=%u], trying next token",
+             attempt));
+        continue;
+      }
+      mSocketControl->SetSessionCacheInfo(std::move(info));
+      if (mHttp3Connection->IsZeroRtt()) {
+        LOG(("Can send ZeroRtt data"));
+        RefPtr<Http3Session> self(this);
+        mState = ZERORTT;
+        udpConn->ChangeConnectionState(ConnectionState::ZERORTT);
+        mZeroRttStarted = TimeStamp::Now();
+        // Let the nsHttpConnectionMgr know that the connection can accept
+        // transactions.
+        // We need to dispatch the following function to this thread so that
+        // it is executed after the current function. At this point a
+        // Http3Session is still being initialized and ReportHttp3Connection
+        // will try to dispatch transaction on this session therefore it
+        // needs to be executed after the initializationg is done.
+        nsCOMPtr<nsIRunnable> event =
+            NS_NewRunnableFunction("Http3Session::ReportHttp3Connection",
+                                   [self]() { self->ReportHttp3Connection(); });
+        if (StaticPrefs::network_trr_high_priority_events() &&
+            mConnInfo->GetIsTrrServiceChannel()) {
+          event = new PrioritizableRunnable(
+              event.forget(), nsIRunnablePriority::PRIORITY_MEDIUMHIGH);
+        }
+        DebugOnly<nsresult> rv = NS_DispatchToCurrentThread(event);
+        NS_WARNING_ASSERTION(NS_SUCCEEDED(rv),
+                             "NS_DispatchToCurrentThread failed");
+      }
+      break;
     }
   }
 

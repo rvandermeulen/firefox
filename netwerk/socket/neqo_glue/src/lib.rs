@@ -2169,8 +2169,11 @@ pub extern "C" fn neqo_http3conn_authenticated(conn: &mut NeqoHttp3Conn, error: 
 pub extern "C" fn neqo_http3conn_set_resumption_token(
     conn: &mut NeqoHttp3Conn,
     token: &mut ThinVec<u8>,
-) {
-    _ = conn.conn.enable_resumption(Instant::now(), token);
+) -> nsresult {
+    match conn.conn.enable_resumption(Instant::now(), token) {
+        Ok(_) => NS_OK,
+        Err(_) => NS_ERROR_NET_HTTP3_PROTOCOL_ERROR,
+    }
 }
 
 #[no_mangle]

@@ -131,8 +131,8 @@ class NeqoHttp3Conn final {
     neqo_http3conn_stream_stop_sending(this, aStreamId, aError);
   }
 
-  void SetResumptionToken(nsTArray<uint8_t>& aToken) {
-    neqo_http3conn_set_resumption_token(this, &aToken);
+  nsresult SetResumptionToken(nsTArray<uint8_t>& aToken) {
+    return neqo_http3conn_set_resumption_token(this, &aToken);
   }
 
   void SetEchConfig(nsTArray<uint8_t>& aEchConfig) {

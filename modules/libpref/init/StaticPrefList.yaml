@@ -14897,7 +14897,7 @@
 # How many records we store per entry
 - name: network.ssl_tokens_cache_records_per_entry
   type: RelaxedAtomicUint32
-  value: 2
+  value: 10
   mirror: always
 
 # The maximum allowed length for a URL - 1MB default.
