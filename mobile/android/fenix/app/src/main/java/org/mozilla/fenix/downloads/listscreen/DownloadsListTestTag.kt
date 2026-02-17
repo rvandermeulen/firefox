@@ -13,4 +13,6 @@ internal object DownloadsListTestTag {
     internal const val RENAME_DIALOG_CONFIRM_BUTTON = "$DOWNLOADS_LIST.rename.confirm"
     internal const val RENAME_DIALOG_CANCEL_BUTTON = "$DOWNLOADS_LIST.rename.cancel"
     internal const val RENAME_DIALOG_FAILURE_DISMISS_BUTTON = "$DOWNLOADS_LIST.rename.ok"
+    internal const val CHANGE_FILE_EXTENSION_CONFIRM_BUTTON = "$DOWNLOADS_LIST.rename.confirmChangeFileExtension"
+    internal const val CHANGE_FILE_EXTENSION_CANCEL_BUTTON = "$DOWNLOADS_LIST.rename.cancelChangeFileExtension"
 }

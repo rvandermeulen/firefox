@@ -38,6 +38,18 @@ class DownloadUIRenameMiddleware(
 
         when (action) {
             is DownloadUIAction.RenameFileConfirmed -> processFileRenaming(store, action.item, action.newName)
+            is DownloadUIAction.FileExtensionChangedByUser -> {
+                val previousName = action.item.fileName ?: return
+                val originalExtension = File(previousName).extension.lowercase()
+                val proposedExtension = File(action.newName).extension.lowercase()
+
+                if (proposedExtension.isNotEmpty() && proposedExtension != originalExtension) {
+                    store.dispatch(DownloadUIAction.ShowChangeFileExtensionDialog)
+                } else {
+                    store.dispatch(DownloadUIAction.CloseChangeFileExtensionDialog)
+                    store.dispatch(DownloadUIAction.RenameFileConfirmed(action.item, action.newName))
+                }
+            }
             else -> {
                 // no - op
             }

@@ -1,5 +1,6 @@
 package org.mozilla.fenix.downloads.listscreen
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
@@ -8,6 +9,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
@@ -18,7 +20,7 @@ import org.junit.runner.RunWith
 import org.mozilla.fenix.downloads.listscreen.store.RenameFileError
 
 @RunWith(AndroidJUnit4::class)
-class DownloadRenameDialogTest {
+class DownloadRenameFlowTest {
     @get:Rule
     val composeTestRule = createComposeRule()
 
@@ -103,13 +105,28 @@ class DownloadRenameDialogTest {
     }
 
     @Test
+    fun `GIVEN there is an error WHEN checking confirm button THEN button is disabled`() {
+        val result = enableConfirmButton(
+            originalFileName = "document.pdf",
+            newFileName = "   ",
+            currentError = RenameFileError.CannotRename,
+        )
+
+        assertFalse(result)
+    }
+
+    @Test
     fun `GIVEN a valid file name change WHEN clicking confirm button THEN onConfirmSave is called `() {
         var confirmedName: String? = null
         var cancelled = false
+        val fileNameState = mutableStateOf(TextFieldValue("original.pdf"))
 
         composeTestRule.setContent {
             DownloadRenameDialog(
                 originalFileName = "original.pdf",
+                error = null,
+                fileNameState = fileNameState.value,
+                onFileNameChange = { fileNameState.value = it },
                 onConfirmSave = { confirmedName = it },
                 onCancel = { cancelled = true },
                 onCannotRenameDismiss = {},
@@ -118,7 +135,7 @@ class DownloadRenameDialogTest {
 
         composeTestRule
             .onNodeWithTag(DownloadsListTestTag.RENAME_DIALOG_TEXT_FIELD)
-            .performTextReplacement("renamed")
+            .performTextReplacement("renamed.pdf")
 
         composeTestRule
             .onNodeWithTag(DownloadsListTestTag.RENAME_DIALOG_CONFIRM_BUTTON)
@@ -134,10 +151,14 @@ class DownloadRenameDialogTest {
     @Test
     fun `GIVEN the rename dialog is show WHEN cancel is clicked THEN onCancel is called`() {
         var cancelled = false
+        var fileNameState = TextFieldValue("original.pdf")
 
         composeTestRule.setContent {
             DownloadRenameDialog(
                 originalFileName = "original.pdf",
+                error = null,
+                fileNameState = fileNameState,
+                onFileNameChange = { fileNameState = it },
                 onConfirmSave = {},
                 onCancel = { cancelled = true },
                 onCannotRenameDismiss = {},
@@ -155,9 +176,13 @@ class DownloadRenameDialogTest {
 
     @Test
     fun `GIVEN the rename dialog is shown WHEN proposed file name has a slash THEN the field is in an error state`() {
+        val fileNameState = mutableStateOf(TextFieldValue("original.pdf"))
         composeTestRule.setContent {
             DownloadRenameDialog(
-                originalFileName = "file.pdf",
+                originalFileName = "original.pdf",
+                error = null,
+                fileNameState = fileNameState.value,
+                onFileNameChange = { fileNameState.value = it },
                 onConfirmSave = {},
                 onCancel = {},
                 onCannotRenameDismiss = {},
@@ -177,10 +202,13 @@ class DownloadRenameDialogTest {
 
     @Test
     fun `GIVEN the rename dialog is shown WHEN proposed file name already exists THEN the field is in an error state`() {
+        var fileNameState = TextFieldValue("file.pdf")
         composeTestRule.setContent {
             DownloadRenameDialog(
                 originalFileName = "file.pdf",
                 error = RenameFileError.NameAlreadyExists(proposedFileName = "file.pdf"),
+                fileNameState = fileNameState,
+                onFileNameChange = { fileNameState = it },
                 onConfirmSave = {},
                 onCancel = {},
                 onCannotRenameDismiss = {},

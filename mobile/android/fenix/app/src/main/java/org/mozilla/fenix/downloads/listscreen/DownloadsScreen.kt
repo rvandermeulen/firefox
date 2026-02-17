@@ -75,7 +75,6 @@ import org.mozilla.fenix.downloads.listscreen.ui.ToolbarConfig
 import org.mozilla.fenix.theme.FirefoxTheme
 import org.mozilla.fenix.theme.ThemedValue
 import org.mozilla.fenix.theme.ThemedValueProvider
-import java.io.File
 import mozilla.components.ui.icons.R as iconsR
 
 /**
@@ -297,6 +296,14 @@ fun DownloadsScreen(
             },
             onRenameFileDismissed = { downloadsStore.dispatch(DownloadUIAction.RenameFileDismissed) },
             onRenameFileFailureDismissed = { downloadsStore.dispatch(DownloadUIAction.RenameFileFailureDismissed) },
+            onFileExtensionChangedByUser = { item: FileItem, newName: String ->
+                downloadsStore.dispatch(
+                    DownloadUIAction.FileExtensionChangedByUser(item = item, newName = newName),
+                )
+            },
+            onCloseChangeFileExtensionDialog = {
+                downloadsStore.dispatch(DownloadUIAction.CloseChangeFileExtensionDialog)
+            },
         )
     }
 }
@@ -369,6 +376,8 @@ private fun ToolbarEditActions(
  * @param onRenameFileConfirmed Invoked when rename file dialog is confirmed.
  * @param onRenameFileDismissed Invoked when rename file dialog is dismissed.
  * @param onRenameFileFailureDismissed Invoked when rename file failure dialog is dismissed.
+ * @param onFileExtensionChangedByUser Callback invoked when the user changes the file extension during renaming.
+ * @param onCloseChangeFileExtensionDialog Callback invoked when the file extension change dialog is closed.
  */
 @SuppressWarnings("LongParameterList")
 @Composable
@@ -389,6 +398,8 @@ private fun DownloadsScreenContent(
     onRenameFileConfirmed: (FileItem, String) -> Unit,
     onRenameFileDismissed: () -> Unit,
     onRenameFileFailureDismissed: () -> Unit,
+    onFileExtensionChangedByUser: (FileItem, String) -> Unit,
+    onCloseChangeFileExtensionDialog: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -407,18 +418,16 @@ private fun DownloadsScreenContent(
             )
         }
 
-        val fileToRename = uiState.fileToRename
-        if (fileToRename != null) {
-            val originalName =
-                fileToRename.fileName ?: File(fileToRename.filePath).name
-            DownloadRenameDialog(
-                originalFileName = originalName,
-                error = uiState.renameFileError,
-                onConfirmSave = { newName -> onRenameFileConfirmed(fileToRename, newName.trim()) },
-                onCancel = onRenameFileDismissed,
-                onCannotRenameDismiss = onRenameFileFailureDismissed,
-            )
-        }
+        DownloadRenameFlow(
+            fileToRename = uiState.fileToRename,
+            renameFileError = uiState.renameFileError,
+            isChangeFileExtensionDialogVisible = uiState.isChangeFileExtensionDialogVisible,
+            onRenameFileConfirmed = onRenameFileConfirmed,
+            onRenameFileDismissed = onRenameFileDismissed,
+            onRenameFileFailureDismissed = onRenameFileFailureDismissed,
+            onFileExtensionChangedByUser = onFileExtensionChangedByUser,
+            onCloseChangeFileExtensionDialog = onCloseChangeFileExtensionDialog,
+        )
 
         when (uiState.itemsState) {
             is DownloadUIState.ItemsState.NoItems -> EmptyState(modifier = Modifier.fillMaxSize())

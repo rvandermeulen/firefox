@@ -92,6 +92,21 @@ sealed interface DownloadUIAction : Action {
     data object RenameFileDismissed : DownloadUIAction
 
     /**
+     * [DownloadUIAction] to change the file extension.
+     */
+    data class FileExtensionChangedByUser(val item: FileItem, val newName: String) : DownloadUIAction
+
+    /**
+     * [DownloadUIAction] to show the dialog to change the file extension of a [FileItem].
+     */
+    data object ShowChangeFileExtensionDialog : DownloadUIAction
+
+    /**
+     * [DownloadUIAction] to close the dialog to change the file extension of a [FileItem].
+     */
+    data object CloseChangeFileExtensionDialog : DownloadUIAction
+
+    /**
      * [DownloadUIAction] to confirm renaming the file of a [FileItem].
      */
     data class RenameFileFailed(val error: RenameFileError) : DownloadUIAction

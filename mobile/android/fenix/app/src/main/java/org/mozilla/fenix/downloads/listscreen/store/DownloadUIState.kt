@@ -17,6 +17,7 @@ import org.mozilla.fenix.downloads.listscreen.store.DownloadUIState.Mode
  * @property searchQuery The search query entered by the user. This is used to filter the list of items.
  * @property fileToRename FileItem if there is a file to rename.
  * @property renameFileError [RenameFileError] indicating if there is an error when renaming a file.
+ * @property isChangeFileExtensionDialogVisible Indicates whether the dialog to change file extension is visible.
  * @param isSearchFieldRequested Indicates whether the search field is requested to be shown.
  * @param userSelectedContentTypeFilter The user selected [FileItem.ContentTypeFilter].
  */
@@ -28,6 +29,7 @@ data class DownloadUIState(
     val searchQuery: String = "",
     val fileToRename: FileItem? = null,
     val renameFileError: RenameFileError? = null,
+    val isChangeFileExtensionDialogVisible: Boolean = false,
     private val isSearchFieldRequested: Boolean = false,
     private val userSelectedContentTypeFilter: FileItem.ContentTypeFilter = FileItem.ContentTypeFilter.All,
 ) : State {

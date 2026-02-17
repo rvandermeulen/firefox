@@ -20,17 +20,85 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import mozilla.components.compose.base.button.TextButton
 import org.mozilla.fenix.R
+import org.mozilla.fenix.downloads.listscreen.store.FileItem
 import org.mozilla.fenix.downloads.listscreen.store.RenameFileError
 import org.mozilla.fenix.theme.FirefoxTheme
+import org.mozilla.fenix.theme.PreviewThemeProvider
+import org.mozilla.fenix.theme.Theme
 import org.mozilla.fenix.theme.ThemedValue
 import org.mozilla.fenix.theme.ThemedValueProvider
 import java.io.File
 import mozilla.components.ui.icons.R as iconsR
+
+/**
+ * This encapsulates the flow for the renaming of a downloaded file.
+ *
+ * @param fileToRename The original download file to be renamed.
+ * @param renameFileError The [RenameFileError] shown if there is a renaming error.
+ * @param isChangeFileExtensionDialogVisible Indicates whether or not the dialog to change file extension is visible.
+ * @param onRenameFileConfirmed Callback invoked when the user confirms the rename.
+ * @param onRenameFileDismissed Callback invoked when the user dismisses the rename.
+ * @param onRenameFileFailureDismissed Callback invoked when the user dismisses Cannot Rename failure.
+ * @param onFileExtensionChangedByUser Callback invoked when the user changes the file extension during renaming.
+ * @param onCloseChangeFileExtensionDialog Callback invoked when the file extension change dialog is closed.
+ */
+@SuppressWarnings("LongParameterList")
+@Composable
+fun DownloadRenameFlow(
+    fileToRename: FileItem?,
+    renameFileError: RenameFileError?,
+    isChangeFileExtensionDialogVisible: Boolean,
+    onRenameFileConfirmed: (FileItem, String) -> Unit,
+    onRenameFileDismissed: () -> Unit,
+    onRenameFileFailureDismissed: () -> Unit,
+    onFileExtensionChangedByUser: (FileItem, String) -> Unit,
+    onCloseChangeFileExtensionDialog: () -> Unit,
+) {
+    val fileToRename = fileToRename ?: return
+    val originalName = fileToRename.fileName ?: File(fileToRename.filePath).name
+    var fileNameState by remember(originalName) {
+        val end = File(originalName).nameWithoutExtension.length
+        mutableStateOf(
+            TextFieldValue(
+                text = originalName,
+                selection = TextRange(0, end),
+            ),
+        )
+    }
+
+    val proposedName = fileNameState.text.trim()
+    val proposedExtension = File(proposedName).extension
+
+    if (isChangeFileExtensionDialogVisible) {
+        ChangeFileExtensionDialog(
+            fileExtension = proposedExtension,
+            onConfirm = {
+                onRenameFileConfirmed(fileToRename, proposedName)
+                onCloseChangeFileExtensionDialog()
+            },
+            onDismiss = onCloseChangeFileExtensionDialog,
+        )
+    } else {
+        DownloadRenameDialog(
+            originalFileName = originalName,
+            error = renameFileError,
+            fileNameState = fileNameState,
+            onFileNameChange = { fileNameState = it },
+            onConfirmSave = {
+                onFileExtensionChangedByUser(fileToRename, proposedName)
+            },
+            onCancel = onRenameFileDismissed,
+            onCannotRenameDismiss = onRenameFileFailureDismissed,
+        )
+    }
+}
 
 /**
 * This dialog is used to prompt the user to rename the downloaded file.
@@ -38,6 +106,8 @@ import mozilla.components.ui.icons.R as iconsR
 *
 * @param originalFileName The original download file name to be renamed.
 * @param error The [RenameFileError] shown if there is a renaming error.
+* @param fileNameState The [TextFieldValue] for the dialog text field.
+* @param onFileNameChange Callback invoked when the file name is changed.
 * @param onConfirmSave Callback invoked when the user confirms the rename.
 * @param onCancel Callback invoked when the user cancels.
 * @param onCannotRenameDismiss Callback invoked when the user dismisses Cannot Rename failure.
@@ -46,21 +116,16 @@ import mozilla.components.ui.icons.R as iconsR
 fun DownloadRenameDialog(
     originalFileName: String,
     error: RenameFileError? = null,
+    fileNameState: TextFieldValue,
+    onFileNameChange: (TextFieldValue) -> Unit,
     onConfirmSave: (String) -> Unit,
     onCancel: () -> Unit,
     onCannotRenameDismiss: () -> Unit,
 ) {
-    var baseFileName by remember(originalFileName) {
-        mutableStateOf(File(originalFileName).nameWithoutExtension)
-    }
-    val extensionWithDot = remember(originalFileName) {
-        File(originalFileName).extension.takeIf { it.isNotEmpty() }?.let { ".$it" }
-    }
-
     val currentError: RenameFileError? = when {
-        baseFileName.contains("/") -> RenameFileError.InvalidFileName
+        fileNameState.text.contains("/") -> RenameFileError.InvalidFileName
         error is RenameFileError.NameAlreadyExists &&
-                error.proposedFileName == baseFileName + extensionWithDot -> error
+                error.proposedFileName == fileNameState.text -> error
         else -> null
     }
 
@@ -74,16 +139,13 @@ fun DownloadRenameDialog(
         },
         text = {
             DownloadRenameDialogTextField(
-                baseFileName = baseFileName,
-                onBaseFileNameChange = { updated ->
-                    baseFileName = updated
-                },
-                extensionWithDot = extensionWithDot,
+                fileNameState = fileNameState,
+                onFileNameChange = onFileNameChange,
                 currentError = currentError,
             )
         },
         confirmButton = {
-            val newName = baseFileName.trim() + (extensionWithDot ?: "")
+            val newName = fileNameState.text.trim()
             TextButton(
                 text = stringResource(id = R.string.download_rename_dialog_confirm_button),
                 enabled = enableConfirmButton(originalFileName, newName, currentError),
@@ -107,9 +169,8 @@ fun DownloadRenameDialog(
 
 @Composable
 private fun DownloadRenameDialogTextField(
-    baseFileName: String,
-    onBaseFileNameChange: (String) -> Unit,
-    extensionWithDot: String?,
+    fileNameState: TextFieldValue,
+    onFileNameChange: (TextFieldValue) -> Unit,
     currentError: RenameFileError?,
     modifier: Modifier = Modifier,
 ) {
@@ -125,10 +186,9 @@ private fun DownloadRenameDialogTextField(
     }
 
     OutlinedTextField(
-        value = baseFileName,
-        onValueChange = onBaseFileNameChange,
+        value = fileNameState,
+        onValueChange = onFileNameChange,
         label = { Text(stringResource(R.string.download_rename_dialog_label)) },
-        suffix = { extensionWithDot?.let { Text(text = it) } },
         isError = currentError != null,
         supportingText = errorTextResource?.let {
             {
@@ -166,7 +226,7 @@ internal fun enableConfirmButton(
     val isInvalidRename =
         currentError != null ||
         trimmed.isEmpty() ||
-        trimmed == originalFileName ||
+        trimmed.equals(originalFileName, ignoreCase = false) ||
         '/' in trimmed ||
         '\u0000' in trimmed
     if (isInvalidRename) return false
@@ -208,6 +268,51 @@ private fun DownloadCannotRenameDialog(
     )
 }
 
+/**
+ * This dialog informs the user they are requesting to change the file type.
+ *
+ * @param fileExtension The new file extension to change to.
+ * @param onConfirm Callback invoked when the user confirms the file extension change.
+ * @param onDismiss Callback invoked when the user cancels.
+ */
+@Composable
+fun ChangeFileExtensionDialog(
+    fileExtension: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = stringResource(R.string.change_file_extension_title, ".$fileExtension"),
+                style = FirefoxTheme.typography.headline5,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center,
+            )
+        },
+        text = { Text(stringResource(R.string.change_file_extension_description)) },
+        confirmButton = {
+            TextButton(
+                text = stringResource(R.string.change_file_extension_confirm_button),
+                onClick = onConfirm,
+                modifier = Modifier.testTag(
+                    DownloadsListTestTag.CHANGE_FILE_EXTENSION_CONFIRM_BUTTON,
+                ),
+            )
+        },
+        dismissButton = {
+            TextButton(
+                text = stringResource(R.string.change_file_extension_cancel_button),
+                onClick = onDismiss,
+                modifier = Modifier.testTag(
+                    DownloadsListTestTag.CHANGE_FILE_EXTENSION_CANCEL_BUTTON,
+                ),
+            )
+        },
+    )
+}
+
 private data class RenameDialogPreviewState(
     val originalFileName: String,
     val error: RenameFileError? = null,
@@ -240,13 +345,39 @@ private class RenameDialogPreviewProvider : ThemedValueProvider<RenameDialogPrev
 private fun RenameDownloadFileDialogPreview(
     @PreviewParameter(RenameDialogPreviewProvider::class) state: ThemedValue<RenameDialogPreviewState>,
 ) {
+    var fileNameState by remember(state.value.originalFileName) {
+        val fileNameLength = File(state.value.originalFileName).nameWithoutExtension.length
+        mutableStateOf(
+            TextFieldValue(
+                text = state.value.originalFileName,
+                selection = TextRange(0, fileNameLength),
+            ),
+        )
+    }
+
     FirefoxTheme(state.theme) {
         DownloadRenameDialog(
             originalFileName = state.value.originalFileName,
             error = state.value.error,
+            fileNameState = fileNameState,
+            onFileNameChange = {},
             onConfirmSave = {},
             onCancel = {},
             onCannotRenameDismiss = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun ChangeFileExtensionDialogPreview(
+    @PreviewParameter(PreviewThemeProvider::class) theme: Theme,
+) {
+    FirefoxTheme(theme) {
+        ChangeFileExtensionDialog(
+            fileExtension = "pdf",
+            onConfirm = {},
+            onDismiss = {},
         )
     }
 }
