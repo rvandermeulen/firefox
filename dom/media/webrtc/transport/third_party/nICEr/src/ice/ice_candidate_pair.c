@@ -600,9 +600,12 @@ void nr_ice_candidate_pair_dump_state(nr_ice_cand_pair *pair, int log_level)
 
 int nr_ice_candidate_pair_trigger_check_append(nr_ice_cand_pair_head *head,nr_ice_cand_pair *pair)
   {
-    if(pair->triggered_check_queue_entry.tqe_next ||
-       pair->triggered_check_queue_entry.tqe_prev)
-      return(0);
+    nr_ice_cand_pair *p1 = 0, *p2 = 0;
+    TAILQ_FOREACH_SAFE(p1, head, triggered_check_queue_entry, p2) {
+      if (p1 == pair) {
+        return(0);
+      }
+    }
 
     TAILQ_INSERT_TAIL(head,pair,triggered_check_queue_entry);
 
