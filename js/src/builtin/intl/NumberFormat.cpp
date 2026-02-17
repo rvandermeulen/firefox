@@ -1193,10 +1193,7 @@ static bool InitializeNumberFormat(JSContext* cx,
   }
   numberFormat->setRequestedLocales(requestedLocalesArray);
 
-  auto nfOptions = cx->make_unique<NumberFormatOptions>();
-  if (!nfOptions) {
-    return false;
-  }
+  NumberFormatOptions nfOptions{};
 
   if (!optionsValue.isUndefined()) {
     // ResolveOptions, steps 2-3.
@@ -1238,12 +1235,12 @@ static bool InitializeNumberFormat(JSContext* cx,
     // Step 5-8. (Performed in ResolveLocale)
 
     // Step 9.
-    if (!SetNumberFormatUnitOptions(cx, nfOptions->unitOptions, options)) {
+    if (!SetNumberFormatUnitOptions(cx, nfOptions.unitOptions, options)) {
       return false;
     }
 
     // Step 10.
-    auto style = nfOptions->unitOptions.style;
+    auto style = nfOptions.unitOptions.style;
 
     // Step 11.
     static constexpr auto notations =
@@ -1258,7 +1255,7 @@ static bool InitializeNumberFormat(JSContext* cx,
     }
 
     // Step 12.
-    nfOptions->notation = notation;
+    nfOptions.notation = notation;
 
     // Steps 13-14.
     int32_t mnfdDefault;
@@ -1266,7 +1263,7 @@ static bool InitializeNumberFormat(JSContext* cx,
     if (style == NumberFormatUnitOptions::Style::Currency &&
         notation == NumberFormatOptions::Notation::Standard) {
       // Steps 13.a-b.
-      int32_t cDigits = CurrencyDigits(nfOptions->unitOptions.currency);
+      int32_t cDigits = CurrencyDigits(nfOptions.unitOptions.currency);
 
       // Step 13.c.
       mnfdDefault = cDigits;
@@ -1282,7 +1279,7 @@ static bool InitializeNumberFormat(JSContext* cx,
     }
 
     // Step 15.
-    if (!SetNumberFormatDigitOptions(cx, nfOptions->digitOptions, options,
+    if (!SetNumberFormatDigitOptions(cx, nfOptions.digitOptions, options,
                                      mnfdDefault, mxfdDefault, notation)) {
       return false;
     }
@@ -1294,7 +1291,7 @@ static bool InitializeNumberFormat(JSContext* cx,
     if (!GetStringOption(cx, options, cx->names().compactDisplay,
                          compactDisplays,
                          NumberFormatOptions::CompactDisplay::Short,
-                         &nfOptions->compactDisplay)) {
+                         &nfOptions.compactDisplay)) {
       return false;
     }
 
@@ -1322,7 +1319,7 @@ static bool InitializeNumberFormat(JSContext* cx,
     }
 
     // Steps 21-23.
-    nfOptions->useGrouping = useGrouping.match(
+    nfOptions.useGrouping = useGrouping.match(
         [](bool grouping) {
           if (grouping) {
             return NumberFormatOptions::UseGrouping::Always;
@@ -1342,7 +1339,7 @@ static bool InitializeNumberFormat(JSContext* cx,
         NumberFormatOptions::SignDisplay::Negative);
     if (!GetStringOption(cx, options, cx->names().signDisplay, signDisplays,
                          NumberFormatOptions::SignDisplay::Auto,
-                         &nfOptions->signDisplay)) {
+                         &nfOptions.signDisplay)) {
       return false;
     }
   } else {
@@ -1358,11 +1355,9 @@ static bool InitializeNumberFormat(JSContext* cx,
     };
 
     // Initialize using the default number format options.
-    *nfOptions = defaultOptions;
+    nfOptions = defaultOptions;
   }
-  numberFormat->setOptions(nfOptions.release());
-  AddCellMemory(numberFormat, sizeof(NumberFormatOptions),
-                MemoryUse::IntlOptions);
+  numberFormat->setOptions(nfOptions);
 
   // Step 26. (Performed in caller)
 
@@ -1440,10 +1435,6 @@ void js::intl::NumberFormatObject::finalize(JS::GCContext* gcx, JSObject* obj) {
   auto* numberFormat = &obj->as<NumberFormatObject>();
   auto* nf = numberFormat->getNumberFormatter();
   auto* nrf = numberFormat->getNumberRangeFormatter();
-
-  if (auto* options = numberFormat->getOptions()) {
-    gcx->delete_(obj, options, MemoryUse::IntlOptions);
-  }
 
   if (nf) {
     RemoveICUCellMemory(gcx, obj, NumberFormatObject::EstimatedMemoryUse);
@@ -1860,7 +1851,7 @@ static Formatter* NewNumberFormat(JSContext* cx,
   if (!ResolveLocale(cx, numberFormat)) {
     return nullptr;
   }
-  auto nfOptions = *numberFormat->getOptions();
+  auto nfOptions = numberFormat->getOptions();
 
   auto locale = NumberFormatLocale(cx, numberFormat);
   if (!locale) {
@@ -3003,7 +2994,7 @@ static bool numberFormat_resolvedOptions(JSContext* cx, const CallArgs& args) {
   if (!ResolveLocale(cx, numberFormat)) {
     return false;
   }
-  auto nfOptions = *numberFormat->getOptions();
+  auto nfOptions = numberFormat->getOptions();
 
   // Step 4.
   Rooted<IdValueVector> options(cx, cx);

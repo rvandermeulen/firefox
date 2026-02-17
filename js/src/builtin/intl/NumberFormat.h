@@ -7,10 +7,12 @@
 #ifndef builtin_intl_NumberFormat_h
 #define builtin_intl_NumberFormat_h
 
+#include <array>
 #include <stddef.h>
 #include <stdint.h>
 #include <string_view>
 
+#include "builtin/intl/Packed.h"
 #include "ds/IdValuePair.h"
 #include "js/Class.h"
 #include "vm/NativeObject.h"
@@ -110,6 +112,24 @@ struct NumberFormatUnitOptions {
       return ((code[0] - 'A') << 10) | ((code[1] - 'A') << 5) |
              ((code[2] - 'A') << 0);
     }
+
+    static constexpr Currency fromIndex(uint16_t hash) {
+      constexpr auto emptyCurrencyIndex = Currency{}.toIndex();
+      static_assert(emptyCurrencyIndex == 0xFFFF);
+
+      if (hash == emptyCurrencyIndex) {
+        return {};
+      }
+
+      return Currency{
+          .code =
+              {
+                  char(((hash >> 10) & 0x1F) + 'A'),
+                  char(((hash >> 5) & 0x1F) + 'A'),
+                  char(((hash >> 0) & 0x1F) + 'A'),
+              },
+      };
+    }
   };
   Currency currency{};
 
@@ -122,6 +142,16 @@ struct NumberFormatUnitOptions {
     bool hasNumerator() const { return numerator != InvalidUnit; }
     bool hasDenominator() const { return denominator != InvalidUnit; }
 
+    constexpr uint16_t toIndex() const {
+      return (uint16_t(numerator) << 8) | uint16_t(denominator);
+    }
+
+    static constexpr Unit fromIndex(uint16_t index) {
+      return Unit{
+          .numerator = uint8_t(index >> 8),
+          .denominator = uint8_t(index),
+      };
+    }
   };
   Unit unit{};
 };
@@ -144,6 +174,181 @@ struct NumberFormatOptions {
   SignDisplay signDisplay = SignDisplay::Auto;
 };
 
+struct PackedNumberFormatDigitOptions {
+  using RawValue = uint64_t;
+
+  using RoundingIncrementField =
+      packed::ListField<RawValue, std::to_array<int16_t>(
+                                      {1, 2, 5, 10, 20, 25, 50, 100, 200, 250,
+                                       500, 1000, 2000, 2500, 5000})>;
+
+  using MinimumIntegerDigitsField =
+      packed::RangeField<RoundingIncrementField, int8_t, 1, 21>;
+
+  using MinimumFractionDigitsField =
+      packed::RangeField<MinimumIntegerDigitsField, int8_t, -1, 100>;
+  using MaximumFractionDigitsField =
+      packed::RangeField<MinimumFractionDigitsField, int8_t, -1, 100>;
+
+  using MinimumSignificantDigitsField =
+      packed::RangeField<MaximumFractionDigitsField, int8_t, 0, 21>;
+  using MaximumSignificantDigitsField =
+      packed::RangeField<MinimumSignificantDigitsField, int8_t, 0, 21>;
+
+  using RoundingModeField =
+      packed::EnumField<MaximumSignificantDigitsField,
+                        NumberFormatDigitOptions::RoundingMode::Ceil,
+                        NumberFormatDigitOptions::RoundingMode::HalfEven>;
+
+  using RoundingPriorityField = packed::EnumField<
+      RoundingModeField, NumberFormatDigitOptions::RoundingPriority::Auto,
+      NumberFormatDigitOptions::RoundingPriority::LessPrecision>;
+
+  using TrailingZeroDisplayField = packed::EnumField<
+      RoundingPriorityField,
+      NumberFormatDigitOptions::TrailingZeroDisplay::Auto,
+      NumberFormatDigitOptions::TrailingZeroDisplay::StripIfInteger>;
+
+  using LastField = TrailingZeroDisplayField;
+
+  static auto pack(const NumberFormatDigitOptions& options) {
+    RawValue rawValue =
+        RoundingIncrementField::pack(options.roundingIncrement) |
+        MinimumIntegerDigitsField::pack(options.minimumIntegerDigits) |
+        MinimumFractionDigitsField::pack(options.minimumFractionDigits) |
+        MaximumFractionDigitsField::pack(options.maximumFractionDigits) |
+        MinimumSignificantDigitsField::pack(options.minimumSignificantDigits) |
+        MaximumSignificantDigitsField::pack(options.maximumSignificantDigits) |
+        RoundingModeField::pack(options.roundingMode) |
+        RoundingPriorityField::pack(options.roundingPriority) |
+        TrailingZeroDisplayField::pack(options.trailingZeroDisplay);
+    return rawValue;
+  }
+
+  static auto unpack(RawValue rawValue) {
+    return NumberFormatDigitOptions{
+        .roundingIncrement = RoundingIncrementField::unpack(rawValue),
+        .minimumIntegerDigits = MinimumIntegerDigitsField::unpack(rawValue),
+        .minimumFractionDigits = MinimumFractionDigitsField::unpack(rawValue),
+        .maximumFractionDigits = MaximumFractionDigitsField::unpack(rawValue),
+        .minimumSignificantDigits =
+            MinimumSignificantDigitsField::unpack(rawValue),
+        .maximumSignificantDigits =
+            MaximumSignificantDigitsField::unpack(rawValue),
+        .roundingMode = RoundingModeField::unpack(rawValue),
+        .roundingPriority = RoundingPriorityField::unpack(rawValue),
+        .trailingZeroDisplay = TrailingZeroDisplayField::unpack(rawValue),
+    };
+  }
+};
+
+struct PackedNumberFormatUnitOptions {
+  using RawValue = uint64_t;
+
+  using StyleField =
+      packed::EnumField<RawValue, NumberFormatUnitOptions::Style::Decimal,
+                        NumberFormatUnitOptions::Style::Unit>;
+
+  using CurrencyDisplayField =
+      packed::EnumField<StyleField,
+                        NumberFormatUnitOptions::CurrencyDisplay::Symbol,
+                        NumberFormatUnitOptions::CurrencyDisplay::Name>;
+
+  using CurrencySignField =
+      packed::EnumField<CurrencyDisplayField,
+                        NumberFormatUnitOptions::CurrencySign::Standard,
+                        NumberFormatUnitOptions::CurrencySign::Accounting>;
+
+  using UnitDisplayField =
+      packed::EnumField<CurrencySignField,
+                        NumberFormatUnitOptions::UnitDisplay::Short,
+                        NumberFormatUnitOptions::UnitDisplay::Long>;
+
+  using CurrencyField =
+      packed::RangeField<UnitDisplayField, uint16_t, 0, 0xFFFF>;
+
+  using UnitField = packed::RangeField<CurrencyField, uint16_t, 0, 0xFFFF>;
+
+  using LastField = UnitField;
+
+  static auto pack(const NumberFormatUnitOptions& options) {
+    RawValue rawValue = StyleField::pack(options.style) |
+                        CurrencyDisplayField::pack(options.currencyDisplay) |
+                        CurrencySignField::pack(options.currencySign) |
+                        UnitDisplayField::pack(options.unitDisplay) |
+                        CurrencyField::pack(options.currency.toIndex()) |
+                        UnitField::pack(options.unit.toIndex());
+    return rawValue;
+  }
+
+  static auto unpack(RawValue rawValue) {
+    return NumberFormatUnitOptions{
+        .style = StyleField::unpack(rawValue),
+        .currencyDisplay = CurrencyDisplayField::unpack(rawValue),
+        .currencySign = CurrencySignField::unpack(rawValue),
+        .unitDisplay = UnitDisplayField::unpack(rawValue),
+        .currency = NumberFormatUnitOptions::Currency::fromIndex(
+            CurrencyField::unpack(rawValue)),
+        .unit = NumberFormatUnitOptions::Unit::fromIndex(
+            UnitField::unpack(rawValue)),
+    };
+  }
+};
+
+struct PackedNumberFormatOptions {
+  using RawValue = PackedNumberFormatUnitOptions::RawValue;
+
+  using NotationField =
+      packed::EnumField<PackedNumberFormatUnitOptions::LastField,
+                        NumberFormatOptions::Notation::Standard,
+                        NumberFormatOptions::Notation::Compact>;
+
+  using CompactDisplayField =
+      packed::EnumField<NotationField,
+                        NumberFormatOptions::CompactDisplay::Short,
+                        NumberFormatOptions::CompactDisplay::Long>;
+
+  using UseGroupingField =
+      packed::EnumField<CompactDisplayField,
+                        NumberFormatOptions::UseGrouping::Auto,
+                        NumberFormatOptions::UseGrouping::Never>;
+
+  using SignDisplayField =
+      packed::EnumField<UseGroupingField,
+                        NumberFormatOptions::SignDisplay::Auto,
+                        NumberFormatOptions::SignDisplay::Negative>;
+
+  using PackedValue = packed::PackedValue<SignDisplayField>;
+  using PackedDigitsValue =
+      packed::PackedValue<PackedNumberFormatDigitOptions::LastField>;
+
+  static auto pack(const NumberFormatOptions& options) {
+    RawValue rawValue =
+        PackedNumberFormatUnitOptions::pack(options.unitOptions) |
+        NotationField::pack(options.notation) |
+        CompactDisplayField::pack(options.compactDisplay) |
+        UseGroupingField::pack(options.useGrouping) |
+        SignDisplayField::pack(options.signDisplay);
+    RawValue rawDigitsValue =
+        PackedNumberFormatDigitOptions::pack(options.digitOptions);
+    return std::pair{PackedValue::toValue(rawValue),
+                     PackedDigitsValue::toValue(rawDigitsValue)};
+  }
+
+  static auto unpack(JS::Value value, JS::Value digitsValue) {
+    RawValue rawValue = PackedValue::fromValue(value);
+    RawValue rawDigitsValue = PackedDigitsValue::fromValue(digitsValue);
+    return NumberFormatOptions{
+        .digitOptions = PackedNumberFormatDigitOptions::unpack(rawDigitsValue),
+        .unitOptions = PackedNumberFormatUnitOptions::unpack(rawValue),
+        .notation = NotationField::unpack(rawValue),
+        .compactDisplay = CompactDisplayField::unpack(rawValue),
+        .useGrouping = UseGroupingField::unpack(rawValue),
+        .signDisplay = SignDisplayField::unpack(rawValue),
+    };
+  }
+};
+
 class NumberFormatObject : public NativeObject {
  public:
   static const JSClass class_;
@@ -152,10 +357,11 @@ class NumberFormatObject : public NativeObject {
   static constexpr uint32_t LOCALE_SLOT = 0;
   static constexpr uint32_t NUMBERING_SYSTEM_SLOT = 1;
   static constexpr uint32_t OPTIONS_SLOT = 2;
-  static constexpr uint32_t UNUMBER_FORMATTER_SLOT = 3;
-  static constexpr uint32_t UNUMBER_RANGE_FORMATTER_SLOT = 4;
-  static constexpr uint32_t BOUND_FORMAT_SLOT = 5;
-  static constexpr uint32_t SLOT_COUNT = 6;
+  static constexpr uint32_t DIGITS_OPTIONS_SLOT = 3;
+  static constexpr uint32_t UNUMBER_FORMATTER_SLOT = 4;
+  static constexpr uint32_t UNUMBER_RANGE_FORMATTER_SLOT = 5;
+  static constexpr uint32_t BOUND_FORMAT_SLOT = 6;
+  static constexpr uint32_t SLOT_COUNT = 7;
 
   // Estimated memory use for UNumberFormatter and UFormattedNumber
   // (see IcuMemoryUsage).
@@ -203,16 +409,19 @@ class NumberFormatObject : public NativeObject {
     setFixedSlot(NUMBERING_SYSTEM_SLOT, JS::StringValue(numberingSystem));
   }
 
-  NumberFormatOptions* getOptions() const {
+  NumberFormatOptions getOptions() const {
     const auto& slot = getFixedSlot(OPTIONS_SLOT);
-    if (slot.isUndefined()) {
-      return nullptr;
+    const auto& digitsSlot = getFixedSlot(DIGITS_OPTIONS_SLOT);
+    if (slot.isUndefined() || digitsSlot.isUndefined()) {
+      return {};
     }
-    return static_cast<NumberFormatOptions*>(slot.toPrivate());
+    return PackedNumberFormatOptions::unpack(slot, digitsSlot);
   }
 
-  void setOptions(NumberFormatOptions* options) {
-    setFixedSlot(OPTIONS_SLOT, JS::PrivateValue(options));
+  void setOptions(const NumberFormatOptions& options) {
+    auto [packed, packedDigits] = PackedNumberFormatOptions::pack(options);
+    setFixedSlot(OPTIONS_SLOT, packed);
+    setFixedSlot(DIGITS_OPTIONS_SLOT, packedDigits);
   }
 
   mozilla::intl::NumberFormat* getNumberFormatter() const {
