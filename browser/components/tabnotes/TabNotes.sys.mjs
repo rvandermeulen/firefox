@@ -67,6 +67,10 @@ RETURNING
   id, canonical_url, created, note_text
 `;
 
+const GET_NOTE_COUNT = `
+SELECT COUNT(*) FROM tabnotes
+`;
+
 /**
  * Provides the CRUD interface for tab notes.
  */
@@ -88,6 +92,9 @@ export class TabNotesStorage {
    * @returns {Promise<void>}
    */
   init(options) {
+    if (this.#connection) {
+      return Promise.resolve();
+    }
     const basePath = options?.basePath ?? PathUtils.profileDir;
     this.dbPath = PathUtils.join(basePath, this.DATABASE_FILE_NAME);
     return Sqlite.openConnection({
@@ -279,6 +286,22 @@ export class TabNotesStorage {
   async has(tab) {
     const record = await this.get(tab);
     return record !== undefined;
+  }
+
+  /**
+   * @returns {Promise<number>}
+   *   The number of stored tab notes. Returns 0 if there was a problem
+   *   retrieving the real count.
+   */
+  async count() {
+    try {
+      /** @type {mozIStorageRow[]} */
+      const countResult = await this.#connection.executeCached(GET_NOTE_COUNT);
+      if (countResult?.length == 1) {
+        return countResult[0].getDouble(0);
+      }
+    } catch {}
+    return 0;
   }
 
   /**
