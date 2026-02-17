@@ -18,8 +18,8 @@ using namespace mozilla::gfx;
 namespace mozilla::dom {
 
 // Stitch Options
-static const unsigned short SVG_STITCHTYPE_STITCH = 1;
-static const unsigned short SVG_STITCHTYPE_NOSTITCH = 2;
+constexpr uint16_t SVG_STITCHTYPE_STITCH = 1;
+constexpr uint16_t SVG_STITCHTYPE_NOSTITCH = 2;
 
 static constexpr int32_t MAX_OCTAVES = 10;
 

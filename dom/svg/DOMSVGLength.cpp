@@ -361,7 +361,7 @@ void DOMSVGLength::NewValueSpecifiedUnits(uint16_t aUnit, float aValue,
       return;
     }
     AutoChangeLengthListNotifier notifier(this);
-    internalItem.SetValueAndUnit(aValue, uint8_t(aUnit));
+    internalItem.SetValueAndUnit(aValue, aUnit);
     return;
   }
   mUnit = uint8_t(aUnit);

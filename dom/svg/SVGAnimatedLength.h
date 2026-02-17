@@ -120,11 +120,14 @@ class SVGAnimatedLength {
   using UserSpaceMetrics = dom::UserSpaceMetrics;
 
  public:
-  void Init(SVGLength::Axis aAxis = SVGLength::Axis::XY,
-            uint8_t aAttrEnum = 0xff, float aValue = 0,
-            uint8_t aUnitType = dom::SVGLength_Binding::SVG_LENGTHTYPE_NUMBER) {
+  void Init(
+      SVGLength::Axis aAxis = SVGLength::Axis::XY, uint8_t aAttrEnum = 0xff,
+      float aValue = 0,
+      uint16_t aUnitType = dom::SVGLength_Binding::SVG_LENGTHTYPE_NUMBER) {
+    MOZ_ASSERT(aUnitType <= std::numeric_limits<uint8_t>::max(),
+               "Length unit-type enums should fit in 8 bits");
     mAnimVal = mBaseVal = aValue;
-    mBaseUnitType = mAnimUnitType = aUnitType;
+    mBaseUnitType = mAnimUnitType = uint8_t(aUnitType);
     mAttrEnum = aAttrEnum;
     mAxis = aAxis;
     mIsAnimated = false;
@@ -167,8 +170,8 @@ class SVGAnimatedLength {
   }
 
   SVGLength::Axis Axis() const { return mAxis; }
-  uint8_t GetBaseUnitType() const { return mBaseUnitType; }
-  uint8_t GetAnimUnitType() const { return mAnimUnitType; }
+  uint16_t GetBaseUnitType() const { return mBaseUnitType; }
+  uint16_t GetAnimUnitType() const { return mAnimUnitType; }
   bool IsPercentage() const {
     return mAnimUnitType == dom::SVGLength_Binding::SVG_LENGTHTYPE_PERCENTAGE;
   }
@@ -203,14 +206,14 @@ class SVGAnimatedLength {
   // These APIs returns the number of user-unit pixels per unit of the
   // given type, in a given context (frame/element/etc).
   float GetPixelsPerUnit(const SVGElement* aSVGElement,
-                         uint8_t aUnitType) const;
-  float GetPixelsPerUnitWithZoom(nsIFrame* aFrame, uint8_t aUnitType) const;
+                         uint16_t aUnitType) const;
+  float GetPixelsPerUnitWithZoom(nsIFrame* aFrame, uint16_t aUnitType) const;
   float GetPixelsPerUnitWithZoom(const UserSpaceMetrics& aMetrics,
-                                 uint8_t aUnitType) const;
+                                 uint16_t aUnitType) const;
   float GetPixelsPerUnitWithZoom(const SVGElement* aSVGElement,
-                                 uint8_t aUnitType) const;
+                                 uint16_t aUnitType) const;
   float GetPixelsPerUnitWithZoom(const SVGViewportElement* aCtx,
-                                 uint8_t aUnitType) const;
+                                 uint16_t aUnitType) const;
 
   // SetBaseValue and SetAnimValue set the value in user units. This may fail
   // if unit conversion fails e.g. conversion to ex or em units where the
@@ -282,7 +285,7 @@ class SVGLengthAndInfo {
 
   float Value() const { return mValue; }
 
-  uint8_t UnitType() const { return mUnitType; }
+  uint16_t UnitType() const { return mUnitType; }
 
   void CopyFrom(const SVGLengthAndInfo& rhs) {
     mElement = rhs.mElement;
@@ -308,13 +311,15 @@ class SVGLengthAndInfo {
    */
   void CopyBaseFrom(const SVGAnimatedLength& rhs) {
     mValue = rhs.GetBaseValInSpecifiedUnits();
-    mUnitType = rhs.GetBaseUnitType();
+    mUnitType = uint8_t(rhs.GetBaseUnitType());
     mAxis = rhs.Axis();
   }
 
-  void Set(float aValue, uint8_t aUnitType, SVGLength::Axis aAxis) {
+  void Set(float aValue, uint16_t aUnitType, SVGLength::Axis aAxis) {
+    MOZ_ASSERT(aUnitType <= std::numeric_limits<uint8_t>::max(),
+               "Length unit-type enums should fit in 8 bits");
     mValue = aValue;
-    mUnitType = aUnitType;
+    mUnitType = uint8_t(aUnitType);
     mAxis = aAxis;
   }
 

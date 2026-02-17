@@ -1061,7 +1061,7 @@ bool SVGElement::UpdateDeclarationBlockFromLength(
     const StyleLockedDeclarationBlock& aBlock, NonCustomCSSPropertyId aPropId,
     const SVGAnimatedLength& aLength, ValToUse aValToUse) {
   float value;
-  uint8_t units;
+  uint16_t units;
   if (aValToUse == ValToUse::Anim) {
     value = aLength.GetAnimValInSpecifiedUnits();
     units = aLength.GetAnimUnitType();

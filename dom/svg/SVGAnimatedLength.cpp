@@ -360,25 +360,25 @@ float UserSpaceMetricsWithSize::GetAxisLength(SVGLength::Axis aAxis) const {
 }
 
 float SVGAnimatedLength::GetPixelsPerUnit(const SVGElement* aSVGElement,
-                                          uint8_t aUnitType) const {
+                                          uint16_t aUnitType) const {
   return SVGLength::GetPixelsPerUnit(SVGElementMetrics(aSVGElement), aUnitType,
                                      mAxis, false);
 }
 
 float SVGAnimatedLength::GetPixelsPerUnitWithZoom(const SVGElement* aSVGElement,
-                                                  uint8_t aUnitType) const {
+                                                  uint16_t aUnitType) const {
   return SVGLength::GetPixelsPerUnit(SVGElementMetrics(aSVGElement), aUnitType,
                                      mAxis, true);
 }
 
 float SVGAnimatedLength::GetPixelsPerUnitWithZoom(
-    const SVGViewportElement* aCtx, uint8_t aUnitType) const {
+    const SVGViewportElement* aCtx, uint16_t aUnitType) const {
   return SVGLength::GetPixelsPerUnit(SVGElementMetrics(aCtx, aCtx), aUnitType,
                                      mAxis, true);
 }
 
 float SVGAnimatedLength::GetPixelsPerUnitWithZoom(nsIFrame* aFrame,
-                                                  uint8_t aUnitType) const {
+                                                  uint16_t aUnitType) const {
   const nsIContent* content = aFrame->GetContent();
   MOZ_ASSERT(!content->IsText(), "Not expecting text content");
   if (content->IsSVGElement()) {
@@ -391,7 +391,7 @@ float SVGAnimatedLength::GetPixelsPerUnitWithZoom(nsIFrame* aFrame,
 }
 
 float SVGAnimatedLength::GetPixelsPerUnitWithZoom(
-    const UserSpaceMetrics& aMetrics, uint8_t aUnitType) const {
+    const UserSpaceMetrics& aMetrics, uint16_t aUnitType) const {
   return SVGLength::GetPixelsPerUnit(aMetrics, aUnitType, mAxis, true);
 }
 

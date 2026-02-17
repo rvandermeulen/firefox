@@ -22,21 +22,21 @@ namespace mozilla {
 
 // These types are numbered so that different length categories are in
 // contiguous ranges - See `SVGLength::Is[..]Unit()`.
-const unsigned short SVG_LENGTHTYPE_Q = 11;
-const unsigned short SVG_LENGTHTYPE_CH = 12;
-const unsigned short SVG_LENGTHTYPE_REM = 13;
-const unsigned short SVG_LENGTHTYPE_IC = 14;
-const unsigned short SVG_LENGTHTYPE_CAP = 15;
-const unsigned short SVG_LENGTHTYPE_LH = 16;
-const unsigned short SVG_LENGTHTYPE_RLH = 17;
-const unsigned short SVG_LENGTHTYPE_REX = 18;
-const unsigned short SVG_LENGTHTYPE_RCH = 19;
-const unsigned short SVG_LENGTHTYPE_RIC = 20;
-const unsigned short SVG_LENGTHTYPE_RCAP = 21;
-const unsigned short SVG_LENGTHTYPE_VW = 22;
-const unsigned short SVG_LENGTHTYPE_VH = 23;
-const unsigned short SVG_LENGTHTYPE_VMIN = 24;
-const unsigned short SVG_LENGTHTYPE_VMAX = 25;
+constexpr uint16_t SVG_LENGTHTYPE_Q = 11;
+constexpr uint16_t SVG_LENGTHTYPE_CH = 12;
+constexpr uint16_t SVG_LENGTHTYPE_REM = 13;
+constexpr uint16_t SVG_LENGTHTYPE_IC = 14;
+constexpr uint16_t SVG_LENGTHTYPE_CAP = 15;
+constexpr uint16_t SVG_LENGTHTYPE_LH = 16;
+constexpr uint16_t SVG_LENGTHTYPE_RLH = 17;
+constexpr uint16_t SVG_LENGTHTYPE_REX = 18;
+constexpr uint16_t SVG_LENGTHTYPE_RCH = 19;
+constexpr uint16_t SVG_LENGTHTYPE_RIC = 20;
+constexpr uint16_t SVG_LENGTHTYPE_RCAP = 21;
+constexpr uint16_t SVG_LENGTHTYPE_VW = 22;
+constexpr uint16_t SVG_LENGTHTYPE_VH = 23;
+constexpr uint16_t SVG_LENGTHTYPE_VMIN = 24;
+constexpr uint16_t SVG_LENGTHTYPE_VMAX = 25;
 
 void SVGLength::GetValueAsString(nsAString& aValue) const {
   nsTextFormatter::ssprintf(aValue, u"%g", (double)mValue);
@@ -75,13 +75,13 @@ bool SVGLength::SetValueFromString(const nsAString& aString) {
 }
 
 /*static*/
-bool SVGLength::IsAbsoluteUnit(uint8_t aUnit) {
+bool SVGLength::IsAbsoluteUnit(uint16_t aUnit) {
   return aUnit == SVG_LENGTHTYPE_NUMBER ||
          (aUnit >= SVG_LENGTHTYPE_PX && aUnit <= SVG_LENGTHTYPE_Q);
 }
 
 /*static*/
-bool SVGLength::IsFontRelativeUnit(uint8_t aUnit) {
+bool SVGLength::IsFontRelativeUnit(uint16_t aUnit) {
   return aUnit == SVG_LENGTHTYPE_EMS || aUnit == SVG_LENGTHTYPE_EXS ||
          (aUnit >= SVG_LENGTHTYPE_CH && aUnit <= SVG_LENGTHTYPE_RCAP);
 }
@@ -97,7 +97,7 @@ bool SVGLength::IsFontRelativeUnit(uint8_t aUnit) {
  *   GetAbsUnitsPerAbsUnit(SVG_LENGTHTYPE_CM, SVG_LENGTHTYPE_IN)
  */
 /*static*/
-float SVGLength::GetAbsUnitsPerAbsUnit(uint8_t aUnits, uint8_t aPerUnit) {
+float SVGLength::GetAbsUnitsPerAbsUnit(uint16_t aUnits, uint16_t aPerUnit) {
   MOZ_ASSERT(SVGLength::IsAbsoluteUnit(aUnits), "Not a CSS absolute unit");
   MOZ_ASSERT(SVGLength::IsAbsoluteUnit(aPerUnit), "Not a CSS absolute unit");
 
@@ -125,14 +125,14 @@ float SVGLength::GetAbsUnitsPerAbsUnit(uint8_t aUnits, uint8_t aPerUnit) {
       {1.0583333332f, 40.0f, 4.0f, 45.354336f, 1.41111111111f, 16.9333333333f,
        1.0f}};
 
-  auto ToIndex = [](uint8_t aUnit) {
+  auto ToIndex = [](uint16_t aUnit) {
     return aUnit == SVG_LENGTHTYPE_NUMBER ? 0 : aUnit - 5;
   };
 
   return CSSAbsoluteUnitConversionFactors[ToIndex(aUnits)][ToIndex(aPerUnit)];
 }
 
-float SVGLength::GetValueInSpecifiedUnit(uint8_t aUnit,
+float SVGLength::GetValueInSpecifiedUnit(uint16_t aUnit,
                                          const SVGElement* aElement,
                                          Axis aAxis) const {
   if (aUnit == mUnit) {
@@ -182,7 +182,7 @@ enum class ZoomType { Self, SelfFromRoot, None };
 
 /*static*/
 float SVGLength::GetPixelsPerUnit(const UserSpaceMetrics& aMetrics,
-                                  uint8_t aUnitType, Axis aAxis,
+                                  uint16_t aUnitType, Axis aAxis,
                                   bool aApplyZoom) {
   auto zoomType = ZoomType::Self;
   float value = [&]() -> float {
@@ -265,7 +265,7 @@ float SVGLength::GetPixelsPerUnit(const UserSpaceMetrics& aMetrics,
 float SVGLength::GetPixelsPerCSSUnit(const UserSpaceMetrics& aMetrics,
                                      nsCSSUnit aCSSUnit, Axis aAxis,
                                      bool aApplyZoom) {
-  uint8_t unitType;
+  uint16_t unitType;
   switch (aCSSUnit) {
 #define SVG_LENGTH_EMPTY_UNIT(id, cssValue)
 #define SVG_LENGTH_UNIT(id, name, cssValue) \
@@ -284,7 +284,7 @@ float SVGLength::GetPixelsPerCSSUnit(const UserSpaceMetrics& aMetrics,
 }
 
 /* static */
-nsCSSUnit SVGLength::SpecifiedUnitTypeToCSSUnit(uint8_t aSpecifiedUnit) {
+nsCSSUnit SVGLength::SpecifiedUnitTypeToCSSUnit(uint16_t aSpecifiedUnit) {
   switch (aSpecifiedUnit) {
 #define SVG_LENGTH_EMPTY_UNIT(id, cssValue) \
   case id:                                  \

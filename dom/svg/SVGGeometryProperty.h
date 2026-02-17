@@ -276,7 +276,7 @@ bool ResolveAll(const SVGElement* aElement,
 
 #undef SVGGEOMETRYPROPERTY_EVAL_ALL
 
-nsCSSUnit SpecifiedUnitTypeToCSSUnit(uint8_t aSpecifiedUnit);
+nsCSSUnit SpecifiedUnitTypeToCSSUnit(uint16_t aSpecifiedUnit);
 NonCustomCSSPropertyId AttrEnumToCSSPropId(const SVGElement* aElement,
                                            uint8_t aAttrEnum);
 

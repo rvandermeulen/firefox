@@ -60,15 +60,15 @@ class SVGAnimatedOrient {
   }
   SVGEnumValue GetAnimType() const { return mAnimType; }
 
-  void SetBaseValue(float aValue, uint8_t aUnit, SVGElement* aSVGElement,
+  void SetBaseValue(float aValue, uint16_t aUnit, SVGElement* aSVGElement,
                     bool aDoSetAttr);
   void SetBaseType(SVGEnumValue aValue, SVGElement* aSVGElement,
                    ErrorResult& aRv);
-  void SetAnimValue(float aValue, uint8_t aUnit, SVGElement* aSVGElement);
+  void SetAnimValue(float aValue, uint16_t aUnit, SVGElement* aSVGElement);
   void SetAnimType(SVGEnumValue aValue, SVGElement* aSVGElement);
 
-  uint8_t GetBaseValueUnit() const { return mBaseValUnit; }
-  uint8_t GetAnimValueUnit() const { return mAnimValUnit; }
+  uint16_t GetBaseValueUnit() const { return mBaseValUnit; }
+  uint16_t GetAnimValueUnit() const { return mAnimValUnit; }
   float GetBaseValInSpecifiedUnits() const { return mBaseVal; }
   float GetAnimValInSpecifiedUnits() const { return mAnimVal; }
 
@@ -83,7 +83,7 @@ class SVGAnimatedOrient {
 
   static bool GetValueFromString(const nsAString& aString, float& aValue,
                                  uint16_t* aUnitType);
-  static float GetDegreesPerUnit(uint8_t aUnit);
+  static float GetDegreesPerUnit(uint16_t aUnit);
 
  private:
   float mAnimVal;
