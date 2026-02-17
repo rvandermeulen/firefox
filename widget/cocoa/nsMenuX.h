@@ -205,7 +205,7 @@ class nsMenuX final : public nsMenuParentX,
   void RemoveMenuChild(const MenuChild& aChild);
   mozilla::Maybe<MenuChild> CreateMenuChild(nsIContent* aContent);
   RefPtr<nsMenuItemX> CreateMenuItem(nsIContent* aMenuItemContent);
-  GeckoNSMenu* CreateMenuWithGeckoString(nsString& aMenuTitle,
+  GeckoNSMenu* CreateMenuWithGeckoString(const nsString& aMenuTitle,
                                          bool aShowServices);
   void DidFirePopupShowing();
 

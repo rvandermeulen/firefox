@@ -202,7 +202,7 @@ void nsMenuX::DetachFromGroupOwnerRecursive() {
     return;
   }
 
-  if (mMenuGroupOwner && mContent) {
+  if (mContent) {
     mMenuGroupOwner->UnregisterForContentChanges(mContent);
   }
   mMenuGroupOwner = nullptr;
@@ -640,6 +640,7 @@ void nsMenuX::MenuClosedAsync() {
     mContent->AsElement()->UnsetAttr(kNameSpaceID_None, nsGkAtoms::open, true);
   }
 
+  status = nsEventStatus_eIgnore;
   WidgetMouseEvent popupHidden(true, eXULPopupHidden, nullptr,
                                WidgetMouseEvent::eReal);
   EventDispatcher::Dispatch(dispatchTo, nullptr, &popupHidden, nullptr,
@@ -858,7 +859,7 @@ nsresult nsMenuX::GetEnabled(bool* aIsEnabled) {
   return NS_OK;
 }
 
-GeckoNSMenu* nsMenuX::CreateMenuWithGeckoString(nsString& aMenuTitle,
+GeckoNSMenu* nsMenuX::CreateMenuWithGeckoString(const nsString& aMenuTitle,
                                                 bool aShowServices) {
   NS_OBJC_BEGIN_TRY_ABORT_BLOCK;
 
@@ -1092,7 +1093,9 @@ void nsMenuX::ObserveContentRemoved(dom::Document* aDocument,
   }
 
   SetRebuild(true);
-  mMenuGroupOwner->UnregisterForContentChanges(aChild);
+  if (mMenuGroupOwner) {
+    mMenuGroupOwner->UnregisterForContentChanges(aChild);
+  }
 
   if (!mIsOpen) {
     // We will update the menu contents the next time the menu is opened.
