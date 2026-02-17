@@ -2003,10 +2003,18 @@ void GLContext::AssertNotPassingStackBufferToTheGL(const void* ptr) {
   // approach of only asserting when address and someStackAddress are
   // on the same page.
   bool isStackAddress = pageDistance <= 1;
+
+#  if !(defined(_WIN32) && !defined(_WIN64))
+  // On 32-bit Windows, heap and stack are adjacent in the limited 2GB address
+  // space, causing false positives where legitimate heap allocations appear
+  // within 1 page of the stack. Disable this assertion there.
   MOZ_ASSERT(!isStackAddress,
              "Please don't pass stack arrays to the GL. "
              "Consider using HeapCopyOfStackArray. "
              "See bug 1005658.");
+#  else
+  (void)isStackAddress;
+#  endif
 }
 
 void GLContext::CreatedProgram(GLContext* aOrigin, GLuint aName) {
