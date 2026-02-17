@@ -5240,7 +5240,7 @@ nsresult Preferences::InitInitialObjects(bool aIsStartup) {
     }
   }
 
-#if defined(MOZ_WIDGET_GTK)
+#if defined(MOZ_WIDGET_GTK) && defined(MOZ_SYSTEM_PREFERENCES)
   // To ensure the system-wide preferences are not overwritten by
   // firefox/browser/defauts/preferences/*.js we need to load
   // the /etc/firefox/defaults/pref/*.js settings as last.
