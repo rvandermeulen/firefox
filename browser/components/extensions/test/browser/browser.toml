@@ -343,6 +343,8 @@ https_first_disabled = true
 
 ["browser_ext_pageAction_click_types.js"]
 
+["browser_ext_pageAction_color_scheme_svg.js"]
+
 ["browser_ext_pageAction_context.js"]
 https_first_disabled = true
 
