@@ -148,10 +148,6 @@ void js::intl::DurationFormatObject::finalize(JS::GCContext* gcx,
     RemoveICUCellMemory(gcx, obj, ListFormatObject::EstimatedMemoryUse);
     delete lf;
   }
-
-  if (auto* options = durationFormat->getOptions()) {
-    gcx->delete_(obj, options, MemoryUse::IntlOptions);
-  }
 }
 
 static constexpr std::string_view DisplayToString(DurationDisplay display) {
@@ -526,10 +522,7 @@ static bool InitializeDurationFormat(
   }
   durationFormat->setRequestedLocales(requestedLocalesArray);
 
-  auto dfOptions = cx->make_unique<DurationFormatOptions>();
-  if (!dfOptions) {
-    return false;
-  }
+  DurationFormatOptions dfOptions{};
 
   if (args.hasDefined(1)) {
     // ResolveOptions, steps 2-3.
@@ -579,7 +572,7 @@ static bool InitializeDurationFormat(
                          DurationBaseStyle::Short, &style)) {
       return false;
     }
-    dfOptions->style = style;
+    dfOptions.style = style;
 
     // Step 14.
     //
@@ -596,8 +589,8 @@ static bool InitializeDurationFormat(
                                 DurationStyle::Short, emptyPrevStyle, &years)) {
       return false;
     }
-    dfOptions->yearsStyle = years.first;
-    dfOptions->yearsDisplay = years.second;
+    dfOptions.yearsStyle = years.first;
+    dfOptions.yearsDisplay = years.second;
 
     DurationUnitOption months;
     if (!GetDurationUnitOptions(cx, TemporalUnit::Month, options, style,
@@ -605,24 +598,24 @@ static bool InitializeDurationFormat(
                                 &months)) {
       return false;
     }
-    dfOptions->monthsStyle = months.first;
-    dfOptions->monthsDisplay = months.second;
+    dfOptions.monthsStyle = months.first;
+    dfOptions.monthsDisplay = months.second;
 
     DurationUnitOption weeks;
     if (!GetDurationUnitOptions(cx, TemporalUnit::Week, options, style,
                                 DurationStyle::Short, emptyPrevStyle, &weeks)) {
       return false;
     }
-    dfOptions->weeksStyle = weeks.first;
-    dfOptions->weeksDisplay = weeks.second;
+    dfOptions.weeksStyle = weeks.first;
+    dfOptions.weeksDisplay = weeks.second;
 
     DurationUnitOption days;
     if (!GetDurationUnitOptions(cx, TemporalUnit::Day, options, style,
                                 DurationStyle::Short, emptyPrevStyle, &days)) {
       return false;
     }
-    dfOptions->daysStyle = days.first;
-    dfOptions->daysDisplay = days.second;
+    dfOptions.daysStyle = days.first;
+    dfOptions.daysDisplay = days.second;
 
     DurationUnitOption hours;
     if (!GetDurationUnitOptions(cx, TemporalUnit::Hour, options, style,
@@ -630,8 +623,8 @@ static bool InitializeDurationFormat(
                                 &hours)) {
       return false;
     }
-    dfOptions->hoursStyle = hours.first;
-    dfOptions->hoursDisplay = hours.second;
+    dfOptions.hoursStyle = hours.first;
+    dfOptions.hoursDisplay = hours.second;
 
     DurationUnitOption minutes;
     if (!GetDurationUnitOptions(cx, TemporalUnit::Minute, options, style,
@@ -639,8 +632,8 @@ static bool InitializeDurationFormat(
                                 &minutes)) {
       return false;
     }
-    dfOptions->minutesStyle = minutes.first;
-    dfOptions->minutesDisplay = minutes.second;
+    dfOptions.minutesStyle = minutes.first;
+    dfOptions.minutesDisplay = minutes.second;
 
     DurationUnitOption seconds;
     if (!GetDurationUnitOptions(cx, TemporalUnit::Second, options, style,
@@ -648,8 +641,8 @@ static bool InitializeDurationFormat(
                                 &seconds)) {
       return false;
     }
-    dfOptions->secondsStyle = seconds.first;
-    dfOptions->secondsDisplay = seconds.second;
+    dfOptions.secondsStyle = seconds.first;
+    dfOptions.secondsDisplay = seconds.second;
 
     DurationUnitOption milliseconds;
     if (!GetDurationUnitOptions(cx, TemporalUnit::Millisecond, options, style,
@@ -657,8 +650,8 @@ static bool InitializeDurationFormat(
                                 &milliseconds)) {
       return false;
     }
-    dfOptions->millisecondsStyle = milliseconds.first;
-    dfOptions->millisecondsDisplay = milliseconds.second;
+    dfOptions.millisecondsStyle = milliseconds.first;
+    dfOptions.millisecondsDisplay = milliseconds.second;
 
     DurationUnitOption microseconds;
     if (!GetDurationUnitOptions(cx, TemporalUnit::Microsecond, options, style,
@@ -666,8 +659,8 @@ static bool InitializeDurationFormat(
                                 &microseconds)) {
       return false;
     }
-    dfOptions->microsecondsStyle = microseconds.first;
-    dfOptions->microsecondsDisplay = microseconds.second;
+    dfOptions.microsecondsStyle = microseconds.first;
+    dfOptions.microsecondsDisplay = microseconds.second;
 
     DurationUnitOption nanoseconds;
     if (!GetDurationUnitOptions(cx, TemporalUnit::Nanosecond, options, style,
@@ -675,8 +668,8 @@ static bool InitializeDurationFormat(
                                 &nanoseconds)) {
       return false;
     }
-    dfOptions->nanosecondsStyle = nanoseconds.first;
-    dfOptions->nanosecondsDisplay = nanoseconds.second;
+    dfOptions.nanosecondsStyle = nanoseconds.first;
+    dfOptions.nanosecondsDisplay = nanoseconds.second;
 
     // Step 16.
     mozilla::Maybe<int32_t> fractionalDigits{};
@@ -684,12 +677,10 @@ static bool InitializeDurationFormat(
                          &fractionalDigits)) {
       return false;
     }
-    dfOptions->fractionalDigits =
+    dfOptions.fractionalDigits =
         static_cast<int8_t>(fractionalDigits.valueOr(-1));
   }
-  durationFormat->setOptions(dfOptions.release());
-  AddCellMemory(durationFormat, sizeof(DurationFormatOptions),
-                MemoryUse::IntlOptions);
+  durationFormat->setOptions(dfOptions);
 
   return true;
 }
@@ -910,10 +901,9 @@ static auto ToDurationValue(const temporal::Duration& duration,
  */
 static std::pair<uint32_t, uint32_t> GetFractionalDigits(
     const DurationFormatObject* durationFormat) {
-  auto* options = durationFormat->getOptions();
-  MOZ_ASSERT(options, "unexpected unresolved duration format options");
+  auto options = durationFormat->getOptions();
 
-  int8_t digits = options->fractionalDigits;
+  int8_t digits = options.fractionalDigits;
   MOZ_ASSERT(digits <= 9);
 
   if (digits < 0) {
@@ -1184,10 +1174,8 @@ static mozilla::intl::NumberFormat* NewNumericFormatter(
   // FormatNumericHours, step 2.
   // FormatNumericMinutes, step 3.
   // FormatNumericSeconds, step 3.
-  auto* dfOptions = durationFormat->getOptions();
-  MOZ_ASSERT(dfOptions, "unexpected unresolved duration format options");
-
-  auto style = GetUnitOptions(*dfOptions, unit).style;
+  auto dfOptions = durationFormat->getOptions();
+  auto style = GetUnitOptions(dfOptions, unit).style;
 
   // FormatNumericHours, step 3.
   // FormatNumericMinutes, step 4.
@@ -1265,14 +1253,13 @@ static bool NextUnitFractional(const DurationFormatObject* durationFormat,
                                TemporalUnit unit) {
   // Steps 1-3.
   if (TemporalUnit::Second <= unit && unit <= TemporalUnit::Microsecond) {
-    auto* options = durationFormat->getOptions();
-    MOZ_ASSERT(options, "unexpected unresolved duration format options");
+    auto options = durationFormat->getOptions();
 
     using TemporalUnitType = std::underlying_type_t<TemporalUnit>;
 
     auto nextUnit =
         static_cast<TemporalUnit>(static_cast<TemporalUnitType>(unit) + 1);
-    auto nextStyle = GetUnitOptions(*options, nextUnit).style;
+    auto nextStyle = GetUnitOptions(options, nextUnit).style;
     return nextStyle == DurationStyle::Numeric;
   }
 
@@ -1419,8 +1406,7 @@ static bool FormatNumericUnits(JSContext* cx,
                                TemporalUnit firstNumericUnit,
                                bool signDisplayed, bool formatToParts,
                                MutableHandle<Value> result) {
-  auto* options = durationFormat->getOptions();
-  MOZ_ASSERT(options, "unexpected unresolved duration format options");
+  auto options = durationFormat->getOptions();
 
   Rooted<Value> formattedValue(cx);
 
@@ -1439,19 +1425,19 @@ static bool FormatNumericUnits(JSContext* cx,
   auto hoursValue = DurationValue{duration.hours};
 
   // Step 4.
-  auto hoursDisplay = GetUnitOptions(*options, TemporalUnit::Hour).display;
+  auto hoursDisplay = GetUnitOptions(options, TemporalUnit::Hour).display;
 
   // Step 5.
   auto minutesValue = DurationValue{duration.minutes};
 
   // Step 6.
-  auto minutesDisplay = GetUnitOptions(*options, TemporalUnit::Minute).display;
+  auto minutesDisplay = GetUnitOptions(options, TemporalUnit::Minute).display;
 
   // Step 7-8.
   auto secondsValue = ComputeFractionalDigits(duration, TemporalUnit::Second);
 
   // Step 9.
-  auto secondsDisplay = GetUnitOptions(*options, TemporalUnit::Second).display;
+  auto secondsDisplay = GetUnitOptions(options, TemporalUnit::Second).display;
 
   // Step 10.
   bool hoursFormatted = false;
@@ -1656,7 +1642,7 @@ static mozilla::intl::ListFormat* NewDurationListFormat(
   if (!ResolveLocale(cx, durationFormat)) {
     return nullptr;
   }
-  auto dfOptions = *durationFormat->getOptions();
+  auto dfOptions = durationFormat->getOptions();
 
   auto locale = EncodeLocale(cx, durationFormat->getLocale());
   if (!locale) {
@@ -1915,7 +1901,7 @@ static bool PartitionDurationFormatPattern(
   static_assert(durationUnits.size() == FormattedDurationValueVectorCapacity,
                 "inline stack capacity large enough for all duration units");
 
-  auto options = *durationFormat->getOptions();
+  auto options = durationFormat->getOptions();
 
   Rooted<Value> formattedValue(cx);
 
@@ -2078,7 +2064,7 @@ static bool durationFormat_resolvedOptions(JSContext* cx,
   if (!ResolveLocale(cx, durationFormat)) {
     return false;
   }
-  auto dfOptions = *durationFormat->getOptions();
+  auto dfOptions = durationFormat->getOptions();
 
   // Step 3.
   Rooted<IdValueVector> options(cx, cx);

@@ -7,10 +7,14 @@
 #ifndef builtin_intl_DurationFormat_h
 #define builtin_intl_DurationFormat_h
 
+#include "mozilla/Assertions.h"
+
 #include <stdint.h>
 
+#include "builtin/intl/Packed.h"
 #include "builtin/temporal/TemporalUnit.h"
 #include "js/Class.h"
+#include "js/Value.h"
 #include "vm/NativeObject.h"
 #include "vm/StringType.h"
 
@@ -52,6 +56,99 @@ struct DurationUnitOptions {
   // Use the same bit-widths for fast extraction from DurationFormatOptions.
   DurationDisplay display : 1;
   DurationStyle style : 3;
+};
+
+struct PackedDurationFormatOptions {
+  using RawValue = uint64_t;
+
+  template <typename T>
+  using DisplayField =
+      packed::EnumField<T, DurationDisplay::Auto, DurationDisplay::Always>;
+
+  template <typename T>
+  using StyleField =
+      packed::EnumField<T, DurationStyle::Long, DurationStyle::TwoDigit>;
+
+#define DECLARE_DURATION_UNIT(Name, Previous)        \
+  using Name##DisplayField = DisplayField<Previous>; \
+  using Name##StyleField = StyleField<Name##DisplayField>;
+
+  DECLARE_DURATION_UNIT(Years, RawValue);
+  DECLARE_DURATION_UNIT(Months, YearsStyleField);
+  DECLARE_DURATION_UNIT(Weeks, MonthsStyleField);
+  DECLARE_DURATION_UNIT(Days, WeeksStyleField);
+  DECLARE_DURATION_UNIT(Hours, DaysStyleField);
+  DECLARE_DURATION_UNIT(Minutes, HoursStyleField);
+  DECLARE_DURATION_UNIT(Seconds, MinutesStyleField);
+  DECLARE_DURATION_UNIT(Milliseconds, SecondsStyleField);
+  DECLARE_DURATION_UNIT(Microseconds, MillisecondsStyleField);
+  DECLARE_DURATION_UNIT(Nanoseconds, MicrosecondsStyleField);
+
+#undef DECLARE_DURATION_UNIT
+
+  using BaseStyleField =
+      packed::EnumField<NanosecondsStyleField, DurationBaseStyle::Long,
+                        DurationBaseStyle::Digital>;
+
+  using FractionalDigitsField =
+      packed::RangeField<BaseStyleField, int8_t, -1, 9>;
+
+  using PackedValue = packed::PackedValue<FractionalDigitsField>;
+
+  static auto pack(const DurationFormatOptions& options) {
+    RawValue rawValue =
+        YearsDisplayField::pack(options.yearsDisplay) |
+        YearsStyleField::pack(options.yearsStyle) |
+        MonthsDisplayField::pack(options.monthsDisplay) |
+        MonthsStyleField::pack(options.monthsStyle) |
+        WeeksDisplayField::pack(options.weeksDisplay) |
+        WeeksStyleField::pack(options.weeksStyle) |
+        DaysDisplayField::pack(options.daysDisplay) |
+        DaysStyleField::pack(options.daysStyle) |
+        HoursDisplayField::pack(options.hoursDisplay) |
+        HoursStyleField::pack(options.hoursStyle) |
+        MinutesDisplayField::pack(options.minutesDisplay) |
+        MinutesStyleField::pack(options.minutesStyle) |
+        SecondsDisplayField::pack(options.secondsDisplay) |
+        SecondsStyleField::pack(options.secondsStyle) |
+        MillisecondsDisplayField::pack(options.millisecondsDisplay) |
+        MillisecondsStyleField::pack(options.millisecondsStyle) |
+        MicrosecondsDisplayField::pack(options.microsecondsDisplay) |
+        MicrosecondsStyleField::pack(options.microsecondsStyle) |
+        NanosecondsDisplayField::pack(options.nanosecondsDisplay) |
+        NanosecondsStyleField::pack(options.nanosecondsStyle) |
+        BaseStyleField::pack(options.style) |
+        FractionalDigitsField::pack(options.fractionalDigits);
+    return PackedValue::toValue(rawValue);
+  }
+
+  static auto unpack(JS::Value value) {
+    RawValue rawValue = PackedValue::fromValue(value);
+    return DurationFormatOptions{
+        .yearsDisplay = YearsDisplayField::unpack(rawValue),
+        .yearsStyle = YearsStyleField::unpack(rawValue),
+        .monthsDisplay = MonthsDisplayField::unpack(rawValue),
+        .monthsStyle = MonthsStyleField::unpack(rawValue),
+        .weeksDisplay = WeeksDisplayField::unpack(rawValue),
+        .weeksStyle = WeeksStyleField::unpack(rawValue),
+        .daysDisplay = DaysDisplayField::unpack(rawValue),
+        .daysStyle = DaysStyleField::unpack(rawValue),
+        .hoursDisplay = HoursDisplayField::unpack(rawValue),
+        .hoursStyle = HoursStyleField::unpack(rawValue),
+        .minutesDisplay = MinutesDisplayField::unpack(rawValue),
+        .minutesStyle = MinutesStyleField::unpack(rawValue),
+        .secondsDisplay = SecondsDisplayField::unpack(rawValue),
+        .secondsStyle = SecondsStyleField::unpack(rawValue),
+        .millisecondsDisplay = MillisecondsDisplayField::unpack(rawValue),
+        .millisecondsStyle = MillisecondsStyleField::unpack(rawValue),
+        .microsecondsDisplay = MicrosecondsDisplayField::unpack(rawValue),
+        .microsecondsStyle = MicrosecondsStyleField::unpack(rawValue),
+        .nanosecondsDisplay = NanosecondsDisplayField::unpack(rawValue),
+        .nanosecondsStyle = NanosecondsStyleField::unpack(rawValue),
+        .style = BaseStyleField::unpack(rawValue),
+        .fractionalDigits = FractionalDigitsField::unpack(rawValue),
+    };
+  }
 };
 
 class DurationFormatObject : public NativeObject {
@@ -128,16 +225,16 @@ class DurationFormatObject : public NativeObject {
     setFixedSlot(NUMBERING_SYSTEM, JS::StringValue(numberingSystem));
   }
 
-  DurationFormatOptions* getOptions() const {
+  DurationFormatOptions getOptions() const {
     const auto& slot = getFixedSlot(OPTIONS_SLOT);
     if (slot.isUndefined()) {
-      return nullptr;
+      return DurationFormatOptions{};
     }
-    return static_cast<DurationFormatOptions*>(slot.toPrivate());
+    return PackedDurationFormatOptions::unpack(slot);
   }
 
-  void setOptions(DurationFormatOptions* options) {
-    setFixedSlot(OPTIONS_SLOT, JS::PrivateValue(options));
+  void setOptions(const DurationFormatOptions& options) {
+    setFixedSlot(OPTIONS_SLOT, PackedDurationFormatOptions::pack(options));
   }
 
   mozilla::intl::NumberFormat* getNumberFormat(
