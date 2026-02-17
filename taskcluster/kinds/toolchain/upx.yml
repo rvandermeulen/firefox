@@ -17,11 +17,13 @@ task-defaults:
             - upx
 
 linux64-upx:
+    description: "UPX toolchain build (with bin subdirectory)"
     treeherder:
         symbol: TL(upx)
     worker-type: b-linux-docker-amd
 
 win64-upx:
+    description: "UPX toolchain build (with bin subdirectory)"
     treeherder:
         symbol: TW64(upx)
     worker-type: b-win2022
