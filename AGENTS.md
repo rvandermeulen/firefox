@@ -26,7 +26,7 @@ that has definitely changed locally. If you're unsure, ask.
 - `./mach test --auto`: Run tests
 - `./mach run`: Run the project
 - `./mach doc --no-serve --no-open`: Build the documentation
-- `treeherder-check`: Pull CI results for a try push
+- `treeherder-cli`: Pull CI results for a try push
 - Use the MCP resource `@moz:bugzilla://bug/{bug_id}` to retrieve a bug
 - Use the MCP resource `@moz:phabricator://revision/D{revision_id}` to retrieve a Phabricator revision
 
