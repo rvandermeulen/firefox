@@ -35,7 +35,6 @@
 #include "builtin/intl/LocaleNegotiation.h"
 #include "builtin/intl/NumberFormatOptions.h"
 #include "builtin/intl/ParameterNegotiation.h"
-#include "builtin/intl/PluralRules.h"
 #include "builtin/intl/RelativeTimeFormat.h"
 #include "builtin/intl/UsingEnum.h"
 #include "builtin/Number.h"
