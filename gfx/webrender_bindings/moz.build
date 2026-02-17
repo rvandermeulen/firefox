@@ -99,9 +99,11 @@ if CONFIG["MOZ_WIDGET_TOOLKIT"] == "gtk":
 
 if CONFIG["MOZ_WAYLAND"]:
     EXPORTS.mozilla.webrender += [
+        "RenderCompositorLayerNative.h",
         "RenderCompositorNative.h",
     ]
     SOURCES += [
+        "RenderCompositorLayerNative.cpp",
         "RenderCompositorNative.cpp",
     ]
 

@@ -28,6 +28,7 @@
 #endif
 
 #ifdef MOZ_WAYLAND
+#  include "mozilla/webrender/RenderCompositorLayerNative.h"
 #  include "mozilla/webrender/RenderCompositorNative.h"
 #endif
 
@@ -244,7 +245,11 @@ UniquePtr<RenderCompositor> RenderCompositor::Create(
 #if defined(MOZ_WAYLAND)
   if (gfx::gfxVars::UseWebRenderCompositor() &&
       aWidget->GetCompositorOptions().AllowNativeCompositor()) {
-    return RenderCompositorNativeOGL::Create(aWidget, aError);
+    if (StaticPrefs::gfx_webrender_layer_compositor_AtStartup()) {
+      return RenderCompositorLayerNativeOGL::Create(aWidget, aError);
+    } else {
+      return RenderCompositorNativeOGL::Create(aWidget, aError);
+    }
   }
 #endif
 
