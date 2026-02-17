@@ -228,6 +228,9 @@ class StorageUI extends EventEmitter {
     this._addButton = this._panelDoc.getElementById("add-button");
     this._addButton.addEventListener("click", this.onAddItem);
 
+    this._deleteAllButton = this._panelDoc.getElementById("delete-all-button");
+    this._deleteAllButton.addEventListener("click", this.onRemoveAll);
+
     this._window.addEventListener("resize", this.onPanelWindowResize, true);
 
     this._variableViewPopupCopy = this._panelDoc.getElementById(
@@ -1009,6 +1012,9 @@ class StorageUI extends EventEmitter {
 
     // Add is only supported if the selected item has a host.
     this._addButton.hidden = !host || !this.supportsAddItem(type, host);
+
+    // Delete All is only supported if the selected item has a host.
+    this._deleteAllButton.hidden = !host || !this.supportsRemoveAll(type, host);
   }
 
   /**
