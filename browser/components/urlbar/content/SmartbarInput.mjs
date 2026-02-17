@@ -1251,7 +1251,6 @@ export class SmartbarInput extends HTMLElement {
         selType: "ask_button",
         result: null,
       });
-      this.#clearSmartbarInput();
       return true;
     }
 
@@ -1324,6 +1323,7 @@ export class SmartbarInput extends HTMLElement {
       this.#isSmartbarMode &&
       this._handleSmartbarOnChangeAction(event, triggeringPrincipal)
     ) {
+      this.#clearSmartbarInput();
       return;
     }
     let element = this.view.selectedElement;
@@ -1559,6 +1559,8 @@ export class SmartbarInput extends HTMLElement {
         dueToTabSwitch: true,
         hideSearchTerms: true,
       });
+    } else if (this.#isSmartbarMode) {
+      this.#clearSmartbarInput();
     } else {
       this.value = "";
     }
@@ -2094,6 +2096,7 @@ export class SmartbarInput extends HTMLElement {
     this._lastSearchString = "";
     this._autofillPlaceholder = null;
     this._resultForCurrentValue = null;
+    this.smartbarAction = "";
     this.setSelectionRange(0, 0);
     this.view.close();
   }
@@ -2429,6 +2432,7 @@ export class SmartbarInput extends HTMLElement {
     }
 
     if (this._suppressStartQuery) {
+      this.#updateSmartbarCTAButton();
       return;
     }
 
@@ -6096,7 +6100,7 @@ export class SmartbarInput extends HTMLElement {
    */
   #updateSmartbarCTAButton(firstResult) {
     if (!firstResult || !firstResult.heuristic) {
-      this.smartbarAction = "";
+      this.smartbarAction = this.value ? "chat" : "";
       return;
     }
     switch (firstResult.type) {
