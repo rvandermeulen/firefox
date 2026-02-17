@@ -138,22 +138,25 @@ enum class DurationDisplay : uint8_t { Auto, Always };
 enum class DurationStyle : uint8_t { Long, Short, Narrow, Numeric, TwoDigit };
 enum class DurationBaseStyle : uint8_t { Long, Short, Narrow, Digital };
 
+#define FOR_EACH_DURATION_UNIT(MACRO) \
+  MACRO(Year, year)                   \
+  MACRO(Month, month)                 \
+  MACRO(Week, week)                   \
+  MACRO(Day, day)                     \
+  MACRO(Hour, hour)                   \
+  MACRO(Minute, minute)               \
+  MACRO(Second, second)               \
+  MACRO(Millisecond, millisecond)     \
+  MACRO(Microsecond, microsecond)     \
+  MACRO(Nanosecond, nanosecond)
+
 struct js::intl::DurationFormatOptions {
 // Packed representation to keep the unit options as small as possible.
-#define DECLARE_DURATION_UNIT(name)                          \
-  DurationDisplay name##Display : 1 = DurationDisplay::Auto; \
-  DurationStyle name##Style : 3 = DurationStyle::Short;
+#define DECLARE_DURATION_UNIT(UPPER, LOWER)                    \
+  DurationDisplay LOWER##sDisplay : 1 = DurationDisplay::Auto; \
+  DurationStyle LOWER##sStyle : 3 = DurationStyle::Short;
 
-  DECLARE_DURATION_UNIT(years);
-  DECLARE_DURATION_UNIT(months);
-  DECLARE_DURATION_UNIT(weeks);
-  DECLARE_DURATION_UNIT(days);
-  DECLARE_DURATION_UNIT(hours);
-  DECLARE_DURATION_UNIT(minutes);
-  DECLARE_DURATION_UNIT(seconds);
-  DECLARE_DURATION_UNIT(milliseconds);
-  DECLARE_DURATION_UNIT(microseconds);
-  DECLARE_DURATION_UNIT(nanoseconds);
+  FOR_EACH_DURATION_UNIT(DECLARE_DURATION_UNIT)
 
 #undef DECLARE_DURATION_UNIT
 
@@ -205,58 +208,31 @@ struct PackedDurationFormatOptions {
   using PackedValue = packed::PackedValue<FractionalDigitsField>;
 
   static auto pack(const DurationFormatOptions& options) {
-    RawValue rawValue =
-        YearsDisplayField::pack(options.yearsDisplay) |
-        YearsStyleField::pack(options.yearsStyle) |
-        MonthsDisplayField::pack(options.monthsDisplay) |
-        MonthsStyleField::pack(options.monthsStyle) |
-        WeeksDisplayField::pack(options.weeksDisplay) |
-        WeeksStyleField::pack(options.weeksStyle) |
-        DaysDisplayField::pack(options.daysDisplay) |
-        DaysStyleField::pack(options.daysStyle) |
-        HoursDisplayField::pack(options.hoursDisplay) |
-        HoursStyleField::pack(options.hoursStyle) |
-        MinutesDisplayField::pack(options.minutesDisplay) |
-        MinutesStyleField::pack(options.minutesStyle) |
-        SecondsDisplayField::pack(options.secondsDisplay) |
-        SecondsStyleField::pack(options.secondsStyle) |
-        MillisecondsDisplayField::pack(options.millisecondsDisplay) |
-        MillisecondsStyleField::pack(options.millisecondsStyle) |
-        MicrosecondsDisplayField::pack(options.microsecondsDisplay) |
-        MicrosecondsStyleField::pack(options.microsecondsStyle) |
-        NanosecondsDisplayField::pack(options.nanosecondsDisplay) |
-        NanosecondsStyleField::pack(options.nanosecondsStyle) |
-        BaseStyleField::pack(options.style) |
-        FractionalDigitsField::pack(options.fractionalDigits);
+#define PACK_DURATION_UNIT(UPPER, LOWER)                \
+  UPPER##sDisplayField::pack(options.LOWER##sDisplay) | \
+      UPPER##sStyleField::pack(options.LOWER##sStyle) |
+
+    RawValue rawValue = FOR_EACH_DURATION_UNIT(PACK_DURATION_UNIT)
+                            BaseStyleField::pack(options.style) |
+                        FractionalDigitsField::pack(options.fractionalDigits);
     return PackedValue::toValue(rawValue);
+
+#undef PACK_DURATION_UNIT
   }
 
   static auto unpack(JS::Value value) {
+#define UNPACK_DURATION_UNIT(UPPER, LOWER)                   \
+  .LOWER##sDisplay = UPPER##sDisplayField::unpack(rawValue), \
+  .LOWER##sStyle = UPPER##sStyleField::unpack(rawValue),
+
     RawValue rawValue = PackedValue::fromValue(value);
     return DurationFormatOptions{
-        .yearsDisplay = YearsDisplayField::unpack(rawValue),
-        .yearsStyle = YearsStyleField::unpack(rawValue),
-        .monthsDisplay = MonthsDisplayField::unpack(rawValue),
-        .monthsStyle = MonthsStyleField::unpack(rawValue),
-        .weeksDisplay = WeeksDisplayField::unpack(rawValue),
-        .weeksStyle = WeeksStyleField::unpack(rawValue),
-        .daysDisplay = DaysDisplayField::unpack(rawValue),
-        .daysStyle = DaysStyleField::unpack(rawValue),
-        .hoursDisplay = HoursDisplayField::unpack(rawValue),
-        .hoursStyle = HoursStyleField::unpack(rawValue),
-        .minutesDisplay = MinutesDisplayField::unpack(rawValue),
-        .minutesStyle = MinutesStyleField::unpack(rawValue),
-        .secondsDisplay = SecondsDisplayField::unpack(rawValue),
-        .secondsStyle = SecondsStyleField::unpack(rawValue),
-        .millisecondsDisplay = MillisecondsDisplayField::unpack(rawValue),
-        .millisecondsStyle = MillisecondsStyleField::unpack(rawValue),
-        .microsecondsDisplay = MicrosecondsDisplayField::unpack(rawValue),
-        .microsecondsStyle = MicrosecondsStyleField::unpack(rawValue),
-        .nanosecondsDisplay = NanosecondsDisplayField::unpack(rawValue),
-        .nanosecondsStyle = NanosecondsStyleField::unpack(rawValue),
-        .style = BaseStyleField::unpack(rawValue),
+        FOR_EACH_DURATION_UNIT(UNPACK_DURATION_UNIT).style =
+            BaseStyleField::unpack(rawValue),
         .fractionalDigits = FractionalDigitsField::unpack(rawValue),
     };
+
+#undef UNPACK_DURATION_UNIT
   }
 };
 
@@ -354,26 +330,14 @@ static constexpr std::string_view BaseStyleToString(DurationBaseStyle style) {
  */
 static std::string_view SingularUnitName(TemporalUnit unit) {
   switch (unit) {
-    case TemporalUnit::Year:
-      return "year";
-    case TemporalUnit::Month:
-      return "month";
-    case TemporalUnit::Week:
-      return "week";
-    case TemporalUnit::Day:
-      return "day";
-    case TemporalUnit::Hour:
-      return "hour";
-    case TemporalUnit::Minute:
-      return "minute";
-    case TemporalUnit::Second:
-      return "second";
-    case TemporalUnit::Millisecond:
-      return "millisecond";
-    case TemporalUnit::Microsecond:
-      return "microsecond";
-    case TemporalUnit::Nanosecond:
-      return "nanosecond";
+#define SINGULAR_UNIT_NAME(UPPER, LOWER) \
+  case TemporalUnit::UPPER:              \
+    return #LOWER;
+
+    FOR_EACH_DURATION_UNIT(SINGULAR_UNIT_NAME)
+
+#undef SINGULAR_UNIT_NAME
+
     case TemporalUnit::Unset:
     case TemporalUnit::Auto:
       break;
@@ -386,26 +350,14 @@ static std::string_view SingularUnitName(TemporalUnit unit) {
  */
 static std::string_view PluralUnitName(TemporalUnit unit) {
   switch (unit) {
-    case TemporalUnit::Year:
-      return "years";
-    case TemporalUnit::Month:
-      return "months";
-    case TemporalUnit::Week:
-      return "weeks";
-    case TemporalUnit::Day:
-      return "days";
-    case TemporalUnit::Hour:
-      return "hours";
-    case TemporalUnit::Minute:
-      return "minutes";
-    case TemporalUnit::Second:
-      return "seconds";
-    case TemporalUnit::Millisecond:
-      return "milliseconds";
-    case TemporalUnit::Microsecond:
-      return "microseconds";
-    case TemporalUnit::Nanosecond:
-      return "nanoseconds";
+#define PLURAL_UNIT_NAME(UPPER, LOWER) \
+  case TemporalUnit::UPPER:            \
+    return #LOWER "s";
+
+    FOR_EACH_DURATION_UNIT(PLURAL_UNIT_NAME)
+
+#undef PLURAL_UNIT_NAME
+
     case TemporalUnit::Unset:
     case TemporalUnit::Auto:
       break;
@@ -419,26 +371,14 @@ static std::string_view PluralUnitName(TemporalUnit unit) {
 static Handle<PropertyName*> DurationStyleName(TemporalUnit unit,
                                                JSContext* cx) {
   switch (unit) {
-    case TemporalUnit::Year:
-      return cx->names().years;
-    case TemporalUnit::Month:
-      return cx->names().months;
-    case TemporalUnit::Week:
-      return cx->names().weeks;
-    case TemporalUnit::Day:
-      return cx->names().days;
-    case TemporalUnit::Hour:
-      return cx->names().hours;
-    case TemporalUnit::Minute:
-      return cx->names().minutes;
-    case TemporalUnit::Second:
-      return cx->names().seconds;
-    case TemporalUnit::Millisecond:
-      return cx->names().milliseconds;
-    case TemporalUnit::Microsecond:
-      return cx->names().microseconds;
-    case TemporalUnit::Nanosecond:
-      return cx->names().nanoseconds;
+#define DURATION_STYLE_NAME(UPPER, LOWER) \
+  case TemporalUnit::UPPER:               \
+    return cx->names().LOWER##s;
+
+    FOR_EACH_DURATION_UNIT(DURATION_STYLE_NAME)
+
+#undef DURATION_STYLE_NAME
+
     case TemporalUnit::Unset:
     case TemporalUnit::Auto:
       break;
@@ -452,26 +392,14 @@ static Handle<PropertyName*> DurationStyleName(TemporalUnit unit,
 static Handle<PropertyName*> DurationDisplayName(TemporalUnit unit,
                                                  JSContext* cx) {
   switch (unit) {
-    case TemporalUnit::Year:
-      return cx->names().yearsDisplay;
-    case TemporalUnit::Month:
-      return cx->names().monthsDisplay;
-    case TemporalUnit::Week:
-      return cx->names().weeksDisplay;
-    case TemporalUnit::Day:
-      return cx->names().daysDisplay;
-    case TemporalUnit::Hour:
-      return cx->names().hoursDisplay;
-    case TemporalUnit::Minute:
-      return cx->names().minutesDisplay;
-    case TemporalUnit::Second:
-      return cx->names().secondsDisplay;
-    case TemporalUnit::Millisecond:
-      return cx->names().millisecondsDisplay;
-    case TemporalUnit::Microsecond:
-      return cx->names().microsecondsDisplay;
-    case TemporalUnit::Nanosecond:
-      return cx->names().nanosecondsDisplay;
+#define DURATION_DISPLAY_NAME(UPPER, LOWER) \
+  case TemporalUnit::UPPER:                 \
+    return cx->names().LOWER##sDisplay;
+
+    FOR_EACH_DURATION_UNIT(DURATION_DISPLAY_NAME)
+
+#undef DURATION_DISPLAY_NAME
+
     case TemporalUnit::Unset:
     case TemporalUnit::Auto:
       break;
@@ -1013,26 +941,14 @@ struct DurationValue {
 static auto ToDurationValue(const temporal::Duration& duration,
                             TemporalUnit unit) {
   switch (unit) {
-    case TemporalUnit::Year:
-      return DurationValue{duration.years};
-    case TemporalUnit::Month:
-      return DurationValue{duration.months};
-    case TemporalUnit::Week:
-      return DurationValue{duration.weeks};
-    case TemporalUnit::Day:
-      return DurationValue{duration.days};
-    case TemporalUnit::Hour:
-      return DurationValue{duration.hours};
-    case TemporalUnit::Minute:
-      return DurationValue{duration.minutes};
-    case TemporalUnit::Second:
-      return DurationValue{duration.seconds};
-    case TemporalUnit::Millisecond:
-      return DurationValue{duration.milliseconds};
-    case TemporalUnit::Microsecond:
-      return DurationValue{duration.microseconds};
-    case TemporalUnit::Nanosecond:
-      return DurationValue{duration.nanoseconds};
+#define TO_DURATION_VALUE(UPPER, LOWER) \
+  case TemporalUnit::UPPER:             \
+    return DurationValue{duration.LOWER##s};
+
+    FOR_EACH_DURATION_UNIT(TO_DURATION_VALUE)
+
+#undef TO_DURATION_VALUE
+
     case TemporalUnit::Unset:
     case TemporalUnit::Auto:
       break;
@@ -1059,34 +975,17 @@ static std::pair<uint32_t, uint32_t> GetFractionalDigits(
 static DurationUnitOptions GetUnitOptions(const DurationFormatOptions& options,
                                           TemporalUnit unit) {
   switch (unit) {
-#define GET_UNIT_OPTIONS(name) \
-  DurationUnitOptions { options.name##Display, options.name##Style }
+#define GET_UNIT_OPTIONS(UPPER, LOWER) \
+  case TemporalUnit::UPPER:            \
+    return DurationUnitOptions{options.LOWER##sDisplay, options.LOWER##sStyle};
 
-    case TemporalUnit::Year:
-      return GET_UNIT_OPTIONS(years);
-    case TemporalUnit::Month:
-      return GET_UNIT_OPTIONS(months);
-    case TemporalUnit::Week:
-      return GET_UNIT_OPTIONS(weeks);
-    case TemporalUnit::Day:
-      return GET_UNIT_OPTIONS(days);
-    case TemporalUnit::Hour:
-      return GET_UNIT_OPTIONS(hours);
-    case TemporalUnit::Minute:
-      return GET_UNIT_OPTIONS(minutes);
-    case TemporalUnit::Second:
-      return GET_UNIT_OPTIONS(seconds);
-    case TemporalUnit::Millisecond:
-      return GET_UNIT_OPTIONS(milliseconds);
-    case TemporalUnit::Microsecond:
-      return GET_UNIT_OPTIONS(microseconds);
-    case TemporalUnit::Nanosecond:
-      return GET_UNIT_OPTIONS(nanoseconds);
+    FOR_EACH_DURATION_UNIT(GET_UNIT_OPTIONS)
+
+#undef GET_UNIT_OPTIONS
+
     case TemporalUnit::Unset:
     case TemporalUnit::Auto:
       break;
-
-#undef GET_UNIT_OPTIONS
   }
   MOZ_CRASH("invalid duration unit");
 }
@@ -2320,3 +2219,5 @@ bool js::intl::TemporalDurationToLocaleString(JSContext* cx,
                                         /* formatToParts= */ false,
                                         args.rval());
 }
+
+#undef FOR_EACH_DURATION_UNIT
