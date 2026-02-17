@@ -11,33 +11,15 @@ const TEST_URL_2 = "http://127.0.0.1:36325/";
 const TEST_URL_3 = "https://www.wronguri.wronguri/";
 const TEST_URL_4 = "data:text/html,<html><body>test-doc-4</body></html>";
 
-async function waitForErrorPageLoad(browser) {
-  await SpecialPowers.spawn(browser, [], async () => {
-    if (!content.document.documentURI.startsWith("about:neterror")) {
-      return;
-    }
-
-    if (content.document.querySelector("#errorShortDesc, #netErrorIntro")) {
-      return;
-    }
-
-    await new Promise(resolve => {
-      content.document.addEventListener("AboutNetErrorLoad", resolve, {
-        once: true,
-      });
-    });
-
-    await new Promise(resolve => content.requestAnimationFrame(resolve));
-  });
-}
-
 add_task(async function () {
   // Open the inspector on a valid URL
   const { inspector } = await openInspectorForURL(TEST_URL_1);
 
   info("Navigate to closed port");
   await navigateTo(TEST_URL_2, { isErrorPage: true });
-  await waitForErrorPageLoad(gBrowser.selectedBrowser);
+
+  info("Wait for error page to initialize");
+  await TestUtils.waitForTick();
 
   const documentURI = await SpecialPowers.spawn(
     gBrowser.selectedBrowser,
@@ -71,7 +53,9 @@ add_task(async function () {
 
   info("Navigate to unknown domain");
   await navigateTo(TEST_URL_3, { isErrorPage: true });
-  await waitForErrorPageLoad(gBrowser.selectedBrowser);
+
+  info("Wait for error page to initialize");
+  await TestUtils.waitForTick();
 
   const bodyNode2 = await getNodeFront("body", inspector);
   ok(bodyNode2, "Inspector still works after navigating to another error page");
