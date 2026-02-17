@@ -15,6 +15,7 @@
 #include "builtin/intl/CommonFunctions.h"
 #include "builtin/intl/FormatBuffer.h"
 #include "builtin/intl/LocaleNegotiation.h"
+#include "builtin/intl/Packed.h"
 #include "builtin/intl/ParameterNegotiation.h"
 #include "builtin/intl/UsingEnum.h"
 #include "gc/GCContext.h"
@@ -100,6 +101,54 @@ const ClassSpec ListFormatObject::classSpec_ = {
     nullptr,
     ClassSpec::DontDefineConstructor,
 };
+
+struct js::intl::ListFormatOptions {
+  enum class Type : int8_t { Conjunction, Disjunction, Unit };
+  Type type = Type::Conjunction;
+
+  enum class Style : int8_t { Long, Short, Narrow };
+  Style style = Style::Long;
+};
+
+struct PackedListFormatOptions {
+  using RawValue = uint32_t;
+
+  using TypeField =
+      packed::EnumField<RawValue, ListFormatOptions::Type::Conjunction,
+                        ListFormatOptions::Type::Unit>;
+
+  using StyleField =
+      packed::EnumField<TypeField, ListFormatOptions::Style::Long,
+                        ListFormatOptions::Style::Narrow>;
+
+  using PackedValue = packed::PackedValue<StyleField>;
+
+  static auto pack(const ListFormatOptions& options) {
+    RawValue rawValue =
+        TypeField::pack(options.type) | StyleField::pack(options.style);
+    return PackedValue::toValue(rawValue);
+  }
+
+  static auto unpack(JS::Value value) {
+    RawValue rawValue = PackedValue::fromValue(value);
+    return ListFormatOptions{
+        .type = TypeField::unpack(rawValue),
+        .style = StyleField::unpack(rawValue),
+    };
+  }
+};
+
+ListFormatOptions js::intl::ListFormatObject::getOptions() const {
+  const auto& slot = getFixedSlot(OPTIONS);
+  if (slot.isUndefined()) {
+    return {};
+  }
+  return PackedListFormatOptions::unpack(slot);
+}
+
+void js::intl::ListFormatObject::setOptions(const ListFormatOptions& options) {
+  setFixedSlot(OPTIONS, PackedListFormatOptions::pack(options));
+}
 
 static constexpr std::string_view TypeToString(ListFormatOptions::Type type) {
 #ifndef USING_ENUM
