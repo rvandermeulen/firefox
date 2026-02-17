@@ -11,6 +11,7 @@
 #include "mozilla/Logging.h"
 #include "mozilla/Preferences.h"
 #include "nsIOService.h"
+#include "prtime.h"
 #include "ssl.h"
 #include "sslexp.h"
 
@@ -195,7 +196,7 @@ SSLTokensCache::~SSLTokensCache() { LOG(("SSLTokensCache::~SSLTokensCache")); }
 nsresult SSLTokensCache::Put(const nsACString& aKey, const uint8_t* aToken,
                              uint32_t aTokenLen,
                              CommonSocketControl* aSocketControl) {
-  PRUint32 expirationTime;
+  PRTime expirationTime;
   SSLResumptionTokenInfo tokenInfo;
   if (SSL_GetResumptionTokenInfo(aToken, aTokenLen, &tokenInfo,
                                  sizeof(tokenInfo)) != SECSuccess) {
@@ -214,7 +215,7 @@ nsresult SSLTokensCache::Put(const nsACString& aKey, const uint8_t* aToken,
 nsresult SSLTokensCache::Put(const nsACString& aKey, const uint8_t* aToken,
                              uint32_t aTokenLen,
                              CommonSocketControl* aSocketControl,
-                             PRUint32 aExpirationTime) {
+                             PRTime aExpirationTime) {
   StaticMutexAutoLock lock(sLock);
 
   LOG(("SSLTokensCache::Put [key=%s, tokenLen=%u]",
@@ -361,6 +362,25 @@ nsresult SSLTokensCache::Put(const nsACString& aKey, const uint8_t* aToken,
 }
 
 // static
+// Retrieves a TLS session resumption token from the cache.
+//
+// Behavior:
+// - Searches for cached tokens matching aKey (typically a peer ID that includes
+//   hostname, port, and TLS flags)
+// - Multiple tokens may exist per key (stored in a pool); this method retrieves
+//   and removes the first non-expired token
+// - Expired tokens are automatically discarded during lookup
+// - Returns NS_ERROR_NOT_AVAILABLE if no valid token is found
+//
+// Parameters:
+// - aKey: Cache key identifying the connection (peer ID)
+// - aToken: [out] The TLS session resumption token bytes
+// - aResult: [out] Associated session info (certificates, EV status, CT status)
+// - aTokenId: [out, optional] Unique ID of the retrieved token (for later
+// removal)
+//
+// Note: This is a destructive read - the token is removed from the cache after
+// retrieval to prevent reuse, as TLS session tickets are typically single-use.
 nsresult SSLTokensCache::Get(const nsACString& aKey, nsTArray<uint8_t>& aToken,
                              SessionCacheInfo& aResult, uint64_t* aTokenId) {
   StaticMutexAutoLock lock(sLock);
@@ -390,18 +410,33 @@ nsresult SSLTokensCache::GetLocked(const nsACString& aKey,
       return NS_ERROR_NOT_AVAILABLE;
     }
 
-    const UniquePtr<TokenCacheRecord>& rec = cacheEntry->Get();
-    aToken = rec->mToken.Clone();
-    aResult = rec->mSessionCacheInfo.Clone();
-    if (aTokenId) {
-      *aTokenId = rec->mId;
+    PRTime now = PR_Now();
+
+    while (cacheEntry->RecordCount() > 0) {
+      const UniquePtr<TokenCacheRecord>& rec = cacheEntry->Get();
+
+      if (rec->mExpirationTime > now) {
+        aToken = rec->mToken.Clone();
+        aResult = rec->mSessionCacheInfo.Clone();
+        if (aTokenId) {
+          *aTokenId = rec->mId;
+        }
+        mCacheSize -= rec->Size();
+        cacheEntry->RemoveWithId(rec->mId);
+        if (cacheEntry->RecordCount() == 0) {
+          mTokenCacheRecords.Remove(aKey);
+        }
+        return NS_OK;
+      }
+
+      LOG(("  skipping expired token [expirationTime=%" PRId64 ", now=%" PRId64
+           "]",
+           rec->mExpirationTime, now));
+      mCacheSize -= rec->Size();
+      cacheEntry->RemoveWithId(rec->mId);
     }
-    mCacheSize -= rec->Size();
-    cacheEntry->RemoveWithId(rec->mId);
-    if (cacheEntry->RecordCount() == 0) {
-      mTokenCacheRecords.Remove(aKey);
-    }
-    return NS_OK;
+
+    mTokenCacheRecords.Remove(aKey);
   }
 
   LOG(("  token not found"));
