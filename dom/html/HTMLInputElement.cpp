@@ -4589,7 +4589,7 @@ nsresult HTMLInputElement::BindToTree(BindContext& aContext, nsINode& aParent) {
   // And now make sure our state is up to date
   UpdateValidityElementStates(true);
 
-  if (IsInComposedDoc() && CreatesUAShadowTree()) {
+  if (mDoneCreating && IsInComposedDoc() && CreatesUAShadowTree()) {
     SetupShadowTree(/* aNotify = */ false);
   }
 
@@ -4600,6 +4600,9 @@ nsresult HTMLInputElement::BindToTree(BindContext& aContext, nsINode& aParent) {
 
 void HTMLInputElement::SetupShadowTree(bool aNotify) {
   MOZ_ASSERT(CreatesUAShadowTree());
+  MOZ_ASSERT(IsInComposedDoc());
+  MOZ_ASSERT(mDoneCreating);
+
   auto uaWidget = NotifiesUAWidget();
   AttachAndSetUAShadowRoot(uaWidget, uaWidget == NotifyUAWidget::Yes
                                          ? DelegatesFocus::Yes
@@ -4946,18 +4949,20 @@ void HTMLInputElement::HandleTypeChange(FormControlType aNewType,
   MaybeDispatchLoginManagerEvents(mForm);
 
   if (IsInComposedDoc()) {
-    const auto oldNotifiesUAWidget = NotifiesUAWidget(oldType);
-    if (CreatesUAShadowTree()) {
-      const auto notifiesUAWidget = NotifiesUAWidget();
-      if (oldNotifiesUAWidget == notifiesUAWidget &&
-          notifiesUAWidget == NotifyUAWidget::Yes) {
-        NotifyUAWidgetSetupOrChange();
+    if (mDoneCreating) {
+      const auto oldNotifiesUAWidget = NotifiesUAWidget(oldType);
+      if (CreatesUAShadowTree()) {
+        const auto notifiesUAWidget = NotifiesUAWidget();
+        if (oldNotifiesUAWidget == notifiesUAWidget &&
+            notifiesUAWidget == NotifyUAWidget::Yes) {
+          NotifyUAWidgetSetupOrChange();
+        } else {
+          TeardownUAShadowRoot(oldNotifiesUAWidget);
+          SetupShadowTree(aNotify);
+        }
       } else {
         TeardownUAShadowRoot(oldNotifiesUAWidget);
-        SetupShadowTree(aNotify);
       }
-    } else {
-      TeardownUAShadowRoot(oldNotifiesUAWidget);
     }
     // If we're becoming a text control and have focus, make sure to show focus
     // rings.
@@ -6413,6 +6418,10 @@ void HTMLInputElement::DoneCreatingElement() {
       // fire a change event if necessary.
       mFocusedValue = value;
     }
+  }
+
+  if (CreatesUAShadowTree() && IsInComposedDoc()) {
+    SetupShadowTree(/* aNotify = */ false);
   }
 
   mShouldInitChecked = false;
