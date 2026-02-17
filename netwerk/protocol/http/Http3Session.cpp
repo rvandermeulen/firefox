@@ -1183,6 +1183,22 @@ nsresult Http3Session::ProcessOutputAndEvents(nsIUDPSocket* socket) {
 
   MOZ_ASSERT(mTimerShouldTrigger);
 
+  // Check if session has been stuck in ZERORTT state for too long
+  if (mState == ZERORTT) {
+    MOZ_ASSERT(mZeroRttStarted);
+    uint32_t timeout = StaticPrefs::network_http_http3_0rtt_timeout();
+    if (timeout > 0) {
+      TimeDuration elapsed = TimeStamp::Now() - mZeroRttStarted;
+      if (elapsed.ToMilliseconds() > timeout) {
+        LOG(
+            ("Http3Session %p stuck in ZERORTT for %.2fms (timeout=%ums), "
+             "closing connection",
+             this, elapsed.ToMilliseconds(), timeout));
+        return NS_ERROR_NET_TIMEOUT;
+      }
+    }
+  }
+
   if (Telemetry::CanRecordPrereleaseData()) {
     auto now = TimeStamp::Now();
     if (mTimerShouldTrigger > now) {
@@ -1228,6 +1244,25 @@ void Http3Session::SetupTimer(uint64_t aTimeout) {
   // connection is in or going to be Closed state.
   if (aTimeout == UINT64_MAX) {
     return;
+  }
+
+  // If we're in ZERORTT state, ensure the timeout doesn't exceed the
+  // 0-RTT timeout to prevent the session from being closed later than expected.
+  if (mState == ZERORTT) {
+    MOZ_ASSERT(mZeroRttStarted);
+    uint32_t zeroRttTimeout = StaticPrefs::network_http_http3_0rtt_timeout();
+    if (zeroRttTimeout > 0) {
+      TimeDuration elapsed = TimeStamp::Now() - mZeroRttStarted;
+      uint64_t remainingMs =
+          static_cast<uint64_t>(zeroRttTimeout - elapsed.ToMilliseconds());
+
+      if (elapsed.ToMilliseconds() < zeroRttTimeout && aTimeout > remainingMs) {
+        LOG3(("Http3Session::SetupTimer capping timeout from %" PRIu64
+              "ms to %" PRIu64 "ms (0-RTT timeout remaining) [this=%p].",
+              aTimeout, remainingMs, this));
+        aTimeout = remainingMs;
+      }
+    }
   }
 
   LOG3(

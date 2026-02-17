@@ -15511,6 +15511,14 @@
   value: true
   mirror: always
 
+# Maximum time (ms) a session can remain in ZERORTT state before being
+# considered stuck. If a Http3Session doesn't transition to CONNECTED within
+# this timeout, it will be closed.
+- name: network.http.http3.0rtt_timeout
+  type: RelaxedAtomicUint32
+  value: 5000
+  mirror: always
+
 # When a h3 transaction is inserted in the pending queue, the time (ms) we wait
 # to create a TCP backup connection.
 - name: network.http.http3.backup_timer_delay
