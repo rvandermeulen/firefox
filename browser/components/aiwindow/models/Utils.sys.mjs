@@ -473,12 +473,13 @@ export class openAIEngine {
    * 6. If custom endpoint is set, override model with pref value
    *
    * @param {string} feature - The feature identifier from MODEL_FEATURES
+   * @param {number} majorVersionOverride - Used to override hardcoded major version
    * @returns {Promise<void>}
    *   Sets this.feature to the feature name
    *   Sets this.model to the selected model ID
    *   Sets this.#configs to contain feature's and additional_components' configs
    */
-  async loadConfig(feature) {
+  async loadConfig(feature, majorVersionOverride = null) {
     const client = openAIEngine.getRemoteClient();
     const allRecords = await client.get();
 
@@ -486,7 +487,8 @@ export class openAIEngine {
       record => record.feature === feature
     );
 
-    const majorVersion = FEATURE_MAJOR_VERSIONS[feature];
+    const majorVersion =
+      majorVersionOverride ?? FEATURE_MAJOR_VERSIONS[feature];
 
     this._applyRemoteSettingsConfig(
       feature,
