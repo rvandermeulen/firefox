@@ -286,6 +286,10 @@ const PREF_URLBAR_DEFAULTS = /** @type {PreferenceDefinition[]} */ ([
   // pick.
   ["quicksuggest.ampTopPickCharThreshold", 5],
 
+  // Whether or not use the Nova icon size for AMP suggestion.
+  // Otherwise, use standard rich-suggestion size.
+  ["quicksuggest.ampTopPickUseNovaIconSize", false],
+
   // Whether the Firefox Suggest data collection opt-in result is enabled.
   ["quicksuggest.contextualOptIn", false],
 

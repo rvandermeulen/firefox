@@ -123,14 +123,22 @@ export class AmpSuggestions extends SuggestProvider {
           queryContext.trimmedLowerCaseSearchString.length) ||
       lazy.UrlbarPrefs.get("quickSuggestSponsoredPriority");
 
+    let richSuggestionIconSize;
+    if (!isTopPick) {
+      richSuggestionIconSize = 16;
+    } else if (!lazy.UrlbarPrefs.get("quickSuggestAmpTopPickUseNovaIconSize")) {
+      // Use the standard rich-suggestion size.
+      richSuggestionIconSize = 28;
+    }
+    // Else, leave `richSuggestionIconSize` undefined so
+    // `UrlbarProviderQuickSuggest` uses the standard Nova size.
+
     return new lazy.UrlbarResult({
       type: lazy.UrlbarUtils.RESULT_TYPE.URL,
       source: lazy.UrlbarUtils.RESULT_SOURCE.SEARCH,
       isNovaSuggestion: true,
       isBestMatch: isTopPick,
-      // If the result is a top pick, set the icon size to undefined so that
-      // `UrlbarProviderQuickSuggest` sets the default top-pick icon size.
-      richSuggestionIconSize: isTopPick ? undefined : 16,
+      richSuggestionIconSize,
       payload: {
         url: normalized.url,
         originalUrl: normalized.rawUrl,
