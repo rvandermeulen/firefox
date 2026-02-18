@@ -2,9 +2,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-import { XPCOMUtils } from "resource://gre/modules/XPCOMUtils.sys.mjs";
+const lazy = {};
 
-const lazy = XPCOMUtils.declareLazy({
+ChromeUtils.defineESModuleGetters(lazy, {
   BrowserSearchTelemetry:
     "moz-src:///browser/components/search/BrowserSearchTelemetry.sys.mjs",
   BrowserWindowTracker: "resource:///modules/BrowserWindowTracker.sys.mjs",
@@ -17,17 +17,7 @@ const lazy = XPCOMUtils.declareLazy({
     "moz-src:///browser/components/search/SERPCategorization.sys.mjs",
   SERPCategorizationEventScheduler:
     "moz-src:///browser/components/search/SERPCategorization.sys.mjs",
-  logConsole: () => {
-    return console.createInstance({
-      prefix: "SearchTelemetry",
-      maxLogLevel: lazy.SearchUtils.loggingEnabled ? "Debug" : "Warn",
-    });
-  },
 });
-
-/**
- * @typedef {typeof lazy.BrowserSearchTelemetry.KNOWN_SEARCH_SOURCES} KNOWN_SEARCH_SOURCES
- */
 
 // Exported for tests.
 export const ADLINK_CHECK_TIMEOUT_MS = 1000;
@@ -45,6 +35,13 @@ export const SEARCH_TELEMETRY_SHARED = {
 };
 
 const impressionIdsWithoutEngagementsSet = new Set();
+
+ChromeUtils.defineLazyGetter(lazy, "logConsole", () => {
+  return console.createInstance({
+    prefix: "SearchTelemetry",
+    maxLogLevel: lazy.SearchUtils.loggingEnabled ? "Debug" : "Warn",
+  });
+});
 
 export const SearchSERPTelemetryUtils = {
   ACTIONS: {
@@ -312,10 +309,8 @@ class TelemetryHandler {
   // on SERPs.
   #subframeRegexps = [];
 
-  /**
-   * @type {WeakMap<MozBrowser, keyof KNOWN_SEARCH_SOURCES>}
-   *   A map of the latest search source for a particular browser.
-   */
+  // _browserSourceMap is a map of the latest search source for a particular
+  // browser - one of the KNOWN_SEARCH_SOURCES in BrowserSearchTelemetry.
   _browserSourceMap = new WeakMap();
 
   /**
@@ -448,7 +443,7 @@ class TelemetryHandler {
    *
    * @param {MozBrowser} browser
    *   The browser where the search originated.
-   * @param {keyof KNOWN_SEARCH_SOURCES} source
+   * @param {string} source
    *    Where the search originated from.
    */
   recordBrowserSource(browser, source) {

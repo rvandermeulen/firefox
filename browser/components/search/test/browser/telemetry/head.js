@@ -57,7 +57,7 @@ ChromeUtils.defineLazyGetter(this, "searchCounts", () => {
 
 ChromeUtils.defineLazyGetter(this, "SEARCH_AD_CLICK_SCALARS", () => {
   const sources = [
-    ...Object.keys(BrowserSearchTelemetry.KNOWN_SEARCH_SOURCES),
+    ...BrowserSearchTelemetry.KNOWN_SEARCH_SOURCES.values(),
     "unknown",
   ];
   return [

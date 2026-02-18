@@ -148,7 +148,7 @@ async function assertHandoffResult() {
 
   await SearchUITestUtils.assertSAPTelemetry({
     engineName: "Example",
-    source: "urlbar_handoff",
+    source: "urlbar-handoff",
     count: 1,
   });
 }

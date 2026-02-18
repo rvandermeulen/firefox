@@ -262,11 +262,11 @@ add_task(async function test_oneOff_enter() {
     "This search must only increment one entry in the scalar."
   );
 
-  // SAP counts should be incremented, but only the urlbar_searchmode source
+  // SAP counts should be incremented, but only the urlbar-searchmode source
   // since aliases aren't counted separately in search mode.
   await SearchUITestUtils.assertSAPTelemetry({
     engineName: "MozSearch",
-    source: "urlbar_searchmode",
+    source: "urlbar-searchmode",
     count: 1,
   });
 
@@ -356,7 +356,7 @@ add_task(async function test_searchmode_suggestion_click() {
 
     await SearchUITestUtils.assertSAPTelemetry({
       engineName: engine.name,
-      source: "urlbar_searchmode",
+      source: "urlbar-searchmode",
       count: 1,
     });
 

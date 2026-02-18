@@ -405,8 +405,9 @@ export var SearchUIUtils = {
    *   A `SearchUtils.URL_TYPE` value indicating the type of search that should
    *   be performed. A falsey value is equivalent to
    *   `SearchUtils.URL_TYPE.SEARCH`, which will perform a usual web search.
-   * @param {keyof typeof lazy.BrowserSearchTelemetry.KNOWN_SEARCH_SOURCES} options.sapSource
-   *   The search access point source.
+   * @param {string} options.sapSource
+   *   The search access point source, see
+   *   {@link lazy.BrowserSearchTelemetry.KNOWN_SEARCH_SOURCES}
    */
   async loadSearch({
     window,

@@ -1102,7 +1102,7 @@ class TelemetryEvent {
   ) {
     const browserWindow = this._controller.browserWindow;
     let sap = "urlbar";
-    if (searchSource === "urlbar_handoff") {
+    if (searchSource === "urlbar-handoff") {
       sap = "handoff";
     } else if (searchSource === "searchbar") {
       sap = "searchbar";
@@ -1466,7 +1466,7 @@ class TelemetryEvent {
       interaction = "refined";
     }
 
-    if (searchSource === "urlbar_persisted") {
+    if (searchSource === "urlbar-persisted") {
       switch (interaction) {
         case "returned": {
           interaction = "persisted_search_terms";

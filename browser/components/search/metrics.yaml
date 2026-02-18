@@ -255,7 +255,7 @@ sap:
       source:
         description: >
           The search access point from which the user initiated the search.
-          Possible values are `searchbar`, `smartbar` and `urlbar`.
+          Possible values are `searchbar` and `urlbar`.
         type: string
       provider_id:
         description: >
