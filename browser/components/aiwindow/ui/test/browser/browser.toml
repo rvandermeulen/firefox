@@ -8,6 +8,8 @@ support-files = [
   "test_applied_memories_page.html",
   "test_memories_icon_button_page.html",
   "test_memories_icon_button.mjs",
+  "test_smartwindow_panel_list_page.html",
+  "test_smartwindow_panel_list.mjs",
   "test_website_chip_page.html",
   "test_website_chip.mjs"
 ]
@@ -73,6 +75,8 @@ support-files = [
 ["browser_smartwindow_init.js"]
 
 ["browser_smartwindow_leak.js"]
+
+["browser_smartwindow_panel_list.js"]
 
 ["browser_smartwindow_prompts.js"]
 

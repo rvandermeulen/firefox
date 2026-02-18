@@ -8,11 +8,11 @@ import "chrome://browser/content/aiwindow/components/ai-website-chip.mjs";
 // eslint-disable-next-line import/no-unassigned-import
 import "chrome://browser/content/aiwindow/components/input-cta.mjs";
 // eslint-disable-next-line import/no-unassigned-import
-import "chrome://browser/content/aiwindow/components/suggestions-panel-list.mjs";
-// eslint-disable-next-line import/no-unassigned-import
 import "chrome://browser/content/aiwindow/components/memories-icon-button.mjs";
 // eslint-disable-next-line import/no-unassigned-import
 import "chrome://browser/content/aiwindow/components/context-icon-button.mjs";
+// eslint-disable-next-line import/no-unassigned-import
+import "chrome://browser/content/aiwindow/components/smartwindow-panel-list.mjs";
 
 const { XPCOMUtils } = ChromeUtils.importESModule(
   "resource://gre/modules/XPCOMUtils.sys.mjs"
@@ -148,7 +148,7 @@ export class SmartbarInput extends HTMLElement {
                       inputmode="mozAwesomebar"
                       data-l10n-id="smartbar-placeholder"/>
         </moz-input-box>
-        <html:suggestions-panel-list></html:suggestions-panel-list>
+        <html:smartwindow-panel-list></html:smartwindow-panel-list>
         <moz-urlbar-slot name="revert-button"> </moz-urlbar-slot>
         <image class="urlbar-icon urlbar-go-button"
                role="button"

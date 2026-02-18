@@ -15,6 +15,8 @@ const { SmartbarMentionsPanelSearch, MENTION_TYPE } =
     "moz-src:///browser/components/urlbar/SmartbarMentionsPanelSearch.sys.mjs"
   );
 
+let providerStub;
+
 add_setup(async function () {
   await SpecialPowers.pushPrefEnv({
     set: [
@@ -23,7 +25,7 @@ add_setup(async function () {
     ],
   });
 
-  const providerStub = sinon.stub(
+  providerStub = sinon.stub(
     SmartbarMentionsPanelSearch.prototype,
     "startQuery"
   );
@@ -42,7 +44,22 @@ add_setup(async function () {
       type: MENTION_TYPE.TAB_RECENTLY_CLOSED,
       timestamp: Date.now(),
     },
+    {
+      url: "https://example.com/3",
+      title: "Page 3",
+      icon: "",
+      type: MENTION_TYPE.TAB_RECENTLY_CLOSED,
+      timestamp: Date.now() - 1000,
+    },
+    {
+      url: "https://example.com/4",
+      title: "Page 4",
+      icon: "",
+      type: MENTION_TYPE.TAB_RECENTLY_CLOSED,
+      timestamp: Date.now() - 2000,
+    },
   ]);
+
   registerCleanupFunction(() => {
     providerStub.restore();
   });
@@ -83,7 +100,7 @@ async function waitForPanelOpen(browser) {
     const smartbar = aiWindowElement.shadowRoot.querySelector(
       "#ai-window-smartbar"
     );
-    const panelList = smartbar.querySelector("suggestions-panel-list");
+    const panelList = smartbar.querySelector("smartwindow-panel-list");
     const panel = panelList.shadowRoot.querySelector("panel-list");
 
     await ContentTaskUtils.waitForMutationCondition(
@@ -183,7 +200,7 @@ add_task(async function test_mentions_insert_on_click() {
     const smartbar = aiWindowElement.shadowRoot.querySelector(
       "#ai-window-smartbar"
     );
-    const panelList = smartbar.querySelector("suggestions-panel-list");
+    const panelList = smartbar.querySelector("smartwindow-panel-list");
     const panel = panelList.shadowRoot.querySelector("panel-list");
 
     const firstItem = panel.querySelector(
@@ -211,7 +228,7 @@ add_task(async function test_mentions_insert_on_enter() {
     const smartbar = aiWindowElement.shadowRoot.querySelector(
       "#ai-window-smartbar"
     );
-    const panelList = smartbar.querySelector("suggestions-panel-list");
+    const panelList = smartbar.querySelector("smartwindow-panel-list");
     const panel = panelList.shadowRoot.querySelector("panel-list");
 
     await ContentTaskUtils.waitForCondition(
@@ -244,7 +261,7 @@ add_task(async function test_mentions_insert_from_context_button() {
     const button = contextButton.shadowRoot.querySelector("moz-button");
     button.click();
 
-    const panelList = smartbar.querySelector("suggestions-panel-list");
+    const panelList = smartbar.querySelector("smartwindow-panel-list");
     const panel = panelList.shadowRoot.querySelector("panel-list");
     await ContentTaskUtils.waitForCondition(
       () => panel.querySelector("panel-item:not(.panel-section-header)"),
@@ -263,4 +280,210 @@ add_task(async function test_mentions_insert_from_context_button() {
   );
 
   await BrowserTestUtils.closeWindow(win);
+});
+
+add_task(async function test_panel_shows_unified_group() {
+  const originalReturn = providerStub.returnValue;
+
+  providerStub.returns([
+    {
+      url: "https://example.com/1",
+      title: "Page 1",
+      icon: "",
+      type: MENTION_TYPE.TAB_OPEN,
+      timestamp: Date.now(),
+    },
+    {
+      url: "https://example.com/2",
+      title: "Page 2",
+      icon: "",
+      type: MENTION_TYPE.TAB_OPEN,
+      timestamp: Date.now() - 500,
+    },
+    {
+      url: "https://example.com/3",
+      title: "Page 3",
+      icon: "",
+      type: MENTION_TYPE.TAB_RECENTLY_CLOSED,
+      timestamp: Date.now() - 1000,
+    },
+  ]);
+
+  const win = await openAIWindow();
+  const browser = win.gBrowser.selectedBrowser;
+
+  await BrowserTestUtils.browserLoaded(browser, false, AIWINDOW_URL);
+  await typeInSmartbar(browser, "@");
+  await waitForPanelOpen(browser);
+
+  const groupInfo = await SpecialPowers.spawn(browser, [], async () => {
+    const aiWindowElement = content.document.querySelector("ai-window");
+    const smartbar = aiWindowElement.shadowRoot.querySelector(
+      "#ai-window-smartbar"
+    );
+    const panelList = smartbar.querySelector("smartwindow-panel-list");
+    const panel = panelList.shadowRoot.querySelector("panel-list");
+
+    const headers = Array.from(panel.querySelectorAll(".panel-section-header"));
+    return {
+      headerCount: headers.length,
+      headerL10nId: headers[0]?.getAttribute("data-l10n-id"),
+    };
+  });
+
+  Assert.equal(
+    groupInfo.headerCount,
+    1,
+    "Panel should show single unified group"
+  );
+  Assert.equal(
+    groupInfo.headerL10nId,
+    "smartbar-mentions-list-recent-tabs-label",
+    "Group should have 'Recent tabs' header"
+  );
+
+  await BrowserTestUtils.closeWindow(win);
+  providerStub.returns(originalReturn);
+});
+
+add_task(async function test_deduplication_by_url() {
+  const originalReturn = providerStub.returnValue;
+
+  // Simulate duplicate URLs across open and closed tabs
+  providerStub.returns([
+    {
+      url: "https://example.com/duplicate",
+      title: "Open Tab (Duplicate)",
+      icon: "",
+      type: MENTION_TYPE.TAB_OPEN,
+      timestamp: Date.now(),
+    },
+    {
+      url: "https://example.com/unique1",
+      title: "Unique Open Tab",
+      icon: "",
+      type: MENTION_TYPE.TAB_OPEN,
+      timestamp: Date.now() - 500,
+    },
+    {
+      url: "https://example.com/duplicate",
+      title: "Closed Tab (Duplicate)",
+      icon: "",
+      type: MENTION_TYPE.TAB_RECENTLY_CLOSED,
+      timestamp: Date.now() - 1000,
+    },
+    {
+      url: "https://example.com/unique2",
+      title: "Unique Closed Tab",
+      icon: "",
+      type: MENTION_TYPE.TAB_RECENTLY_CLOSED,
+      timestamp: Date.now() - 2000,
+    },
+  ]);
+
+  const win = await openAIWindow();
+  const browser = win.gBrowser.selectedBrowser;
+
+  await BrowserTestUtils.browserLoaded(browser, false, AIWINDOW_URL);
+  await typeInSmartbar(browser, "@");
+  await waitForPanelOpen(browser);
+
+  const itemInfo = await SpecialPowers.spawn(browser, [], async () => {
+    const aiWindowElement = content.document.querySelector("ai-window");
+    const smartbar = aiWindowElement.shadowRoot.querySelector(
+      "#ai-window-smartbar"
+    );
+    const panelList = smartbar.querySelector("smartwindow-panel-list");
+    const items = panelList.groups[0]?.items || [];
+
+    return {
+      itemCount: items.length,
+      urls: items.map(item => item.id),
+    };
+  });
+
+  Assert.equal(
+    itemInfo.itemCount,
+    3,
+    "Should deduplicate by URL (3 unique URLs from 4 results)"
+  );
+  Assert.ok(
+    itemInfo.urls.includes("https://example.com/duplicate"),
+    "Should keep first occurrence of duplicate (open tab)"
+  );
+  Assert.ok(
+    itemInfo.urls.includes("https://example.com/unique1"),
+    "Should include unique open tab"
+  );
+  Assert.ok(
+    itemInfo.urls.includes("https://example.com/unique2"),
+    "Should include unique closed tab"
+  );
+
+  await BrowserTestUtils.closeWindow(win);
+  providerStub.returns(originalReturn);
+});
+
+add_task(async function test_maxResults_total_limit() {
+  const originalReturn = providerStub.returnValue;
+
+  await SpecialPowers.pushPrefEnv({
+    set: [["browser.urlbar.mentions.maxResults", 3]],
+  });
+
+  const tabs = [];
+  for (let i = 1; i <= 5; i++) {
+    tabs.push({
+      url: `https://example.com/tab${i}`,
+      title: `Tab ${i}`,
+      icon: "",
+      type: MENTION_TYPE.TAB_OPEN,
+      timestamp: Date.now() - i * 1000,
+    });
+  }
+  for (let i = 1; i <= 5; i++) {
+    tabs.push({
+      url: `https://example.com/closed${i}`,
+      title: `Closed ${i}`,
+      icon: "",
+      type: MENTION_TYPE.TAB_RECENTLY_CLOSED,
+      timestamp: Date.now() - (i + 10) * 1000,
+    });
+  }
+
+  providerStub.returns(tabs);
+
+  const win = await openAIWindow();
+  const browser = win.gBrowser.selectedBrowser;
+
+  await BrowserTestUtils.browserLoaded(browser, false, AIWINDOW_URL);
+  await typeInSmartbar(browser, "@");
+  await waitForPanelOpen(browser);
+
+  const itemInfo = await SpecialPowers.spawn(browser, [], async () => {
+    const aiWindowElement = content.document.querySelector("ai-window");
+    const smartbar = aiWindowElement.shadowRoot.querySelector(
+      "#ai-window-smartbar"
+    );
+    const panelList = smartbar.querySelector("smartwindow-panel-list");
+    const groups = panelList.groups;
+
+    const items = groups[0]?.items || [];
+
+    return {
+      totalCount: items.length,
+      groupCount: groups.length,
+    };
+  });
+
+  Assert.equal(itemInfo.groupCount, 1, "Should have single unified group");
+  Assert.equal(
+    itemInfo.totalCount,
+    3,
+    "Should limit total results to maxResults (3) after deduplication"
+  );
+
+  await BrowserTestUtils.closeWindow(win);
+  await SpecialPowers.popPrefEnv();
+  providerStub.returns(originalReturn);
 });

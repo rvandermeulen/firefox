@@ -5,16 +5,33 @@
 import { MultilineEditor } from "chrome://browser/content/multilineeditor/multiline-editor.mjs";
 import { createMentionsPlugin } from "chrome://browser/content/multilineeditor/plugins/MentionsPlugin.mjs";
 
-/** @typedef {import("../../aiwindow/ui/components/suggestions-panel-list/suggestions-panel-list.mjs").SuggestionsPanelList} SuggestionsPanelList */
+/** @typedef {import("../../aiwindow/ui/components/smartwindow-panel-list/smartwindow-panel-list.mjs").SmartwindowPanelList} SmartwindowPanelList */
 
 const lazy = {};
 
 ChromeUtils.defineESModuleGetters(lazy, {
+  MENTION_TYPE:
+    "moz-src:///browser/components/urlbar/SmartbarMentionsPanelSearch.sys.mjs",
   SkippableTimer: "moz-src:///browser/components/urlbar/UrlbarUtils.sys.mjs",
   SmartbarMentionsPanelSearch:
     "moz-src:///browser/components/urlbar/SmartbarMentionsPanelSearch.sys.mjs",
-  MENTION_TYPE:
-    "moz-src:///browser/components/urlbar/SmartbarMentionsPanelSearch.sys.mjs",
+});
+
+const { XPCOMUtils } = ChromeUtils.importESModule(
+  "resource://gre/modules/XPCOMUtils.sys.mjs"
+);
+
+XPCOMUtils.defineLazyPreferenceGetter(
+  lazy,
+  "maxResults",
+  "browser.urlbar.mentions.maxResults"
+);
+
+ChromeUtils.defineLazyGetter(lazy, "log", function () {
+  return console.createInstance({
+    prefix: "SmartbarMentionsPanel",
+    maxLogLevelPref: "browser.smartwindow.smartbarMentions.loglevel",
+  });
 });
 
 // Debounce delay for the mention suggestions query.
@@ -23,8 +40,10 @@ const MENTION_QUERY_DEBOUNCE_MS = 150;
 /**
  * @typedef {object} TabMention
  * @property {string} id - Mention ID
- * @property {string} label - Tab title
- * @property {string} icon - Tab icon
+ * @property {string} [label] - Tab title
+ * @property {string} [icon] - Tab icon
+ * @property {string} [l10nId] - Fluent l10n ID for localized items
+ * @property {object} [l10nArgs] - Arguments for l10n
  */
 
 /**
@@ -42,22 +61,40 @@ const MENTION_QUERY_DEBOUNCE_MS = 150;
  */
 function getMentionSuggestions(mentionSearch, searchString) {
   try {
-    const results = mentionSearch.startQuery(searchString);
-    // Group results by type
-    const grouped = Object.groupBy(results, result => result.type);
-    return Object.entries(grouped).map(([type, items]) => ({
-      headerL10nId:
-        type === lazy.MENTION_TYPE.TAB_OPEN
-          ? "smartbar-mentions-list-open-tabs-label"
-          : "smartbar-mentions-list-previously-visited-pages-label",
-      items: items.map(({ url, title, icon }) => ({
+    // Deduplicate by URL, keeping first occurrence (prioritizes open tabs, then most recent)
+    const seen = new Set();
+    const deduplicated = mentionSearch
+      .startQuery(searchString)
+      // Sort by type to prioritize open tabs over closed tabs
+      // Stable sort preserves timestamp ordering within each type
+      .sort((r1, r2) => {
+        if (r1.type == r2.type) {
+          return 0;
+        }
+        return r1.type == lazy.MENTION_TYPE.TAB_OPEN ? -1 : 1;
+      })
+      .filter(item => {
+        if (seen.has(item.url)) {
+          return false;
+        }
+        seen.add(item.url);
+        return true;
+      })
+      .slice(0, lazy.maxResults)
+      .map(({ url, title, icon }) => ({
         id: url,
         label: title,
         icon,
-      })),
-    }));
+      }));
+
+    return [
+      {
+        headerL10nId: "smartbar-mentions-list-recent-tabs-label",
+        items: deduplicated,
+      },
+    ];
   } catch (e) {
-    console.error("Error querying tabs:", e);
+    lazy.log.error("Error querying tabs:", e);
     return [];
   }
 }
@@ -72,6 +109,7 @@ function getMentionSuggestions(mentionSearch, searchString) {
 const getAnchorPos = (range, view) => {
   const coordsFrom = view.coordsAtPos(range.from);
   const coordsTo = view.coordsAtPos(range.to);
+
   return {
     left: coordsFrom.left,
     top: coordsFrom.top,
@@ -84,7 +122,7 @@ const getAnchorPos = (range, view) => {
  * Setup context button to show mentions panel.
  *
  * @param {HTMLElement} container - The urlbar input container
- * @param {SuggestionsPanelList} panelList - The panel list component
+ * @param {SmartwindowPanelList} panelList - The panel list component
  */
 function setupContextMentionsButton(container, panelList) {
   const smartbarRoot = container.parentElement;
@@ -105,7 +143,7 @@ function setupContextMentionsButton(container, panelList) {
  * Mentions plugin setup for the editor.
  *
  * @param {MultilineEditor} editorElement - The editor element
- * @param {SuggestionsPanelList} panelList - The panel list component
+ * @param {SmartwindowPanelList} panelList - The panel list component
  * @returns {object} plugin - The mentions plugin
  */
 function setupMentionsPlugin(editorElement, panelList) {
@@ -119,13 +157,16 @@ function setupMentionsPlugin(editorElement, panelList) {
       return;
     }
     const { text } = latestMentionData;
-    const query = text.substring(1).trim();
+    // Don't trim() the query - we need to preserve spaces to match tab titles
+    // that contain spaces (e.g., "@my tab" should match "my tab title")
+    const query = text.substring(1);
     panelList.groups = getMentionSuggestions(mentionSearch, query);
     mentionChangeTimer = null;
   };
 
   const plugin = createMentionsPlugin({
     triggerChar: "@",
+    allowSpaces: true,
     toDOM: node => [
       "span",
       {
@@ -198,8 +239,9 @@ function setupMentionsPlugin(editorElement, panelList) {
   };
 
   const handlePanelKeyDown = e => {
+    const { originalEvent } = e.detail;
     // The keys below should be handled by the panel for navigation
-    if (["Tab", "ArrowUp", "ArrowDown", "Enter"].includes(e.key)) {
+    if (["Tab", "ArrowUp", "ArrowDown", "Enter"].includes(originalEvent.key)) {
       return;
     }
 
@@ -215,7 +257,7 @@ function setupMentionsPlugin(editorElement, panelList) {
   };
 
   panelList.addEventListener("item-selected", handleItemSelected);
-  panelList.addEventListener("keydown", handlePanelKeyDown);
+  panelList.addEventListener("panel-keydown", handlePanelKeyDown);
   editorElement.addEventListener("keydown", handleEditorKeyDown, {
     capture: true,
   });
@@ -269,8 +311,8 @@ export function createEditor(inputElement) {
   inputElement.replaceWith(editorElement);
 
   const container = editorElement.closest(".urlbar-input-container");
-  const panelList = /** @type {SuggestionsPanelList} */ (
-    container.querySelector("suggestions-panel-list")
+  const panelList = /** @type {SmartwindowPanelList} */ (
+    container.querySelector("smartwindow-panel-list")
   );
   panelList.placeholderL10nId = "smartbar-mentions-list-no-results-label";
 

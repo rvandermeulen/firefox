@@ -2274,19 +2274,22 @@ pref("browser.ml.linkPreview.supportedLocales", "en");
 
 pref("browser.ml.pageAssist.enabled", false);
 
-// AI Window Feature
+// Smart Window Feature
 pref("browser.smartwindow.apiKey", '');
-pref("browser.smartwindow.chatHistory.loglevel", "Error");
-pref("browser.smartwindow.chatStore.loglevel", "Error");
 pref("browser.smartwindow.enabled", false);
 pref("browser.smartwindow.endpoint", "https://mlpa-prod-prod-mozilla.global.ssl.fastly.net/v1");
 pref("browser.smartwindow.memories", true);
-pref("browser.smartwindow.memoriesLogLevel", "Warn");
 pref("browser.smartwindow.firstrun.autoAdvanceMS", 3000);
 pref("browser.smartwindow.firstrun.hasCompleted", false);
 pref("browser.smartwindow.firstrun.modelChoice", "");
 pref("browser.smartwindow.model", "");
 pref("browser.smartwindow.preferences.endpoint", "");
+
+// Smart Window Logging
+pref("browser.smartwindow.chatHistory.loglevel", "Error");
+pref("browser.smartwindow.chatStore.loglevel", "Error");
+pref("browser.smartwindow.smartbarMentions.loglevel", "Error");
+pref("browser.smartwindow.memoriesLogLevel", "Warn");
 
 // Block insecure active content on https pages
 pref("security.mixed_content.block_active_content", true);
