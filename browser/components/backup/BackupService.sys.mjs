@@ -2998,6 +2998,7 @@ export class BackupService extends EventTarget {
         "datareporting.usage.uploadEnabled",
         false
       ),
+      isSelectableProfile: !!lazy.SelectableProfileService.currentProfile,
     };
 
     let fxaState = lazy.UIState.get();
@@ -3125,11 +3126,36 @@ export class BackupService extends EventTarget {
         // until after recoverFromSnapshotFolder has finished resolving or
         // rejecting.
 
-        // Depending on if the user is using selectable profiles, we change the recover
-        // method used
-        // TODO: Currently this supports going from a legacy -> selectable and legacy -> legacy.
-        // Later patches will add functionality for going between selectable -> legacy and
-        // selectable -> selectable.
+        let manifest = await this.#readAndValidateManifest(
+          RECOVERY_FOLDER_DEST_PATH
+        );
+
+        // We have a selectable profile backup but no profile group to add it to
+        // let's make the current profile into a selectable profile and create a group
+        //
+        // TODO: The intended behavior for new profile's is to `replace` the profile. This would
+        // mean that a selectable profile backup is to to be recovered as a legacy profile for this case.
+        // This behavior is handled later in the patch stack (see Bug 2012599).
+        //
+        // This patch currently deals with bringing in the functionality to convert a legacy profile to a
+        // selectable profile for the `add` case.
+        if (
+          manifest.meta?.isSelectableProfile === true &&
+          !lazy.SelectableProfileService.hasCreatedSelectableProfiles()
+        ) {
+          try {
+            lazy.logConsole.debug(
+              `Converting current legacy profile into a selectable profile`
+            );
+            await lazy.SelectableProfileService.maybeSetupDataStore();
+          } catch (e) {
+            throw new BackupError(
+              `something went wrong when converting the current profile into a selectableProfile: ${e}`,
+              ERRORS.RECOVERY_FAILED
+            );
+          }
+        }
+
         let newProfile;
         if (lazy.SelectableProfileService.currentProfile) {
           newProfile =
@@ -3138,14 +3164,16 @@ export class BackupService extends EventTarget {
               shouldLaunch,
               encState,
               null,
-              profileRootPath
+              profileRootPath,
+              manifest
             );
         } else {
           newProfile = await this.recoverFromSnapshotFolder(
             RECOVERY_FOLDER_DEST_PATH,
             shouldLaunch,
             profileRootPath,
-            encState
+            encState,
+            manifest
           );
         }
 
@@ -3242,9 +3270,10 @@ export class BackupService extends EventTarget {
       );
     }
 
-    // In the future, if we ever bump the ArchiveUtils.SCHEMA_VERSION and need
-    // to do any special behaviours to interpret older schemas, this is where
-    // we can do that, and we can remove this comment.
+    // Manifest version compatibility
+    if (manifest.version < 2) {
+      manifest.isSelectableProfile = false;
+    }
 
     let meta = manifest.meta;
 
@@ -3397,6 +3426,9 @@ export class BackupService extends EventTarget {
    *   ARCHIVE_ENCRYPTION_STATE_FILE for the recovered profile (since the
    *   original ARCHIVE_ENCRYPTION_STATE_FILE was intentionally not backed up,
    *   as the recovery device might have a different OSKeyStore secret).
+   * @param {object} [manifest=null]
+   *   If we've already read and validated the manifest, we can avoid redoing that work
+   *   by passing this in as a parameter.
    * @returns {Promise<nsIToolkitProfile>}
    *   The nsIToolkitProfile that was created for the recovered profile.
    * @throws {Exception}
@@ -3406,12 +3438,15 @@ export class BackupService extends EventTarget {
     recoveryPath,
     shouldLaunch = false,
     profileRootPath = null,
-    encState = null
+    encState = null,
+    manifest = null
   ) {
     lazy.logConsole.debug("Recovering from backup at ", recoveryPath);
 
     try {
-      let manifest = await this.#readAndValidateManifest(recoveryPath);
+      if (!manifest) {
+        manifest = await this.#readAndValidateManifest(recoveryPath);
+      }
 
       // Okay, we have a valid backup-manifest.json. Let's create a new profile
       // and start invoking the recover() method on each BackupResource.
@@ -3533,6 +3568,9 @@ export class BackupService extends EventTarget {
    * @param {string} [profileRootPath=null]
    *   Optional path where the new profile directory should be created.
    *   If not provided, the default profile location will be used.
+   * @param {object} [manifest=null]
+   *   If we've already read and validated the manifest, we can avoid redoing that work
+   *   by passing this in as a parameter.
    * @returns {Promise<SelectableProfile>}
    *   The SelectableProfile that was created for the recovered profile.
    * @throws {Exception}
@@ -3543,7 +3581,8 @@ export class BackupService extends EventTarget {
     shouldLaunch = false,
     encState = null,
     copiedProfile = null,
-    profileRootPath = null
+    profileRootPath = null,
+    manifest = null
   ) {
     lazy.logConsole.debug(
       "Recovering SelectableProfile from backup at ",
@@ -3551,7 +3590,9 @@ export class BackupService extends EventTarget {
     );
 
     try {
-      let manifest = await this.#readAndValidateManifest(recoveryPath);
+      if (!manifest) {
+        manifest = await this.#readAndValidateManifest(recoveryPath);
+      }
 
       // Okay, we have a valid backup-manifest.json. Let's create a new profile
       // and start invoking the recover() method on each BackupResource.
