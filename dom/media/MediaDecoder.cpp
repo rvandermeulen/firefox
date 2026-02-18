@@ -1033,6 +1033,8 @@ void MediaDecoder::UpdateLogicalPositionInternal() {
       // the decoder doesn't know. That means decoder still thinks it's in
       // playing. Therefore, we have to manually call those methods to notify
       // the owner about seeking.
+      MOZ_ASSERT(std::isfinite(GetDuration()) && GetDuration() > 0.0);
+      GetOwner()->UpdatePlayedRangesBeforeSeek(GetDuration());
       GetOwner()->SeekStarted();
       SetLogicalPosition(currentPosition);
       GetOwner()->SeekCompleted();

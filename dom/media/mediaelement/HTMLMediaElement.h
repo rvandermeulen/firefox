@@ -279,6 +279,10 @@ class HTMLMediaElement : public nsGenericHTMLElement,
   // when the resource has completed seeking.
   void SeekCompleted() final;
 
+  // Called by the video decoder object, on the main thread, before a seek
+  // operation to update the played time ranges.
+  void UpdatePlayedRangesBeforeSeek(double aRangeEndTime) final;
+
   // Called by the video decoder object, on the main thread,
   // when the resource has aborted seeking.
   void SeekAborted() final;
