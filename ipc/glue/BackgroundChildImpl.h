@@ -155,6 +155,13 @@ class BackgroundChildImpl : public PBackgroundChild {
   already_AddRefed<PServiceWorkerRegistrationChild>
   AllocPServiceWorkerRegistrationChild(
       const IPCServiceWorkerRegistrationDescriptor&);
+
+  virtual PEndpointForReportChild* AllocPEndpointForReportChild(
+      const nsAString& aGroupName,
+      const PrincipalInfo& aPrincipalInfo) override;
+
+  virtual bool DeallocPEndpointForReportChild(
+      PEndpointForReportChild* aActor) override;
 };
 
 class BackgroundChildImpl::ThreadLocal final {

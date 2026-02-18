@@ -402,11 +402,6 @@ void CacheLoadHandler::ResolvedCallback(JSContext* aCx,
   rv = ScriptResponseHeaderProcessor::ProcessCrossOriginEmbedderPolicyHeader(
       mWorkerRef->Private(), coep, loadContext->IsTopLevel());
 
-  if (loadContext->IsTopLevel()) {
-    headers->Get("Reporting-Endpoints"_ns, mReportingEndpointsHeaderValue,
-                 IgnoreErrors());
-  }
-
   if (NS_WARN_IF(NS_FAILED(rv))) {
     Fail(rv);
     return;
@@ -433,8 +428,7 @@ void CacheLoadHandler::ResolvedCallback(JSContext* aCx,
 
     nsresult rv = DataReceivedFromCache(
         (uint8_t*)"", 0, mChannelInfo, std::move(mPrincipalInfo),
-        mCSPHeaderValue, mCSPReportOnlyHeaderValue, mReferrerPolicyHeaderValue,
-        mReportingEndpointsHeaderValue);
+        mCSPHeaderValue, mCSPReportOnlyHeaderValue, mReferrerPolicyHeaderValue);
 
     mRequestHandle->OnStreamComplete(rv);
     return;
@@ -508,8 +502,7 @@ CacheLoadHandler::OnStreamComplete(nsIStreamLoader* aLoader,
 
   nsresult rv = DataReceivedFromCache(
       aString, aStringLen, mChannelInfo, std::move(mPrincipalInfo),
-      mCSPHeaderValue, mCSPReportOnlyHeaderValue, mReferrerPolicyHeaderValue,
-      mReportingEndpointsHeaderValue);
+      mCSPHeaderValue, mCSPReportOnlyHeaderValue, mReferrerPolicyHeaderValue);
   return mRequestHandle->OnStreamComplete(rv);
 }
 
@@ -518,8 +511,7 @@ nsresult CacheLoadHandler::DataReceivedFromCache(
     const mozilla::dom::ChannelInfo& aChannelInfo,
     UniquePtr<PrincipalInfo> aPrincipalInfo, const nsACString& aCSPHeaderValue,
     const nsACString& aCSPReportOnlyHeaderValue,
-    const nsACString& aReferrerPolicyHeaderValue,
-    const nsACString& aReportingEndpointsHeaderValue) {
+    const nsACString& aReferrerPolicyHeaderValue) {
   AssertIsOnMainThread();
   if (mRequestHandle->IsEmpty()) {
     return NS_OK;
@@ -571,8 +563,6 @@ nsresult CacheLoadHandler::DataReceivedFromCache(
   if (loadContext->IsTopLevel()) {
     if (NS_SUCCEEDED(rv)) {
       mWorkerRef->Private()->SetBaseURI(finalURI);
-      mWorkerRef->Private()->SetReportingEndpointsHeader(
-          aReportingEndpointsHeaderValue);
     }
 
 #ifdef MOZ_DIAGNOSTIC_ASSERT_ENABLED

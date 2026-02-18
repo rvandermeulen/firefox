@@ -97,14 +97,12 @@ class CacheLoadHandler final : public PromiseNativeHandler,
  private:
   ~CacheLoadHandler() { AssertIsOnMainThread(); }
 
-  nsresult DataReceivedFromCache(
-      const uint8_t* aString, uint32_t aStringLen,
-      const mozilla::dom::ChannelInfo& aChannelInfo,
-      UniquePtr<PrincipalInfo> aPrincipalInfo,
-      const nsACString& aCSPHeaderValue,
-      const nsACString& aCSPReportOnlyHeaderValue,
-      const nsACString& aReferrerPolicyHeaderValue,
-      const nsACString& aReportingEndpointsHeaderValue);
+  nsresult DataReceivedFromCache(const uint8_t* aString, uint32_t aStringLen,
+                                 const mozilla::dom::ChannelInfo& aChannelInfo,
+                                 UniquePtr<PrincipalInfo> aPrincipalInfo,
+                                 const nsACString& aCSPHeaderValue,
+                                 const nsACString& aCSPReportOnlyHeaderValue,
+                                 const nsACString& aReferrerPolicyHeaderValue);
   nsresult DataReceived();
 
   RefPtr<ThreadSafeRequestHandle> mRequestHandle;
@@ -121,7 +119,6 @@ class CacheLoadHandler final : public PromiseNativeHandler,
   nsCString mCSPHeaderValue;
   nsCString mCSPReportOnlyHeaderValue;
   nsCString mReferrerPolicyHeaderValue;
-  nsCString mReportingEndpointsHeaderValue;
   nsCOMPtr<nsISerialEventTarget> mMainThreadEventTarget;
 };
 

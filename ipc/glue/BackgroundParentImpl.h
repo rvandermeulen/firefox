@@ -330,6 +330,14 @@ class BackgroundParentImpl : public PBackgroundParent {
       const IPCServiceWorkerRegistrationDescriptor& aDescriptor,
       const IPCClientInfo& aForClient) override;
 
+  PEndpointForReportParent* AllocPEndpointForReportParent(
+      const nsAString& aGroupName,
+      const PrincipalInfo& aPrincipalInfo) override;
+
+  mozilla::ipc::IPCResult RecvPEndpointForReportConstructor(
+      PEndpointForReportParent* actor, const nsAString& aGroupName,
+      const PrincipalInfo& aPrincipalInfo) override;
+
   mozilla::ipc::IPCResult RecvEnsureRDDProcessAndCreateBridge(
       EnsureRDDProcessAndCreateBridgeResolver&& aResolver) override;
 
@@ -340,6 +348,13 @@ class BackgroundParentImpl : public PBackgroundParent {
   mozilla::ipc::IPCResult RecvRequestCameraAccess(
       const bool& aAllowPermissionRequest,
       RequestCameraAccessResolver&& aResolver) override;
+
+  bool DeallocPEndpointForReportParent(
+      PEndpointForReportParent* aActor) override;
+
+  mozilla::ipc::IPCResult RecvRemoveEndpoint(
+      const nsAString& aGroupName, const nsACString& aEndpointURL,
+      const PrincipalInfo& aPrincipalInfo) override;
 
   mozilla::ipc::IPCResult RecvPLockManagerConstructor(
       PLockManagerParent* actor, mozilla::NotNull<nsIPrincipal*> aPrincipalInfo,

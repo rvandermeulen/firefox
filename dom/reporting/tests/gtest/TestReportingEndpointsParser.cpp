@@ -25,83 +25,74 @@ TEST(ReportingEndpointsParser, Basic)
   bool urlEqual = false;
 
   // Empty header
-  EndpointsList endpoints;
-
-  auto endpointConstructor = [&endpoints](const nsAString& aKey,
-                                          nsCOMPtr<nsIURI> aEndpointURL) {
-    endpoints.mData.EmplaceBack(
-        ReportingHeader::Endpoint::Create(aEndpointURL.forget(), aKey));
-  };
-
-  size_t count = ReportingHeader::ParseReportingEndpointsHeader(
-      ""_ns, uri1, endpointConstructor);
-  ASSERT_EQ(count, 0u);
+  UniquePtr<ReportingHeader::Client> client =
+      ReportingHeader::ParseReportingEndpointsHeader(""_ns, uri1);
+  ASSERT_TRUE(!client);
 
   // Empty header
-  count = ReportingHeader::ParseReportingEndpointsHeader("     "_ns, uri1,
-                                                         endpointConstructor);
-  ASSERT_EQ(count, 0u);
+  client = ReportingHeader::ParseReportingEndpointsHeader("     "_ns, uri1);
+  ASSERT_TRUE(!client);
 
   // Single client
-  count = ReportingHeader::ParseReportingEndpointsHeader(
-      "csp-endpoint=\"https://example.com/csp-reports\""_ns, uri1,
-      endpointConstructor);
-  ASSERT_EQ(count, 1u);
-  ASSERT_EQ(1u, endpoints.mData.Length());
+  client = ReportingHeader::ParseReportingEndpointsHeader(
+      "csp-endpoint=\"https://example.com/csp-reports\""_ns, uri1);
+  ASSERT_TRUE(client);
+  ASSERT_EQ((uint32_t)1, client->mGroups.Length());
+  ASSERT_TRUE(client->mGroups.ElementAt(0).mName.EqualsLiteral("csp-endpoint"));
+  ASSERT_EQ((uint32_t)1, client->mGroups.ElementAt(0).mEndpoints.Length());
   ASSERT_TRUE(
-      endpoints.mData.ElementAt(0).mEndpointName.EqualsLiteral("csp-endpoint"));
-  ASSERT_EQ(1u, endpoints.mData.Length());
-  ASSERT_TRUE(NS_SUCCEEDED(
-                  endpoints.mData.ElementAt(0).mUrl->Equals(uri1, &urlEqual)) &&
-              urlEqual);
+      NS_SUCCEEDED(
+          client->mGroups.ElementAt(0).mEndpoints.ElementAt(0).mUrl->Equals(
+              uri1, &urlEqual)) &&
+      urlEqual);
 
   // 2 clients, different group names
-  endpoints.mData.Clear();
-
-  count = ReportingHeader::ParseReportingEndpointsHeader(
+  client = ReportingHeader::ParseReportingEndpointsHeader(
       "csp-endpoint=\"https://example.com/csp-reports\",\thpkp-endpoint=\"https://example.com/hpkp-reports\""_ns,
-      uri1, endpointConstructor);
-  ASSERT_EQ(count, 2u);
+      uri1);
+  ASSERT_TRUE(client);
+  ASSERT_EQ((uint32_t)2, client->mGroups.Length());
+  ASSERT_TRUE(client->mGroups.ElementAt(0).mName.EqualsLiteral("csp-endpoint"));
+  ASSERT_EQ((uint32_t)1, client->mGroups.ElementAt(0).mEndpoints.Length());
   ASSERT_TRUE(
-      endpoints.mData.ElementAt(0).mEndpointName.EqualsLiteral("csp-endpoint"));
-
-  ASSERT_TRUE(NS_SUCCEEDED(
-                  endpoints.mData.ElementAt(0).mUrl->Equals(uri1, &urlEqual)) &&
-              urlEqual);
-  ASSERT_TRUE(endpoints.mData.ElementAt(1).mEndpointName.EqualsLiteral(
-      "hpkp-endpoint"));
-
-  ASSERT_TRUE(NS_SUCCEEDED(
-                  endpoints.mData.ElementAt(1).mUrl->Equals(uri2, &urlEqual)) &&
-              urlEqual);
+      NS_SUCCEEDED(
+          client->mGroups.ElementAt(0).mEndpoints.ElementAt(0).mUrl->Equals(
+              uri1, &urlEqual)) &&
+      urlEqual);
+  ASSERT_TRUE(
+      client->mGroups.ElementAt(1).mName.EqualsLiteral("hpkp-endpoint"));
+  ASSERT_EQ((uint32_t)1, client->mGroups.ElementAt(0).mEndpoints.Length());
+  ASSERT_TRUE(
+      NS_SUCCEEDED(
+          client->mGroups.ElementAt(1).mEndpoints.ElementAt(0).mUrl->Equals(
+              uri2, &urlEqual)) &&
+      urlEqual);
 
   // Single client, passed in as an inner list with parameters to ignore
-  endpoints.mData.Clear();
-  count = ReportingHeader::ParseReportingEndpointsHeader(
-      "csp-endpoint=(\"https://example.com/csp-reports\" 5);valid"_ns, uri1,
-      endpointConstructor);
-  ASSERT_EQ(1u, count);
+  client = ReportingHeader::ParseReportingEndpointsHeader(
+      "csp-endpoint=(\"https://example.com/csp-reports\" 5);valid"_ns, uri1);
+  ASSERT_TRUE(client);
+  ASSERT_EQ((uint32_t)1, client->mGroups.Length());
+  ASSERT_TRUE(client->mGroups.ElementAt(0).mName.EqualsLiteral("csp-endpoint"));
+  ASSERT_EQ((uint32_t)1, client->mGroups.ElementAt(0).mEndpoints.Length());
   ASSERT_TRUE(
-      endpoints.mData.ElementAt(0).mEndpointName.EqualsLiteral("csp-endpoint"));
-  ASSERT_EQ(1u, endpoints.mData.Length());
-  ASSERT_TRUE(NS_SUCCEEDED(
-                  endpoints.mData.ElementAt(0).mUrl->Equals(uri1, &urlEqual)) &&
-              urlEqual);
+      NS_SUCCEEDED(
+          client->mGroups.ElementAt(0).mEndpoints.ElementAt(0).mUrl->Equals(
+              uri1, &urlEqual)) &&
+      urlEqual);
 
-  endpoints.mData.Clear();
   // Single client, key's value is an empty string
-  count = ReportingHeader::ParseReportingEndpointsHeader(
-      "csp-endpoint=\"   \""_ns, uri1, endpointConstructor);
-  ASSERT_EQ(count, 0u);
+  client = ReportingHeader::ParseReportingEndpointsHeader(
+      "csp-endpoint=\"   \""_ns, uri1);
+  ASSERT_TRUE(client);
 
   // Single client, key's value is a non-URL string
-  count = ReportingHeader::ParseReportingEndpointsHeader(
-      "csp-endpoint=\"Not URL syntax\""_ns, uri1, endpointConstructor);
-  ASSERT_EQ(count, 0u);
+  client = ReportingHeader::ParseReportingEndpointsHeader(
+      "csp-endpoint=\"Not URL syntax\""_ns, uri1);
+  ASSERT_TRUE(client);
 
   // Single client, key's value cannot be translated to a String SFVItem
-  count = ReportingHeader::ParseReportingEndpointsHeader(
-      "csp-endpoint=1"_ns, uri1, endpointConstructor);
-
-  ASSERT_EQ(count, 0u);
+  client =
+      ReportingHeader::ParseReportingEndpointsHeader("csp-endpoint=1"_ns, uri1);
+  ASSERT_TRUE(!client);
 }

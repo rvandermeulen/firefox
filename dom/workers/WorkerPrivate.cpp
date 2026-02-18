@@ -75,7 +75,6 @@
 #include "mozilla/dom/RemoteWorkerDebuggerChild.h"
 #include "mozilla/dom/RemoteWorkerNonLifeCycleOpControllerChild.h"
 #include "mozilla/dom/RemoteWorkerService.h"
-#include "mozilla/dom/ReportDeliver.h"
 #include "mozilla/dom/RootedDictionary.h"
 #include "mozilla/dom/ServiceWorkerEvents.h"
 #include "mozilla/dom/ServiceWorkerManager.h"
@@ -102,7 +101,6 @@
 #include "nsIDUtils.h"
 #include "nsIEventTarget.h"
 #include "nsIFile.h"
-#include "nsIHttpChannel.h"
 #include "nsIMemoryReporter.h"
 #include "nsIPermissionManager.h"
 #include "nsIProtocolHandler.h"
@@ -4367,28 +4365,6 @@ void WorkerPrivate::SetGCTimerMode(GCTimerMode aMode) {
   MOZ_ALWAYS_SUCCEEDS(timer->SetTarget(mWorkerControlEventTarget));
   MOZ_ALWAYS_SUCCEEDS(
       timer->InitWithNamedFuncCallback(callback, this, delay, type, name));
-}
-
-void WorkerPrivate::InitializeGlobalReportingEndpoints() {
-  if (mLoadInfo.mReportingEndpointsHeader.IsEmpty() ||
-      mLoadInfo.mReportingEndpointsHeader.IsVoid()) {
-    return;
-  }
-
-  MOZ_ASSERT(GlobalScope());
-  // We *must* convert to nsIGlobalObject* first, so that when something wants
-  // to report, it uses the right key
-
-  ReportDeliver::WorkerInitializeReportingEndpoints(
-      reinterpret_cast<uintptr_t>(static_cast<nsIGlobalObject*>(GlobalScope())),
-      mLoadInfo.mBaseURI, mLoadInfo.mReportingEndpointsHeader,
-      ShouldResistFingerprinting(RFPTarget::NavigatorUserAgent));
-}
-
-void WorkerPrivate::SetReportingEndpointsHeader(const nsACString& aHeader) {
-  MOZ_ASSERT(mLoadInfo.mReportingEndpointsHeader.IsEmpty(),
-             "Headers set multiple times.");
-  mLoadInfo.mReportingEndpointsHeader = aHeader;
 }
 
 void WorkerPrivate::ShutdownGCTimers() {

@@ -220,7 +220,6 @@
 #include "mozilla/dom/Promise.h"
 #include "mozilla/dom/PromiseNativeHandler.h"
 #include "mozilla/dom/RemoteBrowser.h"
-#include "mozilla/dom/ReportDeliver.h"
 #include "mozilla/dom/ResizeObserver.h"
 #include "mozilla/dom/RustTypes.h"
 #include "mozilla/dom/SVGDocument.h"
@@ -8273,15 +8272,6 @@ void Document::SetScriptGlobalObject(
   bool needOnloadBlocker = !mScriptGlobalObject && aScriptGlobalObject;
 
   mScriptGlobalObject = aScriptGlobalObject;
-  // Only initialize the global's endpoints if its that time we're actually
-  // initializing the global
-  nsCOMPtr<nsIHttpChannel> httpChannel = do_QueryInterface(mChannel);
-  if (httpChannel && mScriptGlobalObject) {
-    ReportDeliver::WindowInitializeReportingEndpoints(
-        mScriptGlobalObject,
-        mozilla::dom::ReportingHeader::
-            ProcessReportingEndpointsListFromResponse(httpChannel));
-  }
 
   if (needOnloadBlocker) {
     EnsureOnloadBlocker();

@@ -4420,7 +4420,7 @@
 
 # How many times the delivering of a report should be tried.
 - name: dom.reporting.delivering.maxFailures
-  type: RelaxedAtomicUint32
+  type: uint32_t
   value: 3
   mirror: always
 

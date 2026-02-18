@@ -1335,12 +1335,6 @@ class WorkerPrivate final
  public:
   void CancelGCTimers() { SetGCTimerMode(NoTimer); }
 
-  // Initialize global's endpoint list with the processed header result
-  // in mLoadInfo
-  void InitializeGlobalReportingEndpoints();
-
-  void SetReportingEndpointsHeader(const nsACString& aHeader);
-
  private:
   void ShutdownGCTimers();
 
