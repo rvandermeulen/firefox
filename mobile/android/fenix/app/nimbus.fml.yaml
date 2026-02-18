@@ -875,20 +875,7 @@ features:
         description: >
           Whether or not the simple/expanded toolbar customization option is visible to the user.
         type: Boolean
-        default: false
-    defaults:
-      - channel: developer
-        value:
-          show-options: true
-          show-customization: false
-      - channel: nightly
-        value:
-          show-options: true
-          show-customization: false
-      - channel: beta
-        value:
-          show-options: true
-          show-customization: true
+        default: true
 
   tab-management-enhancements:
     description: Control the visibility of the tab management enhancements.
