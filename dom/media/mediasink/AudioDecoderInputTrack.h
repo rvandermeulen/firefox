@@ -199,6 +199,7 @@ class AudioDecoderInputTrack final : public ProcessedMediaTrack {
   // not clear all data in SPSC queue when the track's `DestroyImpl()` gets
   // called. We leave to destroy the queue later when the track gets destroyed.
   SPSCQueue<SPSCData> mSPSCQueue{40};
+  std::thread::id mProducerThreadId;
 
   // When the graph requires the less amount of audio frames than the amount of
   // frames an audio data has, then the remaining part of frames would be stored

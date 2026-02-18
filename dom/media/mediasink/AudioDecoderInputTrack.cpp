@@ -213,6 +213,11 @@ void AudioDecoderInputTrack::ClearFutureData() {
 
 void AudioDecoderInputTrack::PushDataToSPSCQueue(SPSCData& data) {
   AssertOnDecoderThread();
+  auto threadId = std::this_thread::get_id();
+  if (threadId != mProducerThreadId) {
+    mProducerThreadId = threadId;
+    mSPSCQueue.ResetProducerThreadId();
+  }
   const bool rv = mSPSCQueue.Enqueue(data);
   MOZ_DIAGNOSTIC_ASSERT(rv, "Failed to push data, SPSC queue is full!");
   (void)rv;
