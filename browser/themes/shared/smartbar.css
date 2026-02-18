@@ -11,10 +11,12 @@
   --smartbar-border-style-gradient: var(--border-width) solid;
   --smartbar-border-color-gradient: linear-gradient(172deg, #321bfd -18%, #cf30e2 53%, #ff9900 89%, #f5c451 109%);
   --smartbar-border-color-gradient-dark: linear-gradient(270deg, var(--color-orange-40) 0%, var(--color-violet-50) 105.15%);
+  --smartbar-glow-color: color-mix(in srgb, var(--color-violet-40) 30%, transparent);
   --smartbar-max-height: 50vh;
   --smartbar-max-width: calc(var(--size-item-xlarge) * 12);
-  --smartbar-shadow: 0 2px 14px color-mix(in srgb, var(--color-violet-40) 30%, transparent);
   --smartbar-background-color: light-dark(white, var(--color-violet-110));
+  --smartbar-outline-color: light-dark(var(--color-violet-30), var(--color-violet-50));
+  --smartbar-outline: var(--focus-outline-width) solid var(--smartbar-outline-color);
 }
 
 .smartbar {
@@ -23,7 +25,7 @@
   max-height: var(--smartbar-max-height);
   max-width: var(--smartbar-max-width);
   width: 100%;
-
+  transition: opacity 0.5s ease-out;
   > .urlbarView {
     overflow-y: auto;
   }
@@ -57,25 +59,37 @@
   border-radius: var(--border-radius-large);
   border: var(--smartbar-border-style-gradient) transparent;
 
-  @media (prefers-color-scheme: dark) {
-    background-image: linear-gradient(var(--smartbar-background-color), var(--smartbar-background-color)), var(--smartbar-border-color-gradient-dark);
+  /* Pseudo-element for glow effect on hover/focus */
+  &::before {
+    border-radius: inherit;
+    content: "";
+    inset: 0;
+    position: absolute;
+    filter: blur(30px);
+    background-color: var(--smartbar-glow-color);
+    opacity: 0;
+    transition: opacity 0.5s ease-out;
+    z-index: -1;
 
-    /* creating a gradient box shadow effect for dark mode */
-    &::before {
+    @media (prefers-color-scheme: dark) {
       background-image: var(--smartbar-border-color-gradient-dark);
-      border-radius: inherit;
-      content: "";
-      filter: blur(30px) opacity(0.7);
-      inset: 0;
-      position: absolute;
-      z-index: -1;
     }
   }
+}
 
-  .smartbar[open] > & {
-    /* stylelint-disable-next-line stylelint-plugin-mozilla/use-design-tokens */
-    box-shadow: var(--smartbar-shadow);
+/* HOVER and FOCUSED states: Show gradient glow */
+.smartbar:hover:not(:focus-within) > .urlbar-background,
+.smartbar:focus-within > .urlbar-background {
+  &::before {
+    opacity: 0.7;
+    transition: opacity 0.2s ease-in;
   }
+}
+
+/* FOCUSED_KEYBOARD_EMPTY: Show outline only for keyboard focus on empty input */
+.smartbar:focus-within:not([usertyping]):not([suppress-focus-border]) > .urlbar-background {
+  outline: var(--smartbar-outline);
+  outline-offset: var(--focus-outline-offset);
 }
 
 .smartbar .urlbar-input-box {

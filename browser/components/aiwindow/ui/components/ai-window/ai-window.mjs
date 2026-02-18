@@ -427,7 +427,7 @@ export class AIWindow extends MozLitElement {
     let smartbar = container.querySelector("#ai-window-smartbar");
 
     if (!smartbar) {
-      // The Smartbar can’t be initialized in the shadow DOM and needs
+      // The Smartbar can't be initialized in the shadow DOM and needs
       // to be created from the chrome document.
       smartbar = doc.createElement("moz-smartbar");
       smartbar.id = "ai-window-smartbar";
@@ -435,6 +435,14 @@ export class AIWindow extends MozLitElement {
       smartbar.setAttribute("pageproxystate", "invalid");
       smartbar.setAttribute("popover", "manual");
       smartbar.classList.add("smartbar", "urlbar");
+
+      // Listen before appending to DOM since the event fires synchronously
+      // during connectedCallback.
+      smartbar.addEventListener(
+        "smartbar-initialized",
+        () => this.#setupSmartbarFocus(smartbar),
+        { once: true }
+      );
 
       const smartbarWrapper = doc.createElement("div");
       smartbarWrapper.id = "smartbar-wrapper";
@@ -458,6 +466,28 @@ export class AIWindow extends MozLitElement {
     this.#memoriesButton = smartbar.querySelector("memories-icon-button");
     this.#syncSmartbarMemoriesStateFromConversation();
     this.#observeSmartbarHeight();
+  }
+
+  #setupSmartbarFocus(smartbar) {
+    let hasAutoFocused = false;
+    let isMouseClick = false;
+
+    smartbar.addEventListener("mousedown", () => {
+      isMouseClick = true;
+      smartbar.toggleAttribute("suppress-focus-border", true);
+    });
+
+    smartbar.inputField.addEventListener("focus", () => {
+      if (!hasAutoFocused) {
+        smartbar.toggleAttribute("suppress-focus-border", true);
+        hasAutoFocused = true;
+      } else if (!isMouseClick) {
+        smartbar.removeAttribute("suppress-focus-border");
+      }
+      isMouseClick = false;
+    });
+
+    smartbar.focus();
   }
 
   #observeSmartbarHeight() {

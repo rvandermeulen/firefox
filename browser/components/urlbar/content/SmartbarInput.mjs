@@ -395,6 +395,13 @@ export class SmartbarInput extends HTMLElement {
     // The engine name is not known yet, but update placeholder anyway to
     // reflect value of keyword.enabled or set the searchbar placeholder.
     this._setPlaceholder(null);
+
+    // Defer until after layout so listeners can safely interact with the element.
+    this.ownerGlobal.requestAnimationFrame(() => {
+      this.dispatchEvent(
+        new CustomEvent("smartbar-initialized", { bubbles: true })
+      );
+    });
   }
 
   connectedCallback() {
