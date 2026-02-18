@@ -12,6 +12,7 @@
 #include "nsIPrefBranch.h"
 #include "nsIXULRuntime.h"
 #include "nsToolkitCompsCID.h"
+#include "RealTimeRequestSimulator.h"
 #include "nsUrlClassifierDBService.h"
 #include "nsUrlClassifierUtils.h"
 #include "nsUrlClassifierProxies.h"
@@ -50,6 +51,7 @@
 #include "mozilla/net/UrlClassifierFeatureFactory.h"
 #include "mozilla/net/UrlClassifierFeatureResult.h"
 #include "mozilla/ipc/URIUtils.h"
+#include "mozilla/StaticPrefs_browser.h"
 #include "mozilla/SyncRunnable.h"
 #include "UrlClassifierTelemetryUtils.h"
 #include "nsIURLFormatter.h"
@@ -1579,11 +1581,16 @@ class nsUrlClassifierRealTimeLookupHandler final
   NS_DECL_NSIURLCLASSIFIERLOOKUPCALLBACK
 
   nsUrlClassifierRealTimeLookupHandler(nsUrlClassifierDBService* aDBService,
-                                       nsIUrlClassifierCallback* aCallback)
+                                       nsIUrlClassifierCallback* aCallback,
+                                       bool aIsPrivate)
       : nsUrlClassifierHashCompleterBase(aDBService, aCallback),
         mDebugEnabled(
-            Preferences::GetBool("browser.safebrowsing.realTime.debug", false)) {
-  }
+            Preferences::GetBool("browser.safebrowsing.realTime.debug", false)),
+        mSimulator(
+            StaticPrefs::browser_safebrowsing_realTime_simulation_enabled()
+                ? RealTimeRequestSimulator::GetInstance()
+                : nullptr),
+        mIsPrivate(aIsPrivate) {}
 
   nsresult StartRealTimeLookup(nsIPrincipal* aPrincipal);
 
@@ -1612,6 +1619,12 @@ class nsUrlClassifierRealTimeLookupHandler final
 
   // Cached debug pref value for off-main-thread access.
   Atomic<bool> mDebugEnabled{false};
+
+  // Simulator instance, obtained on main thread for use on background thread.
+  RefPtr<RealTimeRequestSimulator> mSimulator;
+
+  // Indicate if the lookup is for a private browsing session.
+  bool mIsPrivate;
 };
 
 NS_IMPL_ISUPPORTS_INHERITED(nsUrlClassifierRealTimeLookupHandler,
@@ -1716,6 +1729,11 @@ nsresult nsUrlClassifierRealTimeLookupHandler::HandleRealTimeLookupComplete(
                 nullptr, "urlclassifier-globalcache-result", result);
           }
         }));
+  }
+
+  // Simulation: estimate real-time request traffic when GlobalCache misses.
+  if (!hasGlobalCacheHit && mSimulator) {
+    mSimulator->SimulateRealTimeRequest(mKey, mIsPrivate);
   }
 
   // ToDo(Bug 2010022): No results, we need to perform a real-time request. For
@@ -2065,7 +2083,8 @@ nsUrlClassifierDBService::Classify(nsIPrincipal* aPrincipal,
     }
 
     RefPtr<nsUrlClassifierRealTimeLookupHandler> handler =
-        new (fallible) nsUrlClassifierRealTimeLookupHandler(this, callback);
+        new (fallible) nsUrlClassifierRealTimeLookupHandler(
+            this, callback, aPrincipal->GetIsInPrivateBrowsing());
     if (NS_WARN_IF(!handler)) {
       return NS_ERROR_OUT_OF_MEMORY;
     }
