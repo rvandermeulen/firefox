@@ -237,37 +237,6 @@ const INSTALL_AND_UPDATE_STARTUP_REASONS = new Set([
 const PROTOCOL_HANDLER_OPEN_PERM_KEY = "open-protocol-handler";
 const PERMISSION_KEY_DELIMITER = "^";
 
-// These are used for manipulating jar entry paths, which always use Unix
-// separators (originally copied from `ospath_unix.jsm` as part of the "OS.Path
-// to PathUtils" migration).
-
-/**
- * Return the final part of the path.
- * The final part of the path is everything after the last "/".
- */
-function basename(path) {
-  return path.slice(path.lastIndexOf("/") + 1);
-}
-
-/**
- * Return the directory part of the path.
- * The directory part of the path is everything before the last
- * "/". If the last few characters of this part are also "/",
- * they are ignored.
- *
- * If the path contains no directory, return ".".
- */
-function dirname(path) {
-  let index = path.lastIndexOf("/");
-  if (index == -1) {
-    return ".";
-  }
-  while (index >= 0 && path[index] == "/") {
-    --index;
-  }
-  return path.slice(0, index + 1);
-}
-
 // Returns true if the extension is owned by Mozilla (is either privileged,
 // using one of the @mozilla.com/@mozilla.org protected addon id suffixes).
 //
@@ -2291,17 +2260,17 @@ export class ExtensionData {
       };
     } else if (this.type == "dictionary") {
       let dictionaries = {};
+      let entries;
       for (let [lang, path] of Object.entries(manifest.dictionaries)) {
+        // WebExtensionDictionaryManifest schema ensures that path is a
+        // strictRelativeUrl ending with ".dic".
         path = path.replace(/^\/+/, "");
-
-        let dir = dirname(path);
-        if (dir === ".") {
-          dir = "";
-        }
-        let leafName = basename(path);
+        let leafNameIndex = path.lastIndexOf("/") + 1;
+        let dir = path.slice(0, leafNameIndex);
+        let leafName = path.slice(leafNameIndex);
         let affixPath = leafName.slice(0, -3) + "aff";
 
-        let entries = await this._readDirectory(dir);
+        entries ??= await this._readDirectory(dir);
         if (!entries.includes(leafName)) {
           this.manifestError(
             `Invalid dictionary path specified for '${lang}': ${path}`
@@ -2309,7 +2278,7 @@ export class ExtensionData {
         }
         if (!entries.includes(affixPath)) {
           this.manifestError(
-            `Invalid dictionary path specified for '${lang}': Missing affix file: ${path}`
+            `Invalid dictionary path specified for '${lang}': Missing affix file: ${dir}${affixPath}`
           );
         }
 
