@@ -48,7 +48,7 @@ class SettingsPlugin : Plugin<Settings> {
         // .buildconfig.yml so inclusion is driven by project metadata rather than
         // name-prefix matching.
         val shouldIncludeProject = { name: String, _: ProjectConfig ->
-            rootDir.contains("android-components") || !name.startsWith("samples")
+            rootDir.contains("android-components") || !name.startsWith("components:samples")
         }
 
         includeProjects(settings, buildConfig, baseDir, shouldIncludeProject)
