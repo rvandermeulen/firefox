@@ -16,6 +16,8 @@ ChromeUtils.defineESModuleGetters(this, {
   PrivateBrowsingUtils: "resource://gre/modules/PrivateBrowsingUtils.sys.mjs",
   AppConstants: "resource://gre/modules/AppConstants.sys.mjs",
   setTimeout: "resource://gre/modules/Timer.sys.mjs",
+  SelectableProfileService:
+    "resource:///modules/profiles/SelectableProfileService.sys.mjs",
 });
 
 const HISTORY_ENABLED_PREF = "places.history.enabled";
