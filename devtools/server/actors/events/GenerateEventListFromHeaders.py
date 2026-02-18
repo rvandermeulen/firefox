@@ -12,9 +12,10 @@ Run this script via
 > ./mach python devtools/server/GenerateEventListFromHeaders.py dom/events/EventNameList.inc
 """
 
-import json
 import re
 import sys
+
+from mozfile import json
 
 
 def main(output_file, event_name_list_h):
