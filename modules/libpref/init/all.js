@@ -3398,9 +3398,6 @@ pref("browser.safebrowsing.downloads.remote.block_dangerous_host",       true);
 pref("browser.safebrowsing.downloads.remote.block_potentially_unwanted", true);
 pref("browser.safebrowsing.downloads.remote.block_uncommon",             true);
 
-// Global Cache
-pref("browser.safebrowsing.globalCache.enabled", false);
-
 // Android SafeBrowsing's configuration is in ContentBlocking.java, keep in sync.
 #ifndef MOZ_WIDGET_ANDROID
 

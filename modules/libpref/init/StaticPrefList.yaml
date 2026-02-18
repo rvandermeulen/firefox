@@ -1864,6 +1864,12 @@
   value: true
   mirror: always
 
+# Global Cache
+- name: browser.safebrowsing.globalCache.enabled
+  type: bool
+  value: false
+  mirror: always
+
 # Maximum size for an array to store the safebrowsing prefixset.
 - name: browser.safebrowsing.prefixset_max_array_size
   type: RelaxedAtomicUint32

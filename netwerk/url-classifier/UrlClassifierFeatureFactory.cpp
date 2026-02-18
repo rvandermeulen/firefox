@@ -15,6 +15,7 @@
 #include "UrlClassifierFeatureEmailTrackingProtection.h"
 #include "UrlClassifierFeatureFingerprintingAnnotation.h"
 #include "UrlClassifierFeatureFingerprintingProtection.h"
+#include "UrlClassifierFeatureGlobalCache.h"
 #include "UrlClassifierFeatureHarmfulAddonProtection.h"
 #include "UrlClassifierFeaturePhishingProtection.h"
 #include "UrlClassifierFeatureSocialTrackingAnnotation.h"
@@ -44,6 +45,7 @@ void UrlClassifierFeatureFactory::Shutdown() {
   UrlClassifierFeatureEmailTrackingProtection::MaybeShutdown();
   UrlClassifierFeatureFingerprintingAnnotation::MaybeShutdown();
   UrlClassifierFeatureFingerprintingProtection::MaybeShutdown();
+  UrlClassifierFeatureGlobalCache::MaybeShutdown();
   UrlClassifierFeaturePhishingProtection::MaybeShutdown();
   UrlClassifierFeatureSocialTrackingAnnotation::MaybeShutdown();
   UrlClassifierFeatureSocialTrackingProtection::MaybeShutdown();
@@ -221,6 +223,12 @@ UrlClassifierFeatureFactory::GetFeatureByName(const nsACString& aName) {
     return feature.forget();
   }
 
+  // GlobalCache
+  feature = UrlClassifierFeatureGlobalCache::GetIfNameMatches(aName);
+  if (feature) {
+    return feature.forget();
+  }
+
   // SocialTracking Annotation
   feature =
       UrlClassifierFeatureSocialTrackingAnnotation::GetIfNameMatches(aName);
@@ -314,6 +322,12 @@ void UrlClassifierFeatureFactory::GetFeatureNames(nsTArray<nsCString>& aArray) {
 
   // Fingerprinting Protection
   name.Assign(UrlClassifierFeatureFingerprintingProtection::Name());
+  if (!name.IsEmpty()) {
+    aArray.AppendElement(name);
+  }
+
+  // GlobalCache
+  name.Assign(UrlClassifierFeatureGlobalCache::Name());
   if (!name.IsEmpty()) {
     aArray.AppendElement(name);
   }
