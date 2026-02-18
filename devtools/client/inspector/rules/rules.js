@@ -1515,10 +1515,6 @@ class CssRuleView extends EventEmitter {
 
     const editorReadyPromises = [];
     for (const rule of this.elementStyle.rules) {
-      if (rule.domRule.system) {
-        continue;
-      }
-
       // Initialize rule editor
       if (!rule.editor) {
         const ruleActorID = rule.domRule.actorID;

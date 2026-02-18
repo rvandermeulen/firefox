@@ -239,8 +239,8 @@ class ElementStyle {
     // If we've already included this domRule (for example, when a
     // common selector is inherited), ignore it.
     if (
-      options.system ||
-      (options.rule && this.rules.some(rule => rule.domRule === options.rule))
+      options.rule &&
+      this.rules.some(rule => rule.domRule === options.rule)
     ) {
       return false;
     }
