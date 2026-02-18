@@ -4788,6 +4788,12 @@
   value: true
   mirror: always
 
+- name: dom.select.customizable_select.enabled
+  type: RelaxedAtomicBool
+  value: false
+  mirror: always
+  rust: true
+
 - name: dom.send_after_paint_to_content
   type: bool
   value: false
