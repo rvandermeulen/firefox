@@ -56,7 +56,7 @@ void ClientHandleOpParent::Init(ClientOpConstructorArgs&& aArgs) {
                  })
                 ->Track(mPromiseRequestHolder);
           },
-          [=](const CopyableErrorResult& failure) {
+          [=, this](const CopyableErrorResult& failure) {
             mSourcePromiseRequestHolder.Complete();
             (void)PClientHandleOpParent::Send__delete__(this, failure);
             return;
