@@ -6,6 +6,7 @@
 
 #include "RealTimeRequestSimulator.h"
 #include "mozilla/ClearOnShutdown.h"
+#include "mozilla/Preferences.h"
 #include "mozilla/RandomNum.h"
 #include "mozilla/Services.h"
 #include "mozilla/StaticPrefs_browser.h"
@@ -217,6 +218,35 @@ void RealTimeRequestSimulator::NotifyResult(bool aWouldSendRequest,
                                             uint32_t aResponseBytes,
                                             bool aIsPrivate) {
   // TODO: Dispatch to main thread to record the event.
+
+  NS_DispatchToMainThread(NS_NewRunnableFunction(
+      "RealTimeRequestSimulator::NotifyResult",
+      [aWouldSendRequest, aRequestBytes, aResponseBytes]() {
+        if (Preferences::GetBool("browser.safebrowsing.realTime.debug",
+                                 false)) {
+          nsAutoCString data;
+          data.AppendInt(aWouldSendRequest ? 1 : 0);
+          data.Append(',');
+          data.AppendInt(aRequestBytes);
+          data.Append(',');
+          data.AppendInt(aResponseBytes);
+
+          nsCOMPtr<nsIObserverService> observerService =
+              mozilla::services::GetObserverService();
+          if (observerService) {
+            observerService->NotifyObservers(
+                nullptr, "urlclassifier-realtime-simulation-result",
+                NS_ConvertUTF8toUTF16(data).get());
+          }
+        }
+      }));
+}
+
+void RealTimeRequestSimulator::CleanCache() {
+  MOZ_ASSERT(nsUrlClassifierDBService::BackgroundThread() ==
+             NS_GetCurrentThread());
+
+  mSimulatedCache.Clear();
 }
 
 }  // namespace safebrowsing

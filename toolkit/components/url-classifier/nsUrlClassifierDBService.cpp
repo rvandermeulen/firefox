@@ -917,6 +917,11 @@ nsUrlClassifierDBServiceWorker::ClearCache() {
 }
 
 NS_IMETHODIMP
+nsUrlClassifierDBServiceWorker::CleanRealTimeSimulatorCache() {
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP
 nsUrlClassifierDBServiceWorker::CancelUpdate() {
   LOG(("nsUrlClassifierDBServiceWorker::CancelUpdate"));
 
@@ -2597,6 +2602,23 @@ nsUrlClassifierDBService::ClearCache() {
   NS_ENSURE_TRUE(gDbBackgroundThread, NS_ERROR_NOT_INITIALIZED);
 
   return mWorkerProxy->ClearCache();
+}
+
+NS_IMETHODIMP
+nsUrlClassifierDBService::CleanRealTimeSimulatorCache() {
+  NS_ENSURE_TRUE(gDbBackgroundThread, NS_ERROR_NOT_INITIALIZED);
+
+  RefPtr<RealTimeRequestSimulator> simulator =
+      RealTimeRequestSimulator::GetInstance();
+
+  BackgroundThread()->Dispatch(NS_NewRunnableFunction(
+      "nsUrlClassifierDBService::CleanRealTimeSimulatorCache", [simulator]() {
+        if (simulator) {
+          simulator->CleanCache();
+        }
+      }));
+
+  return NS_OK;
 }
 
 NS_IMETHODIMP

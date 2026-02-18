@@ -459,4 +459,11 @@ export var UrlClassifierTestUtils = {
     channelClassifierService.addListener(observer);
     return promise;
   },
+
+  cleanRealTimeSimulatorCache() {
+    let dbService = Cc["@mozilla.org/url-classifier/dbservice;1"].getService(
+      Ci.nsIUrlClassifierDBService
+    );
+    dbService.cleanRealTimeSimulatorCache();
+  },
 };

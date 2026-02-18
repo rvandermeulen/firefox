@@ -23,6 +23,9 @@ class RealTimeRequestSimulator final {
   // Called from the URL Classifier background thread only.
   void SimulateRealTimeRequest(const nsACString& aURL, bool aIsPrivate);
 
+  // A test-only function to clean the simulated local cache.
+  void CleanCache();
+
  private:
   RealTimeRequestSimulator();
   ~RealTimeRequestSimulator() = default;
