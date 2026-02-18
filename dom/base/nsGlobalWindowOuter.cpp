@@ -2115,7 +2115,7 @@ nsresult nsGlobalWindowOuter::SetNewDocument(Document* aDocument,
   js::AutoCheckRecursionLimit recursion(cx);
   if (!recursion.checkConservativeDontReport(cx)) {
     NS_WARNING("Overrecursion in SetNewDocument");
-    return NS_ERROR_FAILURE;
+    return NS_ERROR_RECURSIVE_DOCUMENT_LOAD;
   }
 
   if (!mDoc) {
@@ -2287,7 +2287,7 @@ nsresult nsGlobalWindowOuter::SetNewDocument(Document* aDocument,
     if (!GetWrapperPreserveColor()) {
       JS::Rooted<JSObject*> outer(
           cx, NewOuterWindowProxy(cx, newInnerGlobal, thisChrome));
-      NS_ENSURE_TRUE(outer, NS_ERROR_FAILURE);
+      NS_ENSURE_TRUE(outer, NS_ERROR_OUT_OF_MEMORY);
 
       mBrowsingContext->CleanUpDanglingRemoteOuterWindowProxies(cx, &outer);
       MOZ_ASSERT(js::IsWindowProxy(outer));
@@ -2302,10 +2302,7 @@ nsresult nsGlobalWindowOuter::SetNewDocument(Document* aDocument,
     } else {
       JS::Rooted<JSObject*> outerObject(
           cx, NewOuterWindowProxy(cx, newInnerGlobal, thisChrome));
-      if (!outerObject) {
-        NS_ERROR("out of memory");
-        return NS_ERROR_FAILURE;
-      }
+      NS_ENSURE_TRUE(outerObject, NS_ERROR_OUT_OF_MEMORY);
 
       JS::Rooted<JSObject*> obj(cx, GetWrapper());
 
