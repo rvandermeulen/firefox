@@ -45,6 +45,11 @@ struct StylePositionArea;
  */
 class AbsoluteContainingBlock {
  public:
+  struct AnchorOffsetInfo {
+    nsPoint mScrollOffset;
+    StylePositionArea mResolvedPositionArea;
+  };
+
   AbsoluteContainingBlock() = default;
 
   const nsFrameList& GetChildList() const { return mAbsoluteFrames; }
@@ -151,10 +156,12 @@ class AbsoluteContainingBlock {
    *
    * aOffset is an outparam.
    */
-  void ResolveSizeDependentOffsets(
-      ReflowInput& aKidReflowInput, const LogicalSize& aCBSize,
-      const LogicalSize& aKidSize, const LogicalMargin& aMargin,
-      const StylePositionArea& aResolvedPositionArea, LogicalMargin& aOffsets);
+  void ResolveSizeDependentOffsets(ReflowInput& aKidReflowInput,
+                                   const LogicalSize& aCBSize,
+                                   const LogicalSize& aKidSize,
+                                   const LogicalMargin& aMargin,
+                                   const AnchorOffsetInfo& aAnchorOffsetInfo,
+                                   LogicalMargin& aOffsets);
 
   /**
    * For frames that have intrinsic block sizes, since we want to use the
