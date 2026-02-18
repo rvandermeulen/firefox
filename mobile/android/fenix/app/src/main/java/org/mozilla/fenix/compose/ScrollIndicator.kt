@@ -50,13 +50,13 @@ fun ScrollIndicator(
             // Represents the scroll handle height (40% of the total track length).
             val handleHeight = trackHeight * SCROLL_HANDLE_HEIGHT_PERCENTAGE
             val scrollableArea = trackHeight - handleHeight
-            val scrollPercentage = scrollState.value.toFloat() / scrollState.maxValue.toFloat()
 
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(handleHeight)
                     .graphicsLayer {
+                        val scrollPercentage = scrollState.value.toFloat() / scrollState.maxValue.toFloat()
                         translationY = (scrollableArea * scrollPercentage).toPx()
                     }
                     .background(
