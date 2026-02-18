@@ -104,6 +104,14 @@ run-sequentially = ["true"] # Mock Windows registry interferes with normal opera
 
 ["test_ResourceFailures.js"]
 
+["test_SelectableProfileBackupResource.js"]
+head = "../../../../../toolkit/profile/test/xpcshell/head.js ../../../profiles/tests/unit/head.js head.js"
+support-files = ["data/fake_avatar.png"]
+prefs = [
+  "browser.profiles.enabled=true",
+  "browser.profiles.created=false",
+]
+
 ["test_SessionStoreBackupResource.js"]
 
 ["test_SessionStoreBackupResource_mockSessionStore.js"]
