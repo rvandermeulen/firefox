@@ -1693,6 +1693,7 @@ mobile/android/android-components/components/feature/logins/lint-baseline.xml
 mobile/android/android-components/components/feature/media/lint-baseline.xml
 mobile/android/android-components/components/feature/privatemode/lint-baseline.xml
 mobile/android/android-components/components/feature/prompts/lint-baseline.xml
+mobile/android/android-components/components/feature/protection-dashboard/lint-baseline.xml
 mobile/android/android-components/components/feature/push/lint-baseline.xml
 mobile/android/android-components/components/feature/pwa/lint-baseline.xml
 mobile/android/android-components/components/feature/qr/lint-baseline.xml

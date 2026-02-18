@@ -355,6 +355,7 @@ treeherder:
         'lib-accelerometer-sensorm': 'lib-accelerometer-sensormanager'
         'lib-fetch-httpurlconnecti': 'lib-fetch-httpurlconnection'
         'feature-webcompat-reporte': 'feature-webcompat-reporter'
+        'feature-protection-dashbo': 'feature-protection-dashboard'
 
         # Groups aren't generated off buildconfig.yml:
         'samples-browser': 'samples-browser'
