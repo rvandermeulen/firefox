@@ -223,6 +223,9 @@ export class PreferencesBackupResource extends BackupResource {
         `We're recovering into a profile group, let's make sure to set the right selectable profile prefs`
       );
 
+      // TODO: We need to ensure that we also set the data collection prefs to the most restrictive of
+      // the two (backup - group prefs) - See Bug 2010395.
+
       // Since the user might have messed with their prefs, let's make sure to
       // update the selectable profile specific ones (including the shared prefs db)
       await lazy.SelectableProfileService.addSelectableProfilePrefs(
