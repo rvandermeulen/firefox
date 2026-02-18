@@ -95,7 +95,7 @@ add_task(async function test_aboutwelcome_easy_setup_screen_impression() {
     .stub(AWScreenUtils, "evaluateScreenTargeting")
     .resolves(false)
     .withArgs(
-      "attributionData.campaign != 'smart_window' && doesAppNeedPin && (unhandledCampaignAction != 'SET_DEFAULT_BROWSER') && (unhandledCampaignAction != 'PIN_FIREFOX_TO_TASKBAR') && (unhandledCampaignAction != 'PIN_AND_DEFAULT') && 'browser.shell.checkDefaultBrowser'|preferenceValue && !isDefaultBrowser"
+      "doesAppNeedPin && (unhandledCampaignAction != 'SET_DEFAULT_BROWSER') && (unhandledCampaignAction != 'PIN_FIREFOX_TO_TASKBAR') && (unhandledCampaignAction != 'PIN_AND_DEFAULT') && 'browser.shell.checkDefaultBrowser'|preferenceValue && !isDefaultBrowser"
     )
     .resolves(true)
     .withArgs("isDeviceMigration")
@@ -975,7 +975,7 @@ add_task(async function test_aboutwelcome_no_backups() {
     .resolves(false)
     // Easy setup for secondary top button
     .withArgs(
-      "attributionData.campaign != 'smart_window' && doesAppNeedPin && (unhandledCampaignAction != 'SET_DEFAULT_BROWSER') && (unhandledCampaignAction != 'PIN_FIREFOX_TO_TASKBAR') && (unhandledCampaignAction != 'PIN_AND_DEFAULT') && 'browser.shell.checkDefaultBrowser'|preferenceValue && !isDefaultBrowser"
+      "doesAppNeedPin && (unhandledCampaignAction != 'SET_DEFAULT_BROWSER') && (unhandledCampaignAction != 'PIN_FIREFOX_TO_TASKBAR') && (unhandledCampaignAction != 'PIN_AND_DEFAULT') && 'browser.shell.checkDefaultBrowser'|preferenceValue && !isDefaultBrowser"
     )
     .resolves(true)
     // Restore from backup pref gating
@@ -1027,7 +1027,7 @@ add_task(async function test_aboutwelcome_secondary_top_signin_only() {
     .resolves(false)
     // Mock Easy Setup for secondary button top testing
     .withArgs(
-      "attributionData.campaign != 'smart_window' && doesAppNeedPin && (unhandledCampaignAction != 'SET_DEFAULT_BROWSER') && (unhandledCampaignAction != 'PIN_FIREFOX_TO_TASKBAR') && (unhandledCampaignAction != 'PIN_AND_DEFAULT') && 'browser.shell.checkDefaultBrowser'|preferenceValue && !isDefaultBrowser"
+      "doesAppNeedPin && (unhandledCampaignAction != 'SET_DEFAULT_BROWSER') && (unhandledCampaignAction != 'PIN_FIREFOX_TO_TASKBAR') && (unhandledCampaignAction != 'PIN_AND_DEFAULT') && 'browser.shell.checkDefaultBrowser'|preferenceValue && !isDefaultBrowser"
     )
     .resolves(true)
     // Sign in button targeting
@@ -1076,7 +1076,7 @@ add_task(async function test_aboutwelcome_secondary_top_backup_restore_only() {
     .resolves(false)
     // Mock Easy Setup for secondary button top testing
     .withArgs(
-      "attributionData.campaign != 'smart_window' && doesAppNeedPin && (unhandledCampaignAction != 'SET_DEFAULT_BROWSER') && (unhandledCampaignAction != 'PIN_FIREFOX_TO_TASKBAR') && (unhandledCampaignAction != 'PIN_AND_DEFAULT') && 'browser.shell.checkDefaultBrowser'|preferenceValue && !isDefaultBrowser"
+      "doesAppNeedPin && (unhandledCampaignAction != 'SET_DEFAULT_BROWSER') && (unhandledCampaignAction != 'PIN_FIREFOX_TO_TASKBAR') && (unhandledCampaignAction != 'PIN_AND_DEFAULT') && 'browser.shell.checkDefaultBrowser'|preferenceValue && !isDefaultBrowser"
     )
     .resolves(true)
     // Show Restore Backup top button
@@ -1124,7 +1124,7 @@ add_task(async function test_aboutwelcome_both_secondary_top_buttons() {
     .stub(AWScreenUtils, "evaluateScreenTargeting")
     // Mock Easy Setup for secondary button top testing
     .withArgs(
-      "attributionData.campaign != 'smart_window' && doesAppNeedPin && (unhandledCampaignAction != 'SET_DEFAULT_BROWSER') && (unhandledCampaignAction != 'PIN_FIREFOX_TO_TASKBAR') && (unhandledCampaignAction != 'PIN_AND_DEFAULT') && 'browser.shell.checkDefaultBrowser'|preferenceValue && !isDefaultBrowser"
+      "doesAppNeedPin && (unhandledCampaignAction != 'SET_DEFAULT_BROWSER') && (unhandledCampaignAction != 'PIN_FIREFOX_TO_TASKBAR') && (unhandledCampaignAction != 'PIN_AND_DEFAULT') && 'browser.shell.checkDefaultBrowser'|preferenceValue && !isDefaultBrowser"
     )
     .resolves(true)
     // Show Sign-in top button
@@ -1291,51 +1291,3 @@ add_task(
     await cleanup();
   }
 );
-
-add_task(async function test_aboutwelcome_smart_window() {
-  const sandbox = sinon.createSandbox();
-
-  sandbox
-    .stub(AWScreenUtils, "evaluateScreenTargeting")
-    .resolves(false)
-    // Mock Smart Window screen
-    .withArgs(
-      "attributionData && attributionData.campaign == 'smart_window' && doesAppNeedPin && (unhandledCampaignAction != 'SET_DEFAULT_BROWSER') && (unhandledCampaignAction != 'PIN_FIREFOX_TO_TASKBAR') && (unhandledCampaignAction != 'PIN_AND_DEFAULT') && 'browser.shell.checkDefaultBrowser'|preferenceValue && !isDefaultBrowser"
-    )
-    .resolves(true)
-    // Mock Easy Setup screens
-    .withArgs(
-      "attributionData.campaign != 'smart_window' && doesAppNeedPin && (unhandledCampaignAction != 'SET_DEFAULT_BROWSER') && (unhandledCampaignAction != 'PIN_FIREFOX_TO_TASKBAR') && (unhandledCampaignAction != 'PIN_AND_DEFAULT') && 'browser.shell.checkDefaultBrowser'|preferenceValue && !isDefaultBrowser"
-    )
-    .resolves(false)
-    .withArgs(
-      "attributionData.campaign != 'smart_window' && !doesAppNeedPin && (unhandledCampaignAction != 'SET_DEFAULT_BROWSER') && (unhandledCampaignAction != 'PIN_AND_DEFAULT') && 'browser.shell.checkDefaultBrowser'|preferenceValue && !isDefaultBrowser"
-    )
-    .resolves(false)
-    .withArgs(
-      "attributionData.campaign != 'smart_window' && (unhandledCampaignAction != 'PIN_FIREFOX_TO_TASKBAR') && (unhandledCampaignAction != 'PIN_AND_DEFAULT') && doesAppNeedPin && (!'browser.shell.checkDefaultBrowser'|preferenceValue || isDefaultBrowser || (unhandledCampaignAction == 'SET_DEFAULT_BROWSER'))"
-    )
-    .resolves(false)
-    .withArgs(
-      "attributionData.campaign != 'smart_window' && (!doesAppNeedPin || (unhandledCampaignAction == 'PIN_FIREFOX_TO_TASKBAR') || (unhandledCampaignAction == 'PIN_AND_DEFAULT')) && (!'browser.shell.checkDefaultBrowser'|preferenceValue || isDefaultBrowser || (unhandledCampaignAction == 'SET_DEFAULT_BROWSER') || (unhandledCampaignAction == 'PIN_AND_DEFAULT'))"
-    )
-    .resolves(false);
-
-  let { browser, cleanup } = await openMRAboutWelcome();
-
-  await test_screen_content(
-    browser,
-    "Smart Window onboarding screen is rendered and Easy Setup screens are not",
-    ["main.AW_SMART_WINDOW_NEEDS_DEFAULT_AND_PIN"],
-    [
-      "main.AW_EASY_SETUP_NEEDS_DEFAULT_AND_PIN",
-      "main.AW_EASY_SETUP_NEEDS_DEFAULT",
-      "main.AW_EASY_SETUP_NEEDS_PIN",
-      "main.AW_EASY_SETUP_ONLY_IMPORT",
-    ]
-  );
-
-  await SpecialPowers.popPrefEnv();
-  await cleanup();
-  sandbox.restore();
-});
