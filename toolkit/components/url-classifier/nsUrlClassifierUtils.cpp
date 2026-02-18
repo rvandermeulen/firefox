@@ -365,6 +365,7 @@ static const struct {
     {"goog-downloadwhite-proto", "csdda-32b"},
     {"goog-globalcache-proto", "gc-32b"},
     {"test-google5-malware-proto", "test-4b"},
+    {"test-globalcache-proto", "test-32b"},
 };
 
 static const struct {
