@@ -525,11 +525,6 @@ def target_tasks_promote_desktop(full_task_graph, parameters, graph_config):
         if task.attributes.get("shipping_product") != parameters["release_product"]:
             return False
 
-        # 'secondary' balrog/update verify/final verify tasks only run for RCs
-        if parameters.get("release_type") != "release-rc":
-            if "secondary" in task.kind:
-                return False
-
         if not filter_out_missing_signoffs(task, parameters):
             return False
 
@@ -569,22 +564,11 @@ def target_tasks_push_desktop(full_task_graph, parameters, graph_config):
 def target_tasks_ship_desktop(full_task_graph, parameters, graph_config):
     """Select the set of tasks required to ship desktop.
     Previous build deps will be optimized out via action task."""
-    is_rc = parameters.get("release_type") == "release-rc"
-    if is_rc:
-        # ship_firefox_rc runs after `promote` rather than `push`; include
-        # all promote tasks.
-        filtered_for_candidates = target_tasks_promote_desktop(
-            full_task_graph,
-            parameters,
-            graph_config,
-        )
-    else:
-        # ship_firefox runs after `push`; include all push tasks.
-        filtered_for_candidates = target_tasks_push_desktop(
-            full_task_graph,
-            parameters,
-            graph_config,
-        )
+    filtered_for_candidates = target_tasks_push_desktop(
+        full_task_graph,
+        parameters,
+        graph_config,
+    )
 
     def filter(task):
         if not filter_out_missing_signoffs(task, parameters):
@@ -594,14 +578,10 @@ def target_tasks_ship_desktop(full_task_graph, parameters, graph_config):
             return True
 
         if (
-            task.attributes.get("shipping_product") != parameters["release_product"]
-            or task.attributes.get("shipping_phase") != "ship"
+            task.attributes.get("shipping_product") == parameters["release_product"]
+            and task.attributes.get("shipping_phase") == "ship"
         ):
-            return False
-
-        if "secondary" in task.kind:
-            return is_rc
-        return not is_rc
+            return True
 
     return [l for l, t in full_task_graph.tasks.items() if filter(t)]
 
