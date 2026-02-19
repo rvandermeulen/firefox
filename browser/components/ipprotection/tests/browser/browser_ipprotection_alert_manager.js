@@ -25,6 +25,19 @@ DEFAULT_EXPERIMENT = null;
 
 add_task(async function test_ipprotectionPrompts() {
   IPProtectionAlertManager.init();
+  setupService({
+    isSignedIn: true,
+    isEnrolledAndEntitled: true,
+    canEnroll: true,
+  });
+
+  IPProtectionService.updateState();
+
+  await IPPProxyManager.start();
+  await TestUtils.waitForCondition(
+    () => IPPProxyManager.state === IPPProxyStates.ACTIVE,
+    "Wait for the proxy state to be active"
+  );
 
   const [
     pausedTitle,
@@ -98,19 +111,22 @@ add_task(async function test_ipprotectionPrompts() {
     "Dialog has continue button label"
   );
 
-  setState(IPPProxyStates.ACTIVE);
+  await IPPProxyManager.stop();
 
   await TestUtils.waitForCondition(
     () => !window.gDialogBox.isOpen,
     "Wait for the dialog to not exist"
   );
 
-  Assert.ok(
-    !window.gDialogBox.isOpen,
-    "Dialog disappears when in active state"
-  );
+  Assert.ok(!window.gDialogBox.isOpen, "Dialog disappears when in ready state");
 
   await TestUtils.waitForTick();
+
+  await IPPProxyManager.start();
+  await TestUtils.waitForCondition(
+    () => IPPProxyManager.state === IPPProxyStates.ACTIVE,
+    "Wait for the proxy state to be active"
+  );
 
   setState(IPPProxyStates.ERROR);
 
@@ -159,6 +175,8 @@ add_task(async function test_ipprotectionPrompts() {
     "Dialog has continue button label"
   );
 
+  await IPPProxyManager.stop();
+  cleanupService();
   IPProtectionAlertManager.uninit();
 });
 
@@ -337,4 +355,28 @@ add_task(async function test_closeAllTabs() {
   await cleanupAlpha();
   await cleanupExperiment();
   cleanupService();
+});
+
+add_task(async function test_onlyWhenProxyActive() {
+  IPProtectionAlertManager.init();
+
+  setState(IPPProxyStates.PAUSED);
+
+  await TestUtils.waitForTick();
+
+  Assert.ok(
+    !window.gDialogBox.isOpen,
+    "Paused dialog does not open when proxy is not active"
+  );
+
+  setState(IPPProxyStates.ERROR);
+
+  await TestUtils.waitForTick();
+
+  Assert.ok(
+    !window.gDialogBox.isOpen,
+    "Error dialog does not open when proxy is not active"
+  );
+
+  IPProtectionAlertManager.uninit();
 });

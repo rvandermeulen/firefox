@@ -171,6 +171,10 @@ class IPProtectionAlertManagerClass {
    *  1 meaning close all tabs.
    */
   async showPausedPrompts() {
+    if (!lazy.IPPProxyManager.active) {
+      // If the proxy isn't already active, it will fail to start.
+      return;
+    }
     let { pausedTitle, pausedBody, continueButton, closeTabsButton } =
       this.localizationMessages;
 
@@ -199,6 +203,11 @@ class IPProtectionAlertManagerClass {
    *  1 meaning close all tabs.
    */
   async showErrorPrompts() {
+    if (!lazy.IPPProxyManager.active) {
+      // If the proxy isn't active, no need to alert the user.
+      return;
+    }
+
     let { errorTitle, errorBody, continueButton, closeTabsButton } =
       this.localizationMessages;
 

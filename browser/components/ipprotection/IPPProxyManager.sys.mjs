@@ -220,7 +220,7 @@ class IPPProxyManagerSingleton extends EventTarget {
   }
 
   get active() {
-    return this.#state === IPPProxyStates.ACTIVE;
+    return this.#connection?.active;
   }
 
   get isolationKey() {
