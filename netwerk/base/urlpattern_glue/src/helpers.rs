@@ -236,6 +236,16 @@ pub fn matcher_matches<'a>(
             Some(vec![Some(input.to_string())])
         }
         InnerMatcher::RegExp { regexp, .. } => {
+            // regexp can be an error result here if an invalid regexp string
+            // was passed to the regexp constructor. This can happen in the crate
+            // during parsing of the URLPattern string input into Init because
+            // the parser requires knowing if the protocol provided is
+            // special, so we compile AND match on the protocol component
+            // pre-emptively. Perhaps, we could detect regexp obj error slightly
+            // earlier, immediately after component compilation, but both ways
+            // the error bubbles up the same to the glue in
+            // init_from_string_and_base_url
+
             // ignore_case not needed here because the regexp was already
             // compiled with the correct flags. spidermonkey_matches uses the
             // pre-compiled regexp which has the flags baked in.
