@@ -38,6 +38,27 @@ export class AIChatMessage extends MozLitElement {
       "AIWindow:chat-search",
       this.handleSearchHandoffEvent.bind(this)
     );
+    this.#initLinkNavigationListener();
+  }
+
+  #initLinkNavigationListener() {
+    this.shadowRoot.addEventListener("click", event => {
+      let target = event.target;
+      while (target && target !== this.shadowRoot) {
+        if (target.tagName === "A" && target.href) {
+          event.preventDefault();
+          this.dispatchEvent(
+            new CustomEvent("AIChatContent:OpenLink", {
+              bubbles: true,
+              composed: true,
+              detail: { url: target.href },
+            })
+          );
+          return;
+        }
+        target = target.parentElement;
+      }
+    });
   }
 
   /**

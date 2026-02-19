@@ -42,6 +42,10 @@ export class AIChatContentParent extends JSWindowActorParent {
         this.#handleFooterActionFromChild(data);
         break;
 
+      case "AIChatContent:OpenLink":
+        this.#handleOpenLink(data);
+        break;
+
       default:
         console.warn(`AIChatContentParent received unknown message: ${name}`);
         break;
@@ -69,6 +73,33 @@ export class AIChatContentParent extends JSWindowActorParent {
       aiWindow.handleFooterAction(data);
     } catch (e) {
       console.warn("Could not handle footer action from AI Window chat", e);
+    }
+  }
+
+  #handleOpenLink(data) {
+    try {
+      const { url } = data;
+      if (!url) {
+        return;
+      }
+
+      const uri = Services.io.newURI(url);
+      if (uri.scheme !== "http" && uri.scheme !== "https") {
+        return;
+      }
+
+      const window = this.browsingContext.topChromeWindow;
+      if (window) {
+        const tabFound = window.switchToTabHavingURI(url, false, {});
+        if (!tabFound) {
+          window.gBrowser.selectedTab = window.gBrowser.addTab(url, {
+            triggeringPrincipal:
+              Services.scriptSecurityManager.createNullPrincipal({}),
+          });
+        }
+      }
+    } catch (e) {
+      console.warn("Could not open link from AI Window chat", e);
     }
   }
 
