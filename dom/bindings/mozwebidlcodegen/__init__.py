@@ -7,7 +7,6 @@
 
 import errno
 import hashlib
-import json
 import logging
 import os
 import sys
@@ -19,6 +18,7 @@ from mach.mixin.logging import LoggingMixin
 from mozbuild.makeutil import Makefile
 from mozbuild.pythonutil import iter_modules_in_path
 from mozbuild.util import FileAvoidWrite, cpu_count
+from mozfile import json
 
 # There are various imports in this file in functions to avoid adding
 # dependencies to config.status. See bug 949875.
