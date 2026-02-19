@@ -41,12 +41,6 @@ const DEFAULT_EXCLUDED_URL_PREFS = [
   "captivedetect.canonicalURL",
 ];
 
-const ESSENTIAL_URL_PREFS = [
-  "toolkit.telemetry.server",
-  "network.trr.uri",
-  "network.trr.default_provider_uri",
-];
-
 /**
  * IPPChannelFilter is a class that implements the nsIProtocolProxyChannelFilter
  * when active it will funnel all requests to its provided proxy.
@@ -199,16 +193,6 @@ export class IPPChannelFilter {
       }
     });
 
-    // Get origins essential to starting the proxy and exclude
-    // them prior to connecting
-    this.#essentialOrigins = new Set();
-    ESSENTIAL_URL_PREFS.forEach(pref => {
-      const prefValue = Services.prefs.getStringPref(pref, "");
-      if (prefValue) {
-        this.addEssentialExclusion(prefValue);
-      }
-    });
-
     XPCOMUtils.defineLazyPreferenceGetter(
       this,
       "mode",
@@ -289,7 +273,12 @@ export class IPPChannelFilter {
 
       const origin = uri.prePath; // scheme://host[:port]
 
-      if (!this.proxyInfo && this.#essentialOrigins.has(origin)) {
+      // Exclude system channels essential to starting the proxy until the proxy is ready.
+      if (
+        !this.proxyInfo &&
+        !channel.isDocument &&
+        channel.loadInfo?.triggeringPrincipal?.isSystemPrincipal
+      ) {
         return true;
       }
 
@@ -347,15 +336,6 @@ export class IPPChannelFilter {
     } catch (_) {
       // ignore bad entries
     }
-  }
-
-  /**
-   * Adds a URL to the essential exclusion list.
-   *
-   * @param {string} url - The URL to exclude.
-   */
-  addEssentialExclusion(url) {
-    this.addPageExclusion(url, this.#essentialOrigins);
   }
 
   /**
@@ -485,7 +465,6 @@ export class IPPChannelFilter {
   #observers = [];
   #active = false;
   #excludedOrigins = new Set();
-  #essentialOrigins = new Set();
   #pendingChannels = [];
 
   static makeIsolationKey() {
