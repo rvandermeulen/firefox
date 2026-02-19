@@ -4,10 +4,9 @@
 
 import { html } from "chrome://global/content/vendor/lit.all.mjs";
 import "chrome://browser/content/aiwindow/components/website-chip-container.mjs";
-import "chrome://browser/content/aiwindow/components/ai-website-chip.mjs";
 
 export default {
-  title: "Domain-specific UI Widgets/AI Window/ Website Chip Container",
+  title: "Domain-specific UI Widgets/AI Window/Website Chip Container",
   component: "website-chip-container",
   // Constrained container to simulate a chat bubble.
   decorators: [
@@ -15,7 +14,6 @@ export default {
       <div
         style="
           width: 326px;
-          display: flex;
           padding: 16px;
           box-sizing: border-box;
           border: 1px dashed #ccc;
@@ -27,26 +25,27 @@ export default {
   ],
 };
 
-const Template = () => html`
-  <website-chip-container>
-    <ai-website-chip
-      type="context-chip"
-      label="example.com"
-      iconSrc="chrome://branding/content/about-logo.svg"
-      href="https://example.com"
-    ></ai-website-chip>
-    <ai-website-chip
-      type="context-chip"
-      label="firefox.com"
-      iconSrc="chrome://branding/content/icon16.png"
-    ></ai-website-chip>
-    <ai-website-chip
-      type="context-chip"
-      label="example.com"
-      iconSrc="chrome://branding/content/about-logo.svg"
-      href="https://example.com"
-    ></ai-website-chip>
-  </website-chip-container>
-`;
+const websites = [
+  {
+    id: "https://example.com",
+    label: "example.com",
+    iconSrc: "chrome://branding/content/about-logo.svg",
+  },
+  {
+    id: "https://firefox.com",
+    label: "firefox.com",
+    iconSrc: "chrome://branding/content/icon16.png",
+  },
+  {
+    id: "https://example.com",
+    label: "example.com",
+    iconSrc: "chrome://branding/content/about-logo.svg",
+  },
+];
 
-export const Default = Template.bind({});
+export const Default = () => html`
+  <website-chip-container
+    .chipType=${"context-chip"}
+    .websites=${websites}
+  ></website-chip-container>
+`;
