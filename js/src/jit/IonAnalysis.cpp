@@ -4637,6 +4637,7 @@ static bool NeedsKeepAlive(MInstruction* slotsOrElements, MInstruction* use) {
       case MDefinition::Opcode::GuardElementsArePacked:
       case MDefinition::Opcode::InArray:
       case MDefinition::Opcode::SpectreMaskIndex:
+      case MDefinition::Opcode::Add:
       case MDefinition::Opcode::DebugEnterGCUnsafeRegion:
       case MDefinition::Opcode::DebugLeaveGCUnsafeRegion:
         break;
