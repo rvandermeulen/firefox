@@ -131,11 +131,6 @@ code-review
 Publish issues found by source-test tasks on Phabricator.
 This is a part of Release Management code review Bot.
 
-code-coverage
--------------
-
-Publish a pulse message when all ccov coverage tasks in the task group finish.
-
 upload-symbols
 --------------
 

@@ -49,8 +49,6 @@ newtab-unit-tests:
 
 newtab-unit-tests-ccov:
     description: newtab unit tests code coverage
-    attributes:
-        ccov: true
     treeherder:
         symbol: node(newtab-ccov)
     worker:
@@ -121,8 +119,6 @@ messagingsystem-unit-tests:
 
 messagingsystem-unit-tests-ccov:
     description: messaging system unit tests code coverage
-    attributes:
-        ccov: true
     treeherder:
         symbol: node(messagingsystem-ccov)
     worker:

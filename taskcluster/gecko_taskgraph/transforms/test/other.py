@@ -550,8 +550,6 @@ def enable_code_coverage(config, tasks):
     """Enable code coverage for the ccov build-platforms"""
     for task in tasks:
         if "ccov" in task["build-platform"]:
-            task.setdefault("attributes", {})["ccov"] = True
-
             # Do not run tests on fuzzing builds
             if "fuzzing" in task["build-platform"]:
                 task["run-on-projects"] = []
