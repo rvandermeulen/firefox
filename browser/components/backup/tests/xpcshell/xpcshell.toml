@@ -40,6 +40,11 @@ support-files = [
   "data/missing_json_block.html",
 ]
 
+["test_BackupService_crossProfileTypeRecovery.js"]
+prefs = [
+  "browser.backup.profiles.force-enable=true",
+]
+
 ["test_BackupService_enable_disable_encryption.js"]
 
 ["test_BackupService_enabled.js"]
