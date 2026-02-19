@@ -1,4 +1,4 @@
-# Building
+# Building the Remote Agent
 
 The Remote Agent is included in the default Firefox build, but only
 ships on the Firefox Nightly release channel:
