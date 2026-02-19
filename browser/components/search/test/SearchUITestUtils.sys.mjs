@@ -54,7 +54,7 @@ export const SearchUITestUtils = new (class {
    * @param {?boolean} expected.expectLegacyTelemetry
    *   Whether the `SEARCH_COUNTS` legacy histogram is expected to be updated.
    *   Pass false if the SAP telemetry is expected to be recorded only by Glean.
-   * @param {string} expected.source
+   * @param {keyof typeof lazy.BrowserSearchTelemetry.KNOWN_SEARCH_SOURCES} expected.source
    *   The source of the search (e.g. urlbar, contextmenu etc.).
    * @param {number} expected.count
    *   The expected count for the source.
@@ -77,7 +77,7 @@ export const SearchUITestUtils = new (class {
       let expected = {
         provider_id: engineId ?? "other",
         provider_name: engineName,
-        source: lazy.BrowserSearchTelemetry.KNOWN_SEARCH_SOURCES.get(source),
+        source: lazy.BrowserSearchTelemetry.KNOWN_SEARCH_SOURCES[source],
         overridden_by_third_party: overriddenByThirdParty.toString(),
       };
 
