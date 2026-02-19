@@ -603,13 +603,14 @@ void nsAccessibilityService::NotifyOfPossibleBoundsChange(
   if (IPCAccessibilityActive()) {
     document->QueueCacheUpdate(accessible, CacheDomain::Bounds);
   }
-  if (accessible->IsTextLeaf() &&
+  MOZ_ASSERT(!aContent->IsText() || accessible->IsTextLeaf(),
+             "A DOM Text node should only ever have a TextLeafAccessible");
+  if (aContent->IsText() && accessible->IsTextLeaf() &&
       accessible->AsTextLeaf()->Text().EqualsLiteral(" ")) {
     // This space might be becoming invisible, even though it still has a frame.
     // In this case, the frame will have 0 width. Unfortunately, we can't check
     // the frame width here because layout isn't ready yet, so we need to defer
     // this until the refresh driver tick.
-    MOZ_ASSERT(aContent->IsText());
     document->UpdateText(aContent);
   }
 }
