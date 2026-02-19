@@ -316,7 +316,8 @@ async function testCreateBackupHelper(sandbox, taskFn) {
     null,
     false,
     fakeProfilePath,
-    recoveredProfilePath
+    recoveredProfilePath,
+    true
   );
 
   Assert.ok(

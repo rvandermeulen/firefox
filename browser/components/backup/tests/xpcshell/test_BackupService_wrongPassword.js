@@ -70,7 +70,8 @@ async function testWrongPassword(passwordToUse) {
       passwordToUse,
       false,
       testBackupDirPath,
-      recoveredProfilePath
+      recoveredProfilePath,
+      true
     ),
     err => err.cause == ERRORS.UNAUTHORIZED
   );

@@ -3037,10 +3037,9 @@ export class BackupService extends EventTarget {
    * @param {string|null} recoveryCode
    *   The recovery code to use to attempt to decrypt the archive if it was
    *   encrypted.
-   * @param {boolean} [shouldLaunch=false]
+   * @param {boolean} [shouldLaunchOrQuit=false]
    *   An optional argument that specifies whether an instance of the app
-   *   should be launched with the newly recovered profile after recovery is
-   *   complete.
+   *   should be launched or allowed to quit after recovery is complete.
    * @param {boolean} [profilePath=PathUtils.profileDir]
    *   The profile path where the recovery files will be written to within the
    *   PROFILE_FOLDER_NAME. This is only used for testing.
@@ -3061,7 +3060,7 @@ export class BackupService extends EventTarget {
   async recoverFromBackupArchive(
     archivePath,
     recoveryCode = null,
-    shouldLaunch = false,
+    shouldLaunchOrQuit = false,
     profilePath = PathUtils.profileDir,
     profileRootPath = null,
     replaceCurrentProfile = false
@@ -3172,7 +3171,7 @@ export class BackupService extends EventTarget {
           newProfile =
             await this.recoverFromSnapshotFolderIntoSelectableProfile(
               RECOVERY_FOLDER_DEST_PATH,
-              shouldLaunch,
+              shouldLaunchOrQuit,
               encState,
               null,
               profileRootPath,
@@ -3182,7 +3181,7 @@ export class BackupService extends EventTarget {
         } else {
           newProfile = await this.recoverFromSnapshotFolder(
             RECOVERY_FOLDER_DEST_PATH,
-            shouldLaunch,
+            shouldLaunchOrQuit,
             profileRootPath,
             encState,
             manifest
@@ -3202,7 +3201,7 @@ export class BackupService extends EventTarget {
         // Looks like everything went well, if we are replacing the current profile
         // we are good to close and delete it now
         if (replaceCurrentProfile) {
-          await this.deleteAndQuitCurrentSelectableProfile();
+          await this.deleteAndQuitCurrentSelectableProfile(shouldLaunchOrQuit);
         }
 
         return newProfile;
@@ -3237,8 +3236,12 @@ export class BackupService extends EventTarget {
   /**
    * Handles deleting the currently running selectable profile
    * and then quitting it.
+   *
+   * @param {boolean} [shouldQuit=true]
+   * Optional param to disable actually quitting the running instance. Used
+   * primarily for testing.
    */
-  async deleteAndQuitCurrentSelectableProfile() {
+  async deleteAndQuitCurrentSelectableProfile(shouldQuit = true) {
     if (!lazy.SelectableProfileService.hasCreatedSelectableProfiles()) {
       lazy.logConsole.warn(
         `We don't delete the running profile in the case of legacy backup to legacy recovery`
@@ -3260,8 +3263,10 @@ export class BackupService extends EventTarget {
     try {
       await lazy.SelectableProfileService.deleteCurrentProfile();
 
-      // Finally, exit.
-      Services.startup.quit(Ci.nsIAppStartup.eAttemptQuit);
+      if (shouldQuit) {
+        // Finally, exit.
+        Services.startup.quit(Ci.nsIAppStartup.eAttemptQuit);
+      }
     } catch (e) {
       // This is expected in tests.
       lazy.logConsole.error(`Errored while attempting delete and quit: ${e}`);

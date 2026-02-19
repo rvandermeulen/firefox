@@ -228,7 +228,7 @@ export class BackupUIParent extends JSWindowActorParent {
         await this.#bs.recoverFromBackupArchive(
           backupFile,
           backupPassword,
-          true /* shouldLaunch */
+          true /* shouldLaunchOrQuit */
         );
       } catch (e) {
         lazy.logConsole.error(`Failed to restore file: ${backupFile}`, e);
