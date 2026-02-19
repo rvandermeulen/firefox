@@ -4,6 +4,7 @@
 
 package org.mozilla.focus
 
+import android.app.Application
 import android.content.Context
 import android.os.Build
 import android.os.StrictMode
@@ -28,7 +29,7 @@ import mozilla.components.support.base.facts.register
 import mozilla.components.support.base.log.Log
 import mozilla.components.support.base.log.sink.AndroidLogSink
 import mozilla.components.support.ktx.android.content.isMainProcess
-import mozilla.components.support.locale.LocaleAwareApplication
+import mozilla.components.support.locale.LocaleManager
 import mozilla.components.support.remotesettings.GlobalRemoteSettingsDependencyProvider
 import mozilla.components.support.rusthttp.RustHttpConfig
 import mozilla.components.support.webextensions.WebExtensionSupport
@@ -46,7 +47,7 @@ import mozilla.components.support.AppServicesInitializer.Config as AppServiceCon
 /**
  * Focus application class.
  */
-open class FocusApplication : LocaleAwareApplication(), Provider {
+open class FocusApplication : Application(), Provider {
 
     protected val applicationScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     protected val ioDispatcher = Dispatchers.IO
@@ -114,7 +115,24 @@ open class FocusApplication : LocaleAwareApplication(), Provider {
 
     override fun onConfigurationChanged(config: android.content.res.Configuration) {
         applicationContext.resources.configuration.uiMode = config.uiMode
-        super.onConfigurationChanged(config)
+
+        if (isMainProcess()) {
+            super.onConfigurationChanged(config)
+            // Update locale on main process
+            LocaleManager.updateResources(this)
+        } else {
+            super.onConfigurationChanged(config)
+        }
+    }
+
+    override fun attachBaseContext(base: Context) {
+        // Sets the locale information. Other threads do not have locale aware needs
+        if (base.isMainProcess()) {
+            val localeAwareContext = LocaleManager.updateResources(base)
+            super.attachBaseContext(localeAwareContext)
+        } else {
+            super.attachBaseContext(base)
+        }
     }
 
     protected open fun setupLeakCanary() {
