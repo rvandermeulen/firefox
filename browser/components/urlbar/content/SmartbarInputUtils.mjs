@@ -227,7 +227,7 @@ function setupMentionsPlugin(editorElement, panelList) {
     plugin.mentions.insert(
       {
         type: "tab",
-        url: id,
+        id,
         label,
       },
       // TODO (Bug 2011266): Falls back to inserting at the start of the editor.

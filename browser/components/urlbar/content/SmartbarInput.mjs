@@ -13,8 +13,6 @@ import "chrome://browser/content/aiwindow/components/memories-icon-button.mjs";
 import "chrome://browser/content/aiwindow/components/context-icon-button.mjs";
 // eslint-disable-next-line import/no-unassigned-import
 import "chrome://browser/content/aiwindow/components/smartwindow-panel-list.mjs";
-// eslint-disable-next-line import/no-unassigned-import
-import "chrome://browser/content/aiwindow/components/website-chip-container.mjs";
 
 const { XPCOMUtils } = ChromeUtils.importESModule(
   "resource://gre/modules/XPCOMUtils.sys.mjs"
@@ -28,7 +26,6 @@ const { AppConstants } = ChromeUtils.importESModule(
  * @import { UrlbarSearchOneOffs } from "moz-src:///browser/components/urlbar/UrlbarSearchOneOffs.sys.mjs"
  * @import { SearchEngine } from "moz-src:///toolkit/components/search/SearchEngine.sys.mjs"
  * @import { SmartbarAction } from "moz-src:///browser/components/aiwindow/ui/components/input-cta/input-cta.mjs"
- * @import { WebsiteChipContainer } from "chrome://browser/content/aiwindow/components/website-chip-container.mjs"
  */
 
 const lazy = XPCOMUtils.declareLazy({
@@ -95,30 +92,12 @@ let getBoundsWithoutFlushing = element =>
 let px = number => number.toFixed(2) + "px";
 
 /**
- * A website context entry used to render website chips.
- *
- * @typedef {object} ContextWebsite
- * @property {string} type
- *   The source kind; currently always "tab".
- * @property {string} url
- *   URL of the website.
- * @property {string} label
- *   Label shown in the chip.
- * @property {string} [iconSrc]
- *   Icon URI. When missing or empty, falls back to the favicon from Places
- *   via `getIconForUrl`.
- */
-
-const MAX_CONTEXT_WEBSITES = 5;
-
-/**
  * Implements the text input part of the address bar UI.
  */
 export class SmartbarInput extends HTMLElement {
   static get #markup() {
     return `
       <hbox class="urlbar-background"/>
-      <html:website-chip-container class="smartbar-context-chips-header" hidden="true"></html:website-chip-container>
       <hbox class="urlbar-input-container"
             flex="1"
             pageproxystate="invalid">
@@ -273,21 +252,6 @@ export class SmartbarInput extends HTMLElement {
   #compositionState = lazy.UrlbarUtils.COMPOSITION.NONE;
   #compositionClosedPopup = false;
 
-  /**
-   * @type {boolean}
-   */
-  #isSidebarMode = false;
-
-  /**
-   * @type {ContextWebsite[]}
-   */
-  #contextWebsites = [];
-
-  /**
-   * @type {?WebsiteChipContainer}
-   */
-  #websiteContextChipsContainer = null;
-
   valueIsTyped = false;
 
   // Properties accessed in tests.
@@ -398,8 +362,6 @@ export class SmartbarInput extends HTMLElement {
         this
       );
       this._inputCta.addEventListener("aiwindow-input-cta:on-action", this);
-      this.#findWebsiteContextChipsContainer();
-      this.#updateContextChips();
     }
     this._inputContainer = this.querySelector(".urlbar-input-container");
 
@@ -601,10 +563,6 @@ export class SmartbarInput extends HTMLElement {
     if (this.#gBrowserListenersAdded) {
       this.window.gBrowser.tabContainer.removeEventListener("TabSelect", this);
       this.window.gBrowser.tabContainer.removeEventListener("TabClose", this);
-      this.window.gBrowser.tabContainer.removeEventListener(
-        "TabAttrModified",
-        this
-      );
       this.window.gBrowser.removeTabsProgressListener(this);
       this.#gBrowserListenersAdded = false;
     }
@@ -646,24 +604,15 @@ export class SmartbarInput extends HTMLElement {
   }
 
   addGBrowserListeners() {
-    if (!this.window.gBrowser || this.#gBrowserListenersAdded) {
+    // The following listeners are only used for the address bar.
+    if (!this.#isAddressbar) {
       return;
     }
-
-    this.window.gBrowser.addTabsProgressListener(this);
-    this.#gBrowserListenersAdded = true;
-
-    // TabSelect/TabClose listeners are needed for both address bar and smartbar modes
-    if (this.#isAddressbar || this.#isSmartbarMode) {
+    if (this.window.gBrowser && !this.#gBrowserListenersAdded) {
       this.window.gBrowser.tabContainer.addEventListener("TabSelect", this);
       this.window.gBrowser.tabContainer.addEventListener("TabClose", this);
-    }
-
-    if (this.#isSmartbarMode) {
-      this.window.gBrowser.tabContainer.addEventListener(
-        "TabAttrModified",
-        this
-      );
+      this.window.gBrowser.addTabsProgressListener(this);
+      this.#gBrowserListenersAdded = true;
     }
   }
 
@@ -1178,13 +1127,6 @@ export class SmartbarInput extends HTMLElement {
    */
   onLocationChange(browser, webProgress, request, locationURI) {
     if (!webProgress.isTopLevel) {
-      return;
-    }
-
-    if (this.#isSmartbarMode) {
-      if (browser == this.window.gBrowser.selectedBrowser) {
-        this.#updateContextChips();
-      }
       return;
     }
 
@@ -5749,21 +5691,6 @@ export class SmartbarInput extends HTMLElement {
     this._untrimOnFocusAfterKeydown = false;
     this._gotTabSelect = true;
     this._afterTabSelectAndFocusChange();
-
-    // Update context chips to reflect the newly selected tab
-    if (this.#isSidebarMode) {
-      this.#updateContextChips();
-    }
-  }
-
-  _on_TabAttrModified(event) {
-    if (
-      this.#isSidebarMode &&
-      event.target == this.window.gBrowser.selectedTab &&
-      event.detail.changed.includes("image")
-    ) {
-      this.#updateContextChips();
-    }
   }
 
   _on_TabClose(event) {
@@ -6202,114 +6129,6 @@ export class SmartbarInput extends HTMLElement {
       default:
         this.smartbarAction = "";
     }
-  }
-
-  /**
-   * Updates the website context chips shown in the Smartbar.
-   *
-   * - In sidebar mode, include the current tab as implicit context
-   * - Always include explicitly added context websites.
-   * - Keeping a stable ordering prevents chips from reordering on navigation
-   *   updates.
-   */
-  #updateContextChips() {
-    /** @type {ContextWebsite[]} */
-    const candidates = [...this.#contextWebsites];
-
-    // Place the implicit current-tab website first (sidebar mode only) so the
-    // "default" context is consistently visible and doesn't get pushed out by
-    // explicit chips.
-    if (this.#isSidebarMode) {
-      const tab = this.window.gBrowser?.selectedTab;
-      const url = tab?.linkedBrowser.currentURI?.spec;
-      if (url) {
-        candidates.unshift({
-          type: "tab",
-          url,
-          label: tab.label || url,
-          iconSrc: tab.image || lazy.UrlbarUtils.getIconForUrl(url),
-        });
-      }
-    }
-
-    /** @type {Map<string, ContextWebsite>} */
-    const uniqueByUrl = new Map();
-
-    for (const site of candidates) {
-      if (!site.url || uniqueByUrl.has(site.url)) {
-        continue;
-      }
-      uniqueByUrl.set(site.url, site);
-    }
-
-    const finalWebsites = [...uniqueByUrl.values()]
-      .slice(0, MAX_CONTEXT_WEBSITES)
-      .map(site => this.#ensureWebsiteIcon(site));
-
-    const container = this.#findWebsiteContextChipsContainer();
-    if (container) {
-      container.websites = finalWebsites;
-      container.hidden = !finalWebsites.length;
-    }
-  }
-
-  /**
-   * Public method to trigger context chip update.
-   * Called when sidebar reopens to ensure chips reflect the current tab.
-   */
-  updateContextChips() {
-    this.#updateContextChips();
-  }
-
-  /**
-   * Ensures a website context entry has an icon source.
-   * If an icon source is already present, the site is returned unchanged.
-   *
-   * @param {ContextWebsite} site
-   */
-  #ensureWebsiteIcon(site) {
-    if (site.iconSrc) {
-      return site;
-    }
-
-    return {
-      ...site,
-      iconSrc: site.url ? lazy.UrlbarUtils.getIconForUrl(site.url) : "",
-    };
-  }
-
-  // Cache the container reference to avoid repeated querySelector calls
-  // since #updateContextChips runs on every navigation and context update.
-  // Re-query if the cached element is disconnected to avoid stale references
-  // during Smartbar lifecycle changes.
-  #findWebsiteContextChipsContainer() {
-    if (this.#websiteContextChipsContainer?.isConnected) {
-      return this.#websiteContextChipsContainer;
-    }
-
-    this.#websiteContextChipsContainer = this.querySelector(
-      ".smartbar-context-chips-header"
-    );
-
-    return this.#websiteContextChipsContainer;
-  }
-
-  /**
-   * @param {boolean} isSidebar
-   */
-  set isSidebarMode(isSidebar) {
-    this.#isSidebarMode = !!isSidebar;
-    this.#updateContextChips();
-  }
-
-  /**
-   * Sets the explicit website context and updates the rendered chips.
-   *
-   * @param {ContextWebsite[]} websites
-   */
-  setAndUpdateContextWebsites(websites) {
-    this.#contextWebsites = websites;
-    this.#updateContextChips();
   }
 }
 

@@ -103,7 +103,6 @@ export class AIWindow extends MozLitElement {
   #starters = [];
   #smartbarResizeObserver = null;
   #windowModeObserver = null;
-  #addedContextWebsites = []; // TODO: replace once Bug 2016760 lands
 
   /**
    * Flags whether the #conversation reference has been updated but the messages
@@ -494,8 +493,6 @@ export class AIWindow extends MozLitElement {
         "suggestions-position",
         this.mode === SIDEBAR ? "top" : "bottom"
       );
-      smartbar.setAndUpdateContextWebsites(this.#addedContextWebsites);
-      smartbar.isSidebarMode = this.mode == "sidebar";
 
       smartbar.addEventListener("input", this.#handleSmartbarInput);
       smartbar.addEventListener(
@@ -1048,11 +1045,6 @@ export class AIWindow extends MozLitElement {
       document.title = conversation.title;
     }
     this.#updateTabFavicon();
-
-    // Update smartbar chips to reflect the current tab when sidebar reopens
-    if (this.#smartbar && this.mode === "sidebar") {
-      this.#smartbar.updateContextChips();
-    }
 
     const actor = this.#getAIChatContentActor();
     if (this.#browser && actor) {

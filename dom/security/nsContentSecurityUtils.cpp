@@ -1327,7 +1327,6 @@ static nsLiteralCString sStyleSrcUnsafeInlineAllowList[] = {
 static nsLiteralCString sImgSrcMozRemoteImageAllowList[] = {
     "about:preferences"_ns,
     "about:settings"_ns,
-    "chrome://browser/content/aiwindow/aiWindow.html"_ns,
     "chrome://browser/content/preferences/dialogs/applicationManager.xhtml"_ns,
     "chrome://mozapps/content/handling/appChooser.xhtml"_ns,
 };

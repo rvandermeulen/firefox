@@ -125,9 +125,3 @@
 .smartbar-button-container input-cta {
   margin-inline-start: auto;
 }
-
-.smartbar-context-chips-header {
-  position: relative;
-  margin-inline: var(--space-medium);
-  margin-top: var(--space-medium);
-}
