@@ -155,6 +155,17 @@ class KeymapWrapper {
                            GdkEventKey* aGdkKeyEvent, bool aIsProcessedByIME);
 
   /**
+   * InitKeyEventFromCommitString() initializes aKeyEvent for a character
+   * committed via text-input protocol (e.g., Wayland) where there is no
+   * native GDK key event.
+   *
+   * @param aKeyEvent         The WidgetKeyboardEvent to initialize.
+   * @param aCommitString     The committed string (should be single char).
+   */
+  static void InitKeyEventFromCommitString(WidgetKeyboardEvent& aKeyEvent,
+                                           const nsAString& aCommitString);
+
+  /**
    * DispatchKeyDownOrKeyUpEvent() dispatches eKeyDown or eKeyUp event.
    *
    * @param aWindow           The window to dispatch a keyboard event.
