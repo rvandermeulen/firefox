@@ -1263,8 +1263,7 @@ toolbar[inactive="true"] .urlbar,
 }
 
 .searchmode-switcher-popup-description {
-  margin-inline: 4px;
-  padding: var(--arrowpanel-menuitem-padding);
+  font-weight: revert;
 }
 
 .searchmode-switcher-popup-search-settings-button,

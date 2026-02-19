@@ -107,8 +107,8 @@ export class UrlbarInput extends HTMLElement {
                          data-l10n-id="urlbar-searchmode-exit-button" />
           <menupopup class="searchmode-switcher-popup toolbar-menupopup"
                      consumeoutsideclicks="false">
-            <label class="searchmode-switcher-popup-description"
-                   role="heading" />
+            <menucaption class="searchmode-switcher-popup-description"
+                         role="heading" />
             <menuseparator/>
             <menuseparator class="searchmode-switcher-popup-footer-separator"/>
             <menuitem class="searchmode-switcher-popup-search-settings-button menuitem-iconic"
@@ -327,8 +327,8 @@ export class UrlbarInput extends HTMLElement {
     searchModeSwitcherDescription.setAttribute(
       "data-l10n-id",
       this.#isAddressbar
-        ? "urlbar-searchmode-popup-description"
-        : "urlbar-searchmode-popup-sticky-description"
+        ? "urlbar-searchmode-popup-description-menucaption"
+        : "urlbar-searchmode-popup-sticky-description-menucaption"
     );
 
     // The event bufferer can be used to defer events that may affect users
