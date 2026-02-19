@@ -541,12 +541,15 @@ class SearchRobot(private val composeTestRule: ComposeTestRule) {
 
         fun submitQuery(query: String, interact: BrowserRobot.() -> Unit): BrowserRobot.Transition {
             Log.i(TAG, "submitQuery: Trying to set toolbar text to: $query and pressing IME action")
-
             composeTestRule.onNodeWithTag(ADDRESSBAR_SEARCH_BOX).apply {
                 performTextReplacement(query)
                 performImeAction()
             }
             Log.i(TAG, "submitQuery: Toolbar text was set to: $query and IME action performed")
+
+            Log.i(TAG, "submitQuery: Waiting for compose test rule to be idle")
+            composeTestRule.waitForIdle()
+            Log.i(TAG, "submitQuery: Waiting for compose test rule to be idle")
 
             BrowserRobot(composeTestRule).interact()
             return BrowserRobot.Transition(composeTestRule)

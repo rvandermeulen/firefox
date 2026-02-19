@@ -1365,13 +1365,10 @@ class BrowserRobot(private val composeTestRule: ComposeTestRule) {
             return ThreeDotMenuMainRobot.Transition(composeTestRule)
         }
 
-        @OptIn(ExperimentalTestApi::class)
         fun openSearch(interact: SearchRobot.() -> Unit): SearchRobot.Transition {
-            composeTestRule.waitUntilAtLeastOneExists(hasTestTag(ADDRESSBAR_URL_BOX), waitingTime)
             Log.i(TAG, "openSearch: Trying to click navigation toolbar")
-            composeTestRule.onAllNodesWithTag(ADDRESSBAR_URL_BOX).onLast().performClick()
+            itemWithResId(ADDRESSBAR_URL_BOX).click()
             Log.i(TAG, "openSearch: Clicked navigation toolbar")
-            waitForAppWindowToBeUpdated()
 
             SearchRobot(composeTestRule).interact()
             return SearchRobot.Transition(composeTestRule)
