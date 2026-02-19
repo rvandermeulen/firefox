@@ -505,8 +505,6 @@ var SessionFileInternal = {
           null,
           "sessionstore-final-state-write-complete"
         );
-
-        lazy.SessionWriter.deinit();
       }
     });
   },
