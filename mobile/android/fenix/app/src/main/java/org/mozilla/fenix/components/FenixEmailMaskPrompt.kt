@@ -36,9 +36,9 @@ class FenixEmailMaskPrompt<V>(
         get() = isVisible
 
     override fun showPrompt() = with(view) {
-        showPrompt()
         emailMaskPromptListener = this@FenixEmailMaskPrompt.emailMaskPromptListener
         toggleablePromptListener = this@FenixEmailMaskPrompt.toggleablePromptListener
+        showPrompt()
         behavior = createCustomAutofillBarBehavior()
         isVisible = true
         this@FenixEmailMaskPrompt.onShow()

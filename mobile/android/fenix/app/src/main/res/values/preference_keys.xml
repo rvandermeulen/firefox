@@ -263,13 +263,15 @@
     <string name="pref_key_logins_secure_warning_sync" translatable="false">pref_key_logins_secure_warning_sync</string>
     <string name="pref_key_secure_warning" translatable="false">pref_key_secure_warning</string>
 
-    <!-- Email masks Settings -->
+    <!-- Email masks -->
     <!-- Key for the "Email masks" preference in the "Settings" fragment -->
     <string name="pref_key_email_masks" translatable="false">pref_key_email_masks</string>
     <!-- Key for the feature flag that controls whether the Email Masks feature is visible in Settings -->
     <string name="pref_key_enable_email_masks" translatable="false">pref_key_enable_email_masks</string>
     <!-- Key for the user preference controlling whether Email Masks suggestions should be shown -->
     <string name="pref_key_email_mask_suggestion" translatable="false">pref_key_relay_email_masks_suggestions</string>
+    <!-- A value of `true` means the email mask CFR has not been shown and dismissed yet -->
+    <string name="pref_key_should_show_email_mask_cfr" translatable="false">pref_key_should_show_email_mask_cfr</string>
 
     <!-- Autofill Settings -->
     <!-- Key for the "Credit cards" preference in the "Settings" fragment -->

@@ -4,29 +4,29 @@
 
 package org.mozilla.fenix.browser.relay
 
-import android.content.Context
 import mozilla.components.concept.engine.Engine
 import mozilla.components.service.fxa.manager.FxaAccountManager
 import mozilla.components.service.fxrelay.EmailMask
 import mozilla.components.service.fxrelay.eligibility.RelayEligibilityStore
 import mozilla.components.service.fxrelay.eligibility.RelayFeature
 import mozilla.components.support.base.feature.LifecycleAwareFeature
-import org.mozilla.fenix.R
 import org.mozilla.fenix.components.AppStore
 
 /**
  * A wrapper class for features that relate to the Firefox Relay email masking service.
+ *
+ * @param engine The browser engine for autofill integration.
+ * @param store The Relay eligibility store for feature state.
+ * @param appStore The application store for user preferences.
+ * @param accountManager The FxA account manager for authentication.
+ * @param errorMessages The error messages for display.
  */
 class RelayFeatureIntegration(
-    context: Context,
     private val engine: Engine,
     private val store: RelayEligibilityStore,
     private val appStore: AppStore,
     private val accountManager: FxaAccountManager,
-    private val errorMessages: ErrorMessages = ErrorMessages(
-        maxMasksReached = context.getString(R.string.email_masks_max_free_tier_reached),
-        errorRetrievingMasks = context.getString(R.string.email_masks_error_retrieving_masks),
-    ),
+    private val errorMessages: ErrorMessages,
 ) : LifecycleAwareFeature {
     private var isStarted = false
 

@@ -1183,6 +1183,13 @@ abstract class BaseBrowserFragment :
                     override val emailMaskPromptViewListenerView
                         get() = emailMaskBar
 
+                    override fun shouldShowEmailMaskCfr() =
+                        context.settings().shouldShowEmailMaskCfr
+
+                    override fun onEmailMaskCfrDismissed() {
+                        context.settings().shouldShowEmailMaskCfr = false
+                    }
+
                     override suspend fun onEmailMaskClick(generatedFor: String) = withContext(IO) {
                         val relay = requireComponents.relayFeatureIntegration
                         val created = relay.getOrCreateNewMask(generatedFor)
