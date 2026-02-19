@@ -28,7 +28,6 @@ import org.mozilla.gecko.MultiMap;
 import org.mozilla.gecko.util.BundleEventListener;
 import org.mozilla.gecko.util.EventCallback;
 import org.mozilla.gecko.util.GeckoBundle;
-import org.mozilla.gecko.util.ThreadUtils;
 import org.mozilla.geckoview.WebExtension.InstallException;
 import org.mozilla.geckoview.WebExtension.InvalidMetaDataException;
 
@@ -648,10 +647,9 @@ public class WebExtensionController {
    * @see WebExtension#metaData
    */
   @NonNull
-  @HandlerThread
+  @AnyThread
   public GeckoResult<WebExtension> install(
       final @NonNull String uri, final @Nullable @InstallationMethod String installationMethod) {
-    ThreadUtils.assertOnHandlerThread();
     final InstallCanceller canceller = new InstallCanceller();
     final GeckoBundle bundle = new GeckoBundle(3);
     bundle.putString("locationUri", uri);
@@ -701,9 +699,8 @@ public class WebExtensionController {
    * @see WebExtension#metaData
    */
   @NonNull
-  @HandlerThread
+  @AnyThread
   public GeckoResult<WebExtension> install(final @NonNull String uri) {
-    ThreadUtils.assertOnHandlerThread();
     return install(uri, null);
   }
 
@@ -734,10 +731,9 @@ public class WebExtensionController {
    * @return the updated {@link WebExtension} instance.
    */
   @NonNull
-  @HandlerThread
+  @AnyThread
   public GeckoResult<WebExtension> setAllowedInPrivateBrowsing(
       final @NonNull WebExtension extension, final boolean allowed) {
-    ThreadUtils.assertOnHandlerThread();
     final GeckoBundle bundle = new GeckoBundle(2);
     bundle.putString("extensionId", extension.id);
     bundle.putBoolean("allowed", allowed);
@@ -759,13 +755,12 @@ public class WebExtensionController {
    * @return the updated {@link WebExtension} instance.
    */
   @NonNull
-  @HandlerThread
+  @AnyThread
   public GeckoResult<WebExtension> addOptionalPermissions(
       final @NonNull String extensionId,
       @NonNull final String[] permissions,
       @NonNull final String[] origins,
       @NonNull final String[] dataCollectionPermissions) {
-    ThreadUtils.assertOnHandlerThread();
     final GeckoBundle bundle = new GeckoBundle(4);
     bundle.putString("extensionId", extensionId);
     bundle.putStringArray("permissions", permissions);
@@ -789,13 +784,12 @@ public class WebExtensionController {
    * @return the updated {@link WebExtension} instance.
    */
   @NonNull
-  @HandlerThread
+  @AnyThread
   public GeckoResult<WebExtension> removeOptionalPermissions(
       final @NonNull String extensionId,
       @NonNull final String[] permissions,
       @NonNull final String[] origins,
       @NonNull final String[] dataCollectionPermissions) {
-    ThreadUtils.assertOnHandlerThread();
     final GeckoBundle bundle = new GeckoBundle(4);
     bundle.putString("extensionId", extensionId);
     bundle.putStringArray("permissions", permissions);
@@ -827,9 +821,8 @@ public class WebExtensionController {
    * @return A {@link GeckoResult} that completes with the extension once it's installed.
    */
   @NonNull
-  @HandlerThread
+  @AnyThread
   public GeckoResult<WebExtension> installBuiltIn(final @NonNull String uri) {
-    ThreadUtils.assertOnHandlerThread();
     final GeckoBundle bundle = new GeckoBundle(1);
     bundle.putString("locationUri", uri);
 
@@ -861,10 +854,9 @@ public class WebExtensionController {
    * @return A {@link GeckoResult} that completes with the extension once it's installed.
    */
   @NonNull
-  @HandlerThread
+  @AnyThread
   public GeckoResult<WebExtension> ensureBuiltIn(
       final @NonNull String uri, final @Nullable String id) {
-    ThreadUtils.assertOnHandlerThread();
     final GeckoBundle bundle = new GeckoBundle(2);
     bundle.putString("locationUri", uri);
     bundle.putString("webExtensionId", id);
@@ -887,9 +879,8 @@ public class WebExtensionController {
    * @return A {@link GeckoResult} that will complete when the uninstall process is completed.
    */
   @NonNull
-  @HandlerThread
+  @AnyThread
   public GeckoResult<Void> uninstall(final @NonNull WebExtension extension) {
-    ThreadUtils.assertOnHandlerThread();
     final GeckoBundle bundle = new GeckoBundle(1);
     bundle.putString("webExtensionId", extension.id);
 
@@ -937,11 +928,10 @@ public class WebExtensionController {
    *     the user,use {@link EnableSource#USER}.
    * @return the new {@link WebExtension} instance, updated to reflect the enablement.
    */
-  @HandlerThread
+  @AnyThread
   @NonNull
   public GeckoResult<WebExtension> enable(
       final @NonNull WebExtension extension, final @EnableSources int source) {
-    ThreadUtils.assertOnHandlerThread();
     final GeckoBundle bundle = new GeckoBundle(2);
     bundle.putString("webExtensionId", extension.id);
     bundle.putString("source", EnableSource.toString(source));
@@ -961,11 +951,10 @@ public class WebExtensionController {
    *     the user, use {@link EnableSource#USER}.
    * @return the new {@link WebExtension} instance, updated to reflect the disablement.
    */
-  @HandlerThread
+  @AnyThread
   @NonNull
   public GeckoResult<WebExtension> disable(
       final @NonNull WebExtension extension, final @EnableSources int source) {
-    ThreadUtils.assertOnHandlerThread();
     final GeckoBundle bundle = new GeckoBundle(2);
     bundle.putString("webExtensionId", extension.id);
     bundle.putString("source", EnableSource.toString(source));
@@ -996,10 +985,9 @@ public class WebExtensionController {
    *
    * @return a {@link GeckoResult} that will resolve when the list of extensions is available.
    */
-  @HandlerThread
+  @AnyThread
   @NonNull
   public GeckoResult<List<WebExtension>> list() {
-    ThreadUtils.assertOnHandlerThread();
     return EventDispatcher.getInstance()
         .queryBundle("GeckoView:WebExtension:List")
         .map(this::listFromBundle);
@@ -1024,10 +1012,9 @@ public class WebExtensionController {
    *     requires new permissions, the {@link PromptDelegate#installPromptRequest} will be called.
    * @see PromptDelegate#updatePrompt
    */
-  @HandlerThread
+  @AnyThread
   @NonNull
   public GeckoResult<WebExtension> update(final @NonNull WebExtension extension) {
-    ThreadUtils.assertOnHandlerThread();
     final GeckoBundle bundle = new GeckoBundle(1);
     bundle.putString("webExtensionId", extension.id);
 

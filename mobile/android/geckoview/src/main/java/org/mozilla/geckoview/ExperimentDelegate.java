@@ -8,12 +8,12 @@ package org.mozilla.geckoview;
 
 import static org.mozilla.geckoview.ExperimentDelegate.ExperimentException.ERROR_EXPERIMENT_DELEGATE_NOT_IMPLEMENTED;
 
+import androidx.annotation.AnyThread;
 import androidx.annotation.IntDef;
 import androidx.annotation.NonNull;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import org.json.JSONObject;
-import org.mozilla.gecko.util.ThreadUtils;
 
 /**
  * This delegate is used to pass experiment information between the embedding application and
@@ -42,9 +42,8 @@ public interface ExperimentDelegate {
    *     related to showing or adjusting a feature. Will complete exceptionally with {@link
    *     ExperimentException} if the feature wasn't found.
    */
-  @HandlerThread
+  @AnyThread
   default @NonNull GeckoResult<JSONObject> onGetExperimentFeature(@NonNull String feature) {
-    ThreadUtils.assertOnHandlerThread();
     final GeckoResult<JSONObject> result = new GeckoResult<>();
     result.completeExceptionally(
         new ExperimentException(ERROR_EXPERIMENT_DELEGATE_NOT_IMPLEMENTED));
@@ -68,9 +67,8 @@ public interface ExperimentDelegate {
    *     recorded. Will complete exceptionally with {@link ExperimentException} if the feature
    *     wasn't found.
    */
-  @HandlerThread
+  @AnyThread
   default @NonNull GeckoResult<Void> onRecordExposureEvent(@NonNull String feature) {
-    ThreadUtils.assertOnHandlerThread();
     final GeckoResult<Void> result = new GeckoResult<>();
     result.completeExceptionally(
         new ExperimentException(ERROR_EXPERIMENT_DELEGATE_NOT_IMPLEMENTED));
@@ -93,10 +91,9 @@ public interface ExperimentDelegate {
    *     recorded. Will complete exceptionally with {@link ExperimentException} if the feature
    *     wasn't found or not recorded.
    */
-  @HandlerThread
+  @AnyThread
   default @NonNull GeckoResult<Void> onRecordExperimentExposureEvent(
       @NonNull String feature, @NonNull String slug) {
-    ThreadUtils.assertOnHandlerThread();
     final GeckoResult<Void> result = new GeckoResult<>();
     result.completeExceptionally(
         new ExperimentException(ERROR_EXPERIMENT_DELEGATE_NOT_IMPLEMENTED));
@@ -113,10 +110,9 @@ public interface ExperimentDelegate {
    *     recorded. Will complete exceptionally with {@link ExperimentException} if the feature
    *     wasn't found or not recorded.
    */
-  @HandlerThread
+  @AnyThread
   default @NonNull GeckoResult<Void> onRecordMalformedConfigurationEvent(
       @NonNull String feature, @NonNull String part) {
-    ThreadUtils.assertOnHandlerThread();
     final GeckoResult<Void> result = new GeckoResult<>();
     result.completeExceptionally(
         new ExperimentException(ERROR_EXPERIMENT_DELEGATE_NOT_IMPLEMENTED));

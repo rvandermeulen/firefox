@@ -24,7 +24,6 @@ import java.util.Objects;
 import org.mozilla.gecko.EventDispatcher;
 import org.mozilla.gecko.util.EventCallback;
 import org.mozilla.gecko.util.GeckoBundle;
-import org.mozilla.gecko.util.ThreadUtils;
 
 /**
  * The translations controller coordinates the session and runtime messaging between GeckoView and
@@ -81,9 +80,8 @@ public class TranslationsController {
      *
      * @return true if translations are supported on the device, or false if not.
      */
-    @HandlerThread
+    @AnyThread
     public static @NonNull GeckoResult<Boolean> isTranslationsEngineSupported() {
-      ThreadUtils.assertOnHandlerThread();
       if (DEBUG) {
         Log.d(LOGTAG, "Requesting if the translations engine supports the device.");
       }
@@ -108,9 +106,8 @@ public class TranslationsController {
      *
      * @return a GeckoResult with a user's preferred language(s) or null or an exception
      */
-    @HandlerThread
+    @AnyThread
     public static @NonNull GeckoResult<List<String>> preferredLanguages() {
-      ThreadUtils.assertOnHandlerThread();
       if (DEBUG) {
         Log.d(LOGTAG, "Requesting the user's preferred languages.");
       }
@@ -140,10 +137,9 @@ public class TranslationsController {
      * @param options contain language, operation, and operation level to perform on the model
      * @return the request proceeded as expected or an exception.
      */
-    @HandlerThread
+    @AnyThread
     public static @NonNull GeckoResult<Void> manageLanguageModel(
         final @NonNull ModelManagementOptions options) {
-      ThreadUtils.assertOnHandlerThread();
       if (DEBUG) {
         Log.d(LOGTAG, "Requesting management of the language model.");
       }
@@ -174,9 +170,8 @@ public class TranslationsController {
      * @return a GeckoResult with a TranslationSupport object with "to" and "from" languages or an
      *     exception.
      */
-    @HandlerThread
+    @AnyThread
     public static @NonNull GeckoResult<TranslationSupport> listSupportedLanguages() {
-      ThreadUtils.assertOnHandlerThread();
       if (DEBUG) {
         Log.d(LOGTAG, "Requesting information on the language options.");
       }
@@ -201,10 +196,9 @@ public class TranslationsController {
      * @param toLanguage from BCP 47 code
      * @return The size of the file size in bytes. If no download is required, will return 0.
      */
-    @HandlerThread
+    @AnyThread
     public static @NonNull GeckoResult<Long> checkPairDownloadSize(
         @NonNull final String fromLanguage, @NonNull final String toLanguage) {
-      ThreadUtils.assertOnHandlerThread();
       if (DEBUG) {
         Log.d(LOGTAG, "Requesting information on the language pair download size.");
       }
@@ -227,10 +221,9 @@ public class TranslationsController {
      * @return The size of the necessary file size in bytes. If no download is required, will return
      *     0.
      */
-    @HandlerThread
+    @AnyThread
     public static @NonNull GeckoResult<Long> checkPairDownloadSize(
         @NonNull final SessionTranslation.TranslationPair pair) {
-      ThreadUtils.assertOnHandlerThread();
       return checkPairDownloadSize(pair.fromLanguage, pair.toLanguage);
     }
 
@@ -241,9 +234,8 @@ public class TranslationsController {
      * @return A GeckoResult with a list of the available language model's and their states or an
      *     exception.
      */
-    @HandlerThread
+    @AnyThread
     public static @NonNull GeckoResult<List<LanguageModel>> listModelDownloadStates() {
-      ThreadUtils.assertOnHandlerThread();
       if (DEBUG) {
         Log.d(LOGTAG, "Requesting information on the language model.");
       }
@@ -277,10 +269,9 @@ public class TranslationsController {
      *     example, es, en, de, etc.
      * @return The {@link LanguageSetting} string for the language.
      */
-    @HandlerThread
+    @AnyThread
     public static @NonNull GeckoResult<String> getLanguageSetting(
         @NonNull final String languageCode) {
-      ThreadUtils.assertOnHandlerThread();
       if (DEBUG) {
         Log.d(LOGTAG, "Requesting language setting for " + languageCode + ".");
       }
@@ -295,9 +286,8 @@ public class TranslationsController {
      * @return A GeckoResult with a map of each BCP 47 language portion of the code (key) and its
      *     corresponding {@link LanguageSetting} string (value).
      */
-    @HandlerThread
+    @AnyThread
     public static @NonNull GeckoResult<Map<String, String>> getLanguageSettings() {
-      ThreadUtils.assertOnHandlerThread();
       if (DEBUG) {
         Log.d(LOGTAG, "Requesting language settings.");
       }
@@ -335,11 +325,10 @@ public class TranslationsController {
      * @return A GeckoResult that will return void if successful or else will complete
      *     exceptionally.
      */
-    @HandlerThread
+    @AnyThread
     public static @NonNull GeckoResult<Void> setLanguageSettings(
         final @NonNull String languageCode,
         final @NonNull @LanguageSetting String languageSetting) {
-      ThreadUtils.assertOnHandlerThread();
       if (DEBUG) {
         Log.d(LOGTAG, "Requesting setting language setting.");
       }
@@ -359,9 +348,8 @@ public class TranslationsController {
      *
      * @return A list of display ready site URIs to set preferences for.
      */
-    @HandlerThread
+    @AnyThread
     public static @NonNull GeckoResult<List<String>> getNeverTranslateSiteList() {
-      ThreadUtils.assertOnHandlerThread();
       if (DEBUG) {
         Log.d(LOGTAG, "Retrieving specified never translate site settings");
       }
@@ -397,10 +385,9 @@ public class TranslationsController {
      * @return Void if the operation to set the value completed or exceptionally if an issue
      *     occurred.
      */
-    @HandlerThread
+    @AnyThread
     public static @NonNull GeckoResult<Void> setNeverTranslateSpecifiedSite(
         final @NonNull Boolean neverTranslate, final @NonNull String origin) {
-      ThreadUtils.assertOnHandlerThread();
       if (DEBUG) {
         Log.d(LOGTAG, "Setting never translate for specified site uri origin: " + origin);
       }
@@ -752,12 +739,11 @@ public class TranslationsController {
      *     already present.
      * @return Void if the translate process begins or exceptionally if an issue occurs.
      */
-    @HandlerThread
+    @AnyThread
     public @NonNull GeckoResult<Void> translate(
         @NonNull final String fromLanguage,
         @NonNull final String toLanguage,
         @Nullable final TranslationOptions options) {
-      ThreadUtils.assertOnHandlerThread();
       if (DEBUG) {
         Log.d(
             LOGTAG,
@@ -801,11 +787,10 @@ public class TranslationsController {
      *     required, then the request will fail, but will continue if the model is already present.
      * @return Void if the translate process begins or exceptionally if an issue occurs.
      */
-    @HandlerThread
+    @AnyThread
     public @NonNull GeckoResult<Void> translate(
         @NonNull final TranslationPair translationPair,
         @Nullable final TranslationOptions options) {
-      ThreadUtils.assertOnHandlerThread();
       return translate(translationPair.fromLanguage, translationPair.toLanguage, options);
     }
 
@@ -819,10 +804,9 @@ public class TranslationsController {
      *     be the suggested preference language or user specified.
      * @return Void if the translate process begins or exceptionally if an issue occurs.
      */
-    @HandlerThread
+    @AnyThread
     private @NonNull GeckoResult<Void> baseTranslate(
         @NonNull final String sourceLanguage, @NonNull final String targetLanguage) {
-      ThreadUtils.assertOnHandlerThread();
 
       final GeckoBundle bundle = new GeckoBundle(2);
       bundle.putString("sourceLanguage", sourceLanguage);
@@ -841,9 +825,8 @@ public class TranslationsController {
      *
      * @return if page restoration process begins or exceptionally if an issue occurs.
      */
-    @HandlerThread
+    @AnyThread
     public @NonNull GeckoResult<Void> restoreOriginalPage() {
-      ThreadUtils.assertOnHandlerThread();
       if (DEBUG) {
         Log.d(LOGTAG, "Restore translated page requested");
       }
@@ -861,9 +844,8 @@ public class TranslationsController {
      *
      * @return The site setting for the page or exceptionally if an issue occurs.
      */
-    @HandlerThread
+    @AnyThread
     public @NonNull GeckoResult<Boolean> getNeverTranslateSiteSetting() {
-      ThreadUtils.assertOnHandlerThread();
       if (DEBUG) {
         Log.d(LOGTAG, "Retrieving never translate site setting.");
       }
@@ -878,10 +860,9 @@ public class TranslationsController {
      * @return Void if the operation to set the value completed or exceptionally if an issue
      *     occurred.
      */
-    @HandlerThread
+    @AnyThread
     public @NonNull GeckoResult<Void> setNeverTranslateSiteSetting(
         final @NonNull Boolean neverTranslate) {
-      ThreadUtils.assertOnHandlerThread();
       if (DEBUG) {
         Log.d(LOGTAG, "Setting never translate site.");
       }
