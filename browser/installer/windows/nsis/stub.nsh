@@ -41,6 +41,7 @@ Var InstallCounterStep
 Var InstallTotalSteps
 Var ProgressCompleted
 Var UsingHighContrastMode
+Var DownloadRequestsBlockedByServer
 
 Var ExitCode
 Var FirefoxLaunchCode
@@ -101,7 +102,7 @@ Var ArchToInstall
 ; the stub installer
 ;!define STUB_DEBUG
 
-!define StubURLVersion "v11"
+!define StubURLVersion "v12"
 
 ; Successful install exit code
 !define ERR_SUCCESS 0
@@ -519,6 +520,12 @@ Function OnDownload
   StrCpy $DownloadServerIP "$5"
   ${If} $0 > 299
     WebBrowser::CancelTimer $TimerHandle
+
+    ; Download server web access filtering indicates a blocked request by returning
+    ; a status of 406 - Not Acceptable
+    ${If} $0 = 406
+      IntOp $DownloadRequestsBlockedByServer $DownloadRequestsBlockedByServer + 1
+    ${EndIf}
     IntOp $DownloadRetryCount $DownloadRetryCount + 1
     ${If} $DownloadRetryCount >= ${DownloadMaxRetries}
       StrCpy $ExitCode "${ERR_DOWNLOAD_TOO_MANY_RETRIES}"
@@ -978,7 +985,8 @@ Function SendPing
                       $\nDistribution Version = $DistributionVersion \
                       $\nWindows UBR = $WindowsUBR \
                       $\nStub Installer Build ID = $StubBuildID \
-                      $\nLaunched by = $R4"
+                      $\nLaunched by = $R4 \
+                      $\nCount of rejected download requests = $DownloadRequestsBlockedByServer"
     ; The following will exit the installer
     SetAutoClose true
     StrCpy $R9 "2"
@@ -987,7 +995,7 @@ Function SendPing
     ${StartTimer} ${DownloadIntervalMS} OnPing
     ; See https://firefox-source-docs.mozilla.org/toolkit/components/telemetry/data/install-ping.html#stub-ping
     ; for instructions on how to make changes to data being reported in this ping
-    InetBgDL::Get "${BaseURLStubPing}/${StubURLVersion}${StubURLVersionAppend}/${Channel}/${UpdateChannel}/${AB_CD}/$R0/$R1/$5/$6/$7/$8/$9/$ExitCode/$FirefoxLaunchCode/$DownloadRetryCount/$DownloadedBytes/$DownloadSizeBytes/$IntroPhaseSeconds/$OptionsPhaseSeconds/$0/$1/$DownloadFirstTransferSeconds/$2/$3/$4/$InitialInstallRequirementsCode/$OpenedDownloadPage/$ExistingProfile/$ExistingVersion/$ExistingBuildID/$R5/$R6/$R7/$R8/$R2/$R3/$DownloadServerIP/$PostSigningData/$ProfileCleanupPromptType/$CheckboxCleanupProfile/$DistributionID/$DistributionVersion/$WindowsUBR/$StubBuildID/$R4" \
+    InetBgDL::Get "${BaseURLStubPing}/${StubURLVersion}${StubURLVersionAppend}/${Channel}/${UpdateChannel}/${AB_CD}/$R0/$R1/$5/$6/$7/$8/$9/$ExitCode/$FirefoxLaunchCode/$DownloadRetryCount/$DownloadedBytes/$DownloadSizeBytes/$IntroPhaseSeconds/$OptionsPhaseSeconds/$0/$1/$DownloadFirstTransferSeconds/$2/$3/$4/$InitialInstallRequirementsCode/$OpenedDownloadPage/$ExistingProfile/$ExistingVersion/$ExistingBuildID/$R5/$R6/$R7/$R8/$R2/$R3/$DownloadServerIP/$PostSigningData/$ProfileCleanupPromptType/$CheckboxCleanupProfile/$DistributionID/$DistributionVersion/$WindowsUBR/$StubBuildID/$R4/$DownloadRequestsBlockedByServer" \
                   "$PLUGINSDIR\_temp" /END
 !endif
   ${Else}
@@ -1551,6 +1559,7 @@ Function CommonOnInit
   System::Call 'kernel32::SetDllDirectoryW(w "")'
   StrCpy $PingAlreadySent "false"
   StrCpy $AbortInstallation "false"
+  StrCpy $DownloadRequestsBlockedByServer 0
   ; Initialize PostSigningData to detect case of not being set at all
   StrCpy $PostSigningData "stub_installer:unset"
   StrCpy $LANGUAGE 0
