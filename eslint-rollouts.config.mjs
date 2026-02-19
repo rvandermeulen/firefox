@@ -757,7 +757,6 @@ export default [
       "browser/components/pagedata/tests/browser/browser_pagedata_background.js",
       "browser/components/pagedata/tests/browser/browser_pagedata_cache.js",
       "browser/components/preferences/tests/browser_applications_selection.js",
-      "browser/components/preferences/tests/browser_bug410900.js",
       "browser/components/preferences/tests/browser_contentblocking.js",
       "browser/components/preferences/tests/browser_cookie_exceptions_addRemove.js",
       "browser/components/preferences/tests/browser_cookies_exceptions.js",
