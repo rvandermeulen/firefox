@@ -21,8 +21,8 @@
  */
 
 /**
- * pdfjsVersion = 5.5.23
- * pdfjsBuild = 7077b2a99
+ * pdfjsVersion = 5.5.70
+ * pdfjsBuild = 30ed527a8
  */
 /******/ // The require scope
 /******/ var __webpack_require__ = {};
@@ -407,6 +407,9 @@ function updateUrlHash(url, hash, allowRel = false) {
     return url.split("#", 1)[0] + `${hash ? `#${hash}` : ""}`;
   }
   return "";
+}
+function stripPath(str) {
+  return str.substring(str.lastIndexOf("/") + 1);
 }
 function shadow(obj, prop, value, nonSerializable = false) {
   Object.defineProperty(obj, prop, {
@@ -1162,10 +1165,10 @@ async function fetchData(url, type = "text") {
     throw new Error(response.statusText);
   }
   switch (type) {
-    case "arraybuffer":
-      return response.arrayBuffer();
     case "blob":
       return response.blob();
+    case "bytes":
+      return response.bytes();
     case "json":
       return response.json();
   }
@@ -1307,7 +1310,7 @@ function isPdfFile(filename) {
 }
 function getFilenameFromUrl(url) {
   [url] = url.split(/[#?]/, 1);
-  return url.substring(url.lastIndexOf("/") + 1);
+  return stripPath(url);
 }
 function getPdfFilenameFromUrl(url, defaultFilename = "document.pdf") {
   if (typeof url !== "string") {
@@ -1344,7 +1347,7 @@ function getPdfFilenameFromUrl(url, defaultFilename = "document.pdf") {
     try {
       let decoded = decodeURIComponent(name);
       if (decoded.includes("/")) {
-        decoded = decoded.split("/").at(-1);
+        decoded = stripPath(decoded);
         if (decoded.test(/^\.pdf$/i)) {
           return decoded;
         }
@@ -1356,7 +1359,7 @@ function getPdfFilenameFromUrl(url, defaultFilename = "document.pdf") {
     }
   };
   const pdfRegex = /\.pdf$/i;
-  const filename = newURL.pathname.split("/").at(-1);
+  const filename = stripPath(newURL.pathname);
   if (pdfRegex.test(filename)) {
     return decode(filename);
   }
@@ -1821,9 +1824,11 @@ function makePathFromDrawOPS(data) {
 class PagesMapper {
   #idToPageNumber = null;
   #pageNumberToId = null;
-  #prevIdToPageNumber = null;
+  #prevPageNumbers = null;
   #pagesNumber = 0;
   #listeners = [];
+  #copiedPageIds = null;
+  #copiedPageNumbers = null;
   get pagesNumber() {
     return this.#pagesNumber;
   }
@@ -1832,10 +1837,11 @@ class PagesMapper {
       return;
     }
     this.#pagesNumber = n;
-    if (n === 0) {
-      this.#pageNumberToId = null;
-      this.#idToPageNumber = null;
-    }
+    this.#reset();
+  }
+  #reset() {
+    this.#pageNumberToId = null;
+    this.#idToPageNumber = null;
   }
   addListener(listener) {
     this.#listeners.push(listener);
@@ -1846,9 +1852,9 @@ class PagesMapper {
       this.#listeners.splice(index, 1);
     }
   }
-  #updateListeners() {
+  #updateListeners(data) {
     for (const listener of this.#listeners) {
-      listener();
+      listener(data);
     }
   }
   #init(mustInit) {
@@ -1856,21 +1862,34 @@ class PagesMapper {
       return;
     }
     const n = this.#pagesNumber;
-    const array = new Uint32Array(3 * n);
-    const pageNumberToId = this.#pageNumberToId = array.subarray(0, n);
-    const idToPageNumber = this.#idToPageNumber = array.subarray(n, 2 * n);
+    const pageNumberToId = this.#pageNumberToId = new Uint32Array(n);
+    this.#prevPageNumbers = new Int32Array(pageNumberToId);
+    const idToPageNumber = this.#idToPageNumber = new Map();
     if (mustInit) {
-      for (let i = 0; i < n; i++) {
-        pageNumberToId[i] = idToPageNumber[i] = i + 1;
+      for (let i = 1; i <= n; i++) {
+        pageNumberToId[i - 1] = i;
+        idToPageNumber.set(i, [i]);
       }
     }
-    this.#prevIdToPageNumber = array.subarray(2 * n);
+  }
+  #updateIdToPageNumber() {
+    const idToPageNumber = this.#idToPageNumber;
+    const pageNumberToId = this.#pageNumberToId;
+    idToPageNumber.clear();
+    for (let i = 0, ii = this.#pagesNumber; i < ii; i++) {
+      const id = pageNumberToId[i];
+      const pageNumbers = idToPageNumber.get(id);
+      if (pageNumbers) {
+        pageNumbers.push(i + 1);
+      } else {
+        idToPageNumber.set(id, [i + 1]);
+      }
+    }
   }
   movePages(selectedPages, pagesToMove, index) {
     this.#init(true);
     const pageNumberToId = this.#pageNumberToId;
     const idToPageNumber = this.#idToPageNumber;
-    this.#prevIdToPageNumber.set(idToPageNumber);
     const movedCount = pagesToMove.length;
     const mappedPagesToMove = new Uint32Array(movedCount);
     let removedBeforeTarget = 0;
@@ -1892,30 +1911,129 @@ class PagesMapper {
     }
     pageNumberToId.copyWithin(adjustedTarget + movedCount, adjustedTarget, remainingLen);
     pageNumberToId.set(mappedPagesToMove, adjustedTarget);
-    let hasChanged = false;
-    for (let i = 0, ii = pagesNumber; i < ii; i++) {
-      const id = pageNumberToId[i];
-      hasChanged ||= id !== i + 1;
-      idToPageNumber[id - 1] = i + 1;
+    this.#setPrevPageNumbers(idToPageNumber, null);
+    this.#updateIdToPageNumber();
+    this.#updateListeners({
+      type: "move"
+    });
+    if (pageNumberToId.every((id, i) => id === i + 1)) {
+      this.#reset();
     }
-    this.#updateListeners();
-    if (!hasChanged) {
-      this.pagesNumber = 0;
+  }
+  deletePages(pagesToDelete) {
+    this.#init(true);
+    const pageNumberToId = this.#pageNumberToId;
+    const prevIdToPageNumber = this.#idToPageNumber;
+    this.pagesNumber -= pagesToDelete.length;
+    this.#init(false);
+    const newPageNumberToId = this.#pageNumberToId;
+    let sourceIndex = 0;
+    let destIndex = 0;
+    for (const pageNumber of pagesToDelete) {
+      const pageIndex = pageNumber - 1;
+      if (pageIndex !== sourceIndex) {
+        newPageNumberToId.set(pageNumberToId.subarray(sourceIndex, pageIndex), destIndex);
+        destIndex += pageIndex - sourceIndex;
+      }
+      sourceIndex = pageIndex + 1;
+    }
+    if (sourceIndex < pageNumberToId.length) {
+      newPageNumberToId.set(pageNumberToId.subarray(sourceIndex), destIndex);
+    }
+    this.#setPrevPageNumbers(prevIdToPageNumber, null);
+    this.#updateIdToPageNumber();
+    this.#updateListeners({
+      type: "delete",
+      pageNumbers: pagesToDelete
+    });
+  }
+  copyPages(pagesToCopy) {
+    this.#init(true);
+    this.#copiedPageNumbers = pagesToCopy;
+    this.#copiedPageIds = pagesToCopy.map(pageNumber => this.#pageNumberToId[pageNumber - 1]);
+    this.#updateListeners({
+      type: "copy",
+      pageNumbers: pagesToCopy
+    });
+  }
+  pastePages(index) {
+    this.#init(true);
+    const pageNumberToId = this.#pageNumberToId;
+    const prevIdToPageNumber = this.#idToPageNumber;
+    const copiedPageNumbers = this.#copiedPageNumbers;
+    const copiedPageMapping = new Map();
+    let base = index;
+    for (const pageNumber of copiedPageNumbers) {
+      copiedPageMapping.set(++base, pageNumber);
+    }
+    this.pagesNumber += copiedPageNumbers.length;
+    this.#init(false);
+    const newPageNumberToId = this.#pageNumberToId;
+    newPageNumberToId.set(pageNumberToId.subarray(0, index), 0);
+    newPageNumberToId.set(this.#copiedPageIds, index);
+    newPageNumberToId.set(pageNumberToId.subarray(index), index + copiedPageNumbers.length);
+    this.#setPrevPageNumbers(prevIdToPageNumber, copiedPageMapping);
+    this.#updateIdToPageNumber();
+    this.#updateListeners({
+      type: "paste"
+    });
+    this.#copiedPageIds = null;
+  }
+  #setPrevPageNumbers(prevIdToPageNumber, copiedPageMapping) {
+    const prevPageNumbers = this.#prevPageNumbers;
+    const newPageNumberToId = this.#pageNumberToId;
+    const idsIndices = new Map();
+    for (let i = 0, ii = this.#pagesNumber; i < ii; i++) {
+      const oldPageNumber = copiedPageMapping?.get(i + 1);
+      if (oldPageNumber) {
+        prevPageNumbers[i] = -oldPageNumber;
+        continue;
+      }
+      const id = newPageNumberToId[i];
+      const j = idsIndices.get(id) || 0;
+      prevPageNumbers[i] = prevIdToPageNumber.get(id)?.[j];
+      idsIndices.set(id, j + 1);
     }
   }
   hasBeenAltered() {
     return this.#pageNumberToId !== null;
   }
   getPageMappingForSaving() {
-    return {
-      pageIndices: this.#idToPageNumber ? this.#idToPageNumber.map(x => x - 1) : null
-    };
+    const idToPageNumber = this.#idToPageNumber;
+    let nCopy = 0;
+    for (const pageNumbers of idToPageNumber.values()) {
+      nCopy = Math.max(nCopy, pageNumbers.length);
+    }
+    const extractParams = new Array(nCopy);
+    for (let i = 0; i < nCopy; i++) {
+      extractParams[i] = {
+        document: null,
+        pageIndices: [],
+        includePages: []
+      };
+    }
+    for (const [id, pageNumbers] of idToPageNumber) {
+      for (let i = 0, ii = pageNumbers.length; i < ii; i++) {
+        extractParams[i].includePages.push([id - 1, pageNumbers[i] - 1]);
+      }
+    }
+    for (const {
+      includePages,
+      pageIndices
+    } of extractParams) {
+      includePages.sort((a, b) => a[0] - b[0]);
+      for (let i = 0, ii = includePages.length; i < ii; i++) {
+        pageIndices.push(includePages[i][1]);
+        includePages[i] = includePages[i][0];
+      }
+    }
+    return extractParams;
   }
   getPrevPageNumber(pageNumber) {
-    return this.#prevIdToPageNumber[this.#pageNumberToId[pageNumber - 1] - 1];
+    return this.#prevPageNumbers[pageNumber - 1] ?? 0;
   }
   getPageNumber(id) {
-    return this.#idToPageNumber?.[id - 1] ?? id;
+    return this.#idToPageNumber ? this.#idToPageNumber.get(id)?.[0] ?? 0 : id;
   }
   getPageId(pageNumber) {
     return this.#pageNumberToId?.[pageNumber - 1] ?? pageNumber;
@@ -2804,9 +2922,6 @@ class AnnotationEditorUIManager {
     eventBus._on("switchannotationeditorparams", evt => this.updateParams(evt.type, evt.value), {
       signal
     });
-    eventBus._on("pagesedited", this.onPagesEdited.bind(this), {
-      signal
-    });
     window.addEventListener("pointerdown", () => {
       this.#isPointerDown = true;
     }, {
@@ -2816,6 +2931,10 @@ class AnnotationEditorUIManager {
     window.addEventListener("pointerup", () => {
       this.#isPointerDown = false;
     }, {
+      capture: true,
+      signal
+    });
+    window.addEventListener("beforeunload", this.#beforeUnload.bind(this), {
       capture: true,
       signal
     });
@@ -3045,28 +3164,19 @@ class AnnotationEditorUIManager {
         break;
     }
   }
-  onPagesEdited({
-    pagesMapper
-  }) {
-    for (const editor of this.#allEditors.values()) {
-      editor.updatePageIndex(pagesMapper.getPrevPageNumber(editor.pageIndex + 1) - 1);
-    }
-    const allLayers = this.#allLayers;
-    const newAllLayers = this.#allLayers = new Map();
-    for (const [pageIndex, layer] of allLayers) {
-      const prevPageIndex = pagesMapper.getPrevPageNumber(pageIndex + 1) - 1;
-      if (prevPageIndex === -1) {
-        layer.destroy();
-        continue;
-      }
-      newAllLayers.set(prevPageIndex, layer);
-      layer.updatePageIndex(prevPageIndex);
-    }
-  }
   onPageChanging({
     pageNumber
   }) {
     this.#currentPageIndex = pageNumber - 1;
+  }
+  deletePage(id) {
+    for (const editor of this.getEditors(id)) {
+      editor.remove();
+    }
+    this.#allLayers.delete(id);
+    if (this.#currentPageIndex === id) {
+      this.#currentPageIndex = 0;
+    }
   }
   focusMainContainer() {
     this.#container.focus();
@@ -3178,6 +3288,10 @@ class AnnotationEditorUIManager {
   }
   commentSelection(methodOfCreation = "") {
     this.highlightSelection(methodOfCreation, true);
+  }
+  #beforeUnload(e) {
+    this.commitOrRemove();
+    this.currentLayer?.endDrawingSession(false);
   }
   #displayFloatingToolbar() {
     const selection = document.getSelection();
@@ -6799,11 +6913,9 @@ class AnnotationStorage {
   #modifiedIds = null;
   #editorsMap = null;
   #storage = new Map();
-  constructor() {
-    this.onSetModified = null;
-    this.onResetModified = null;
-    this.onAnnotationEditor = null;
-  }
+  onSetModified = null;
+  onResetModified = null;
+  onAnnotationEditor = null;
   getValue(key, defaultValue) {
     const value = this.#storage.get(key);
     if (value === undefined) {
@@ -10090,8 +10202,6 @@ class CanvasGraphics {
     this.stateStack = [];
     this.pendingClip = null;
     this.pendingEOFill = false;
-    this.res = null;
-    this.xobjs = null;
     this.commonObjs = commonObjs;
     this.objs = objs;
     this.canvasFactory = canvasFactory;
@@ -12814,12 +12924,12 @@ class PDFDataTransportStreamRangeReader extends BasePDFStreamRangeReader {
 ;// ./src/display/pdf_objects.js
 const INITIAL_DATA = Symbol("INITIAL_DATA");
 class PDFObjects {
-  #objs = Object.create(null);
+  #objs = new Map();
   #ensureObj(objId) {
-    return this.#objs[objId] ||= {
+    return this.#objs.getOrInsertComputed(objId, () => ({
       ...Promise.withResolvers(),
       data: INITIAL_DATA
-    };
+    }));
   }
   get(objId, callback = null) {
     if (callback) {
@@ -12827,22 +12937,22 @@ class PDFObjects {
       obj.promise.then(() => callback(obj.data));
       return null;
     }
-    const obj = this.#objs[objId];
+    const obj = this.#objs.get(objId);
     if (!obj || obj.data === INITIAL_DATA) {
       throw new Error(`Requesting object that isn't resolved yet ${objId}.`);
     }
     return obj.data;
   }
   has(objId) {
-    const obj = this.#objs[objId];
+    const obj = this.#objs.get(objId);
     return !!obj && obj.data !== INITIAL_DATA;
   }
   delete(objId) {
-    const obj = this.#objs[objId];
+    const obj = this.#objs.get(objId);
     if (!obj || obj.data === INITIAL_DATA) {
       return false;
     }
-    delete this.#objs[objId];
+    this.#objs.delete(objId);
     return true;
   }
   resolve(objId, data = null) {
@@ -12851,23 +12961,20 @@ class PDFObjects {
     obj.resolve();
   }
   clear() {
-    for (const objId in this.#objs) {
-      const {
-        data
-      } = this.#objs[objId];
+    for (const {
+      data
+    } of this.#objs.values()) {
       data?.bitmap?.close();
     }
-    this.#objs = Object.create(null);
+    this.#objs.clear();
   }
   *[Symbol.iterator]() {
-    for (const objId in this.#objs) {
-      const {
-        data
-      } = this.#objs[objId];
-      if (data === INITIAL_DATA) {
-        continue;
+    for (const [objId, {
+      data
+    }] of this.#objs) {
+      if (data !== INITIAL_DATA) {
+        yield [objId, data];
       }
-      yield [objId, data];
     }
   }
 }
@@ -13315,7 +13422,7 @@ function getDocument(src = {}) {
   }
   const docParams = {
     docId,
-    apiVersion: "5.5.23",
+    apiVersion: "5.5.70",
     data,
     password,
     disableAutoFetch,
@@ -13805,35 +13912,22 @@ class PDFPageProxy {
       }
     });
   }
-  getTextContent(params = {}) {
+  async getTextContent(params = {}) {
     if (this._transport._htmlForXfa) {
       return this.getXfa().then(xfa => XfaText.textContent(xfa));
     }
     const readableStream = this.streamTextContent(params);
-    return new Promise(function (resolve, reject) {
-      function pump() {
-        reader.read().then(function ({
-          value,
-          done
-        }) {
-          if (done) {
-            resolve(textContent);
-            return;
-          }
-          textContent.lang ??= value.lang;
-          Object.assign(textContent.styles, value.styles);
-          textContent.items.push(...value.items);
-          pump();
-        }, reject);
-      }
-      const reader = readableStream.getReader();
-      const textContent = {
-        items: [],
-        styles: Object.create(null),
-        lang: null
-      };
-      pump();
-    });
+    const textContent = {
+      items: [],
+      styles: Object.create(null),
+      lang: null
+    };
+    for await (const value of readableStream) {
+      textContent.lang ??= value.lang;
+      Object.assign(textContent.styles, value.styles);
+      textContent.items.push(...value.items);
+    }
+    return textContent;
   }
   getStructTree() {
     return this._transport.getStructTree(this._pageIndex);
@@ -14201,6 +14295,7 @@ class WorkerTransport {
   #pagePromises = new Map();
   #pageRefCache = new Map();
   #passwordCapability = null;
+  #copiedPageInfo = null;
   constructor(messageHandler, loadingTask, networkStream, params, factory, pagesMapper) {
     this.messageHandler = messageHandler;
     this.loadingTask = loadingTask;
@@ -14224,11 +14319,47 @@ class WorkerTransport {
     this.pagesMapper = pagesMapper;
     this.pagesMapper.addListener(this.#updateCaches.bind(this));
   }
-  #updateCaches() {
+  #updateCaches({
+    type,
+    pageNumbers
+  }) {
+    if (type === "copy") {
+      this.#copiedPageInfo = new Map();
+      for (const pageNum of pageNumbers) {
+        this.#copiedPageInfo.set(pageNum, {
+          proxy: this.#pageCache.get(pageNum - 1) || null,
+          promise: this.#pagePromises.get(pageNum - 1) || null
+        });
+      }
+      return;
+    }
+    if (type === "delete") {
+      for (const pageNum of pageNumbers) {
+        this.#pageCache.delete(pageNum - 1);
+        this.#pagePromises.delete(pageNum - 1);
+      }
+    }
     const newPageCache = new Map();
     const newPromiseCache = new Map();
-    for (let i = 0, ii = this.pagesMapper.pagesNumber; i < ii; i++) {
-      const prevPageIndex = this.pagesMapper.getPrevPageNumber(i + 1) - 1;
+    const {
+      pagesMapper
+    } = this;
+    for (let i = 0, ii = pagesMapper.pagesNumber; i < ii; i++) {
+      const prevPageNumber = pagesMapper.getPrevPageNumber(i + 1);
+      if (prevPageNumber < 0) {
+        const {
+          proxy,
+          promise
+        } = this.#copiedPageInfo?.get(-prevPageNumber) || {};
+        if (proxy) {
+          newPageCache.set(i, proxy);
+        }
+        if (promise) {
+          newPromiseCache.set(i, promise);
+        }
+        continue;
+      }
+      const prevPageIndex = prevPageNumber - 1;
       const page = this.#pageCache.get(prevPageIndex);
       if (page) {
         newPageCache.set(i, page);
@@ -14624,7 +14755,11 @@ class WorkerTransport {
       num: ref.num,
       gen: ref.gen
     });
-    return this.pagesMapper.getPageNumber(index + 1) - 1;
+    const pageNumber = this.pagesMapper.getPageNumber(index + 1);
+    if (pageNumber === 0) {
+      throw new Error("GetPageIndex: page has been removed.");
+    }
+    return pageNumber - 1;
   }
   getAnnotations(pageIndex, intent) {
     return this.messageHandler.sendWithPromise("GetAnnotations", {
@@ -14742,7 +14877,13 @@ class WorkerTransport {
     }
     const refStr = ref.gen === 0 ? `${ref.num}R` : `${ref.num}R${ref.gen}`;
     const pageIndex = this.#pageRefCache.get(refStr);
-    return pageIndex >= 0 ? this.pagesMapper.getPageNumber(pageIndex + 1) : null;
+    if (pageIndex >= 0) {
+      const pageNumber = this.pagesMapper.getPageNumber(pageIndex + 1);
+      if (pageNumber !== 0) {
+        return pageNumber;
+      }
+    }
+    return null;
   }
 }
 class RenderTask {
@@ -14924,8 +15065,8 @@ class InternalRenderTask {
     }
   }
 }
-const version = "5.5.23";
-const build = "7077b2a99";
+const version = "5.5.70";
+const build = "30ed527a8";
 
 ;// ./src/display/editor/color_picker.js
 
@@ -24188,7 +24329,30 @@ class AnnotationEditorLayer {
     this.#uiManager.addLayer(this);
   }
   updatePageIndex(newPageIndex) {
+    for (const editor of this.#allEditorsIterator) {
+      editor.updatePageIndex(newPageIndex);
+    }
     this.pageIndex = newPageIndex;
+    this.#uiManager.addLayer(this);
+  }
+  async setClonedFrom(clonedFrom) {
+    if (!clonedFrom) {
+      return;
+    }
+    const promises = [];
+    for (const editor of clonedFrom.#allEditorsIterator) {
+      const serialized = editor.serialize(true);
+      if (!serialized) {
+        continue;
+      }
+      serialized.isCopy = false;
+      promises.push(this.deserialize(serialized).then(deserialized => {
+        if (deserialized) {
+          this.addOrRebuild(deserialized);
+        }
+      }));
+    }
+    await Promise.all(promises);
   }
   get isEmpty() {
     return this.#editors.size === 0;

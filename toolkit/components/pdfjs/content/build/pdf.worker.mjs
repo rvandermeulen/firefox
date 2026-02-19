@@ -21,8 +21,8 @@
  */
 
 /**
- * pdfjsVersion = 5.5.23
- * pdfjsBuild = 7077b2a99
+ * pdfjsVersion = 5.5.70
+ * pdfjsBuild = 30ed527a8
  */
 /******/ // The require scope
 /******/ var __webpack_require__ = {};
@@ -407,6 +407,9 @@ function updateUrlHash(url, hash, allowRel = false) {
     return url.split("#", 1)[0] + `${hash ? `#${hash}` : ""}`;
   }
   return "";
+}
+function stripPath(str) {
+  return str.substring(str.lastIndexOf("/") + 1);
 }
 function shadow(obj, prop, value, nonSerializable = false) {
   Object.defineProperty(obj, prop, {
@@ -1360,7 +1363,7 @@ async function fetchBinaryData(url) {
   if (!response.ok) {
     throw new Error(`Failed to fetch file "${url}" with "${response.statusText}".`);
   }
-  return new Uint8Array(await response.arrayBuffer());
+  return response.bytes();
 }
 function getInheritableProperty({
   dict,
@@ -2077,6 +2080,21 @@ function copyRgbaImage(src, dest, alpha01) {
     }
   }
 }
+function isDefaultDecodeHelper(decode, expectedLen) {
+  if (!Array.isArray(decode)) {
+    return true;
+  }
+  const decodeLen = decode.length;
+  if (decodeLen < expectedLen) {
+    warn("Decode map length is too short.");
+    return true;
+  }
+  if (decodeLen > expectedLen) {
+    info("Truncating too long decode map.");
+    decode.length = expectedLen;
+  }
+  return false;
+}
 class ColorSpace {
   static #rgbBuf = new Uint8ClampedArray(3);
   constructor(name, numComps) {
@@ -2103,8 +2121,8 @@ class ColorSpace {
   isPassthrough(bits) {
     return false;
   }
-  isDefaultDecode(decodeMap, bpc) {
-    return ColorSpace.isDefaultDecode(decodeMap, this.numComps);
+  isDefaultDecode(decode, bpc) {
+    return ColorSpace.isDefaultDecode(decode, this.numComps);
   }
   fillRgb(dest, originalWidth, originalHeight, width, height, actualHeight, bpc, comps, alpha01) {
     const count = originalWidth * originalHeight;
@@ -2164,11 +2182,7 @@ class ColorSpace {
     return shadow(this, "usesZeroToOneRange", true);
   }
   static isDefaultDecode(decode, numComps) {
-    if (!Array.isArray(decode)) {
-      return true;
-    }
-    if (numComps * 2 !== decode.length) {
-      warn("The decode map is not the correct length");
+    if (isDefaultDecodeHelper(decode, numComps * 2)) {
       return true;
     }
     for (let i = 0, ii = decode.length; i < ii; i += 2) {
@@ -2231,7 +2245,7 @@ class PatternCS extends ColorSpace {
     super("Pattern", null);
     this.base = baseCS;
   }
-  isDefaultDecode(decodeMap, bpc) {
+  isDefaultDecode(decode, bpc) {
     unreachable("Should not call PatternCS.isDefaultDecode");
   }
 }
@@ -2281,19 +2295,15 @@ class IndexedCS extends ColorSpace {
   getOutputLength(inputLength, alpha01) {
     return this.base.getOutputLength(inputLength * this.base.numComps, alpha01);
   }
-  isDefaultDecode(decodeMap, bpc) {
-    if (!Array.isArray(decodeMap)) {
-      return true;
-    }
-    if (decodeMap.length !== 2) {
-      warn("Decode map length is not correct");
+  isDefaultDecode(decode, bpc) {
+    if (isDefaultDecodeHelper(decode, 2)) {
       return true;
     }
     if (!Number.isInteger(bpc) || bpc < 1) {
       warn("Bits per component is not correct");
       return true;
     }
-    return decodeMap[0] === 0 && decodeMap[1] === (1 << bpc) - 1;
+    return decode[0] === 0 && decode[1] === (1 << bpc) - 1;
   }
 }
 class DeviceGrayCS extends ColorSpace {
@@ -2679,7 +2689,7 @@ class LabCS extends ColorSpace {
   getOutputLength(inputLength, alpha01) {
     return inputLength * (3 + alpha01) / 3 | 0;
   }
-  isDefaultDecode(decodeMap, bpc) {
+  isDefaultDecode(decode, bpc) {
     return true;
   }
   get usesZeroToOneRange() {
@@ -3106,7 +3116,7 @@ class ChunkedStreamManager {
       }) => {
         try {
           if (done) {
-            resolve(arrayBuffersToBytes(chunks));
+            resolve(chunks.length > 0 || !this.disableAutoFetch ? arrayBuffersToBytes(chunks) : null);
             chunks = null;
             return;
           }
@@ -3119,6 +3129,9 @@ class ChunkedStreamManager {
       rangeReader.read().then(readChunk, reject);
     }).then(data => {
       if (this.aborted) {
+        return;
+      }
+      if (!data) {
         return;
       }
       this.onReceiveData({
@@ -3950,10 +3963,11 @@ async function JBig2(moduleArg = {}) {
       return;
     }
     try {
-      func();
-      maybeExit();
+      return func();
     } catch (e) {
       handleException(e);
+    } finally {
+      maybeExit();
     }
   };
   var _emscripten_get_now = () => performance.now();
@@ -20199,20 +20213,18 @@ class CFFParser {
   }
 }
 class CFF {
-  constructor() {
-    this.header = null;
-    this.names = [];
-    this.topDict = null;
-    this.strings = new CFFStrings();
-    this.globalSubrIndex = null;
-    this.encoding = null;
-    this.charset = null;
-    this.charStrings = null;
-    this.fdArray = [];
-    this.fdSelect = null;
-    this.isCIDFont = false;
-    this.charStringCount = 0;
-  }
+  header = null;
+  names = [];
+  topDict = null;
+  strings = new CFFStrings();
+  globalSubrIndex = null;
+  encoding = null;
+  charset = null;
+  charStrings = null;
+  fdArray = [];
+  fdSelect = null;
+  isCIDFont = false;
+  charStringCount = 0;
   duplicateFirstGlyph() {
     if (this.charStrings.count >= 65535) {
       warn("Not enough space in charstrings to duplicate first glyph.");
@@ -26414,13 +26426,11 @@ const COMMAND_MAP = {
   hvcurveto: [31]
 };
 class Type1CharString {
-  constructor() {
-    this.width = 0;
-    this.lsb = 0;
-    this.flexing = false;
-    this.output = [];
-    this.stack = [];
-  }
+  width = 0;
+  lsb = 0;
+  flexing = false;
+  output = [];
+  stack = [];
   convert(encoded, subrs, seacAnalysisEnabled) {
     const count = encoded.length;
     let error = false;
@@ -39078,9 +39088,6 @@ function pickPlatformItem(dict) {
     }
   }
   return null;
-}
-function stripPath(str) {
-  return str.substring(str.lastIndexOf("/") + 1);
 }
 class FileSpec {
   #contentAvailable = false;
@@ -53523,14 +53530,12 @@ class Annotation {
   }
 }
 class AnnotationBorderStyle {
-  constructor() {
-    this.width = 1;
-    this.rawWidth = 1;
-    this.style = AnnotationBorderStyleType.SOLID;
-    this.dashArray = [3];
-    this.horizontalCornerRadius = 0;
-    this.verticalCornerRadius = 0;
-  }
+  width = 1;
+  rawWidth = 1;
+  style = AnnotationBorderStyleType.SOLID;
+  dashArray = [3];
+  horizontalCornerRadius = 0;
+  verticalCornerRadius = 0;
   setWidth(width, rect = [0, 0, 0, 0]) {
     if (width instanceof Name) {
       this.width = 0;
@@ -56969,9 +56974,9 @@ class DecryptStream extends DecodeStream {
 
 
 class ARCFourCipher {
+  a = 0;
+  b = 0;
   constructor(key) {
-    this.a = 0;
-    this.b = 0;
     const s = new Uint8Array(256);
     const keyLength = key.length;
     for (let i = 0; i < 256; ++i) {
@@ -58226,10 +58231,10 @@ class XRef {
     }
     if (!trailerDicts.length) {
       for (const num in this.entries) {
-        if (!Object.hasOwn(this.entries, num)) {
+        const entry = this.entries[num];
+        if (!entry) {
           continue;
         }
-        const entry = this.entries[num];
         const ref = Ref.get(parseInt(num), entry.gen);
         let obj;
         try {
@@ -60942,37 +60947,37 @@ class XRefWrapper {
   }
 }
 class PDFEditor {
+  hasSingleFile = false;
+  currentDocument = null;
+  oldPages = [];
+  newPages = [];
+  xref = [null];
+  xrefWrapper = new XRefWrapper(this.xref);
+  newRefCount = 1;
+  namesDict = null;
+  version = "1.7";
+  pageLabels = null;
+  namedDestinations = new Map();
+  parentTree = new Map();
+  structTreeKids = [];
+  idTree = new Map();
+  classMap = new Dict();
+  roleMap = new Dict();
+  namespaces = new Map();
+  structTreeAF = [];
+  structTreePronunciationLexicon = [];
   constructor({
     useObjectStreams = true,
     title = "",
     author = ""
   } = {}) {
-    this.hasSingleFile = false;
-    this.currentDocument = null;
-    this.oldPages = [];
-    this.newPages = [];
-    this.xref = [null];
-    this.xrefWrapper = new XRefWrapper(this.xref);
-    this.newRefCount = 1;
     [this.rootRef, this.rootDict] = this.newDict;
     [this.infoRef, this.infoDict] = this.newDict;
     [this.pagesRef, this.pagesDict] = this.newDict;
-    this.namesDict = null;
     this.useObjectStreams = useObjectStreams;
     this.objStreamRefs = useObjectStreams ? new Set() : null;
-    this.version = "1.7";
     this.title = title;
     this.author = author;
-    this.pageLabels = null;
-    this.namedDestinations = new Map();
-    this.parentTree = new Map();
-    this.structTreeKids = [];
-    this.idTree = new Map();
-    this.classMap = new Dict();
-    this.roleMap = new Dict();
-    this.namespaces = new Map();
-    this.structTreeAF = [];
-    this.structTreePronunciationLexicon = [];
   }
   get newRef() {
     const ref = Ref.get(this.newRefCount++, 0);
@@ -62439,7 +62444,7 @@ class WorkerMessageHandler {
       docId,
       apiVersion
     } = docParams;
-    const workerVersion = "5.5.23";
+    const workerVersion = "5.5.70";
     if (apiVersion !== workerVersion) {
       throw new Error(`The API version "${apiVersion}" does not match ` + `the Worker version "${workerVersion}".`);
     }
