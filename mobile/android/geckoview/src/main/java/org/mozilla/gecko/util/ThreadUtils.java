@@ -89,6 +89,13 @@ public final class ThreadUtils {
     assertOnThread(sGeckoThread, AssertBehavior.THROW);
   }
 
+  /** Throws when ran on a thread without a handler. */
+  public static void assertOnHandlerThread() {
+    if (Looper.myLooper() == null) {
+      throw new IllegalThreadStateException("Must be ran on a thread with a Handler!");
+    }
+  }
+
   public static void assertOnThread(final Thread expectedThread, final AssertBehavior behavior) {
     assertOnThreadComparison(expectedThread, behavior, true);
   }

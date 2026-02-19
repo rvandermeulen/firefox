@@ -5,8 +5,8 @@
 
 package org.mozilla.geckoview;
 
-import androidx.annotation.AnyThread;
 import androidx.annotation.NonNull;
+import org.mozilla.gecko.util.ThreadUtils;
 
 /** Manges the page content extraction */
 @ExperimentalGeckoViewApi
@@ -43,8 +43,9 @@ public class PageExtractionController {
      * @return the content of the current page as a {@link String} or a {@link
      *     PageExtractionException} if an error occurs while extracting the page content
      */
-    @AnyThread
+    @HandlerThread
     public @NonNull GeckoResult<String> getPageContent() {
+      ThreadUtils.assertOnHandlerThread();
       return mSession
           .getEventDispatcher()
           .queryBundle(GET_TEXT_CONTENT_EVENT)

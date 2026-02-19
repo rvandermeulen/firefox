@@ -1355,8 +1355,9 @@ public class GeckoSession {
    *
    * @return a {@link GeckoResult} containing the UserAgent string
    */
-  @AnyThread
+  @HandlerThread
   public @NonNull GeckoResult<String> getUserAgent() {
+    ThreadUtils.assertOnHandlerThread();
     return mEventDispatcher.queryString("GeckoView:GetUserAgent");
   }
 
@@ -2693,8 +2694,9 @@ public class GeckoSession {
    *
    * @return {@link GeckoResult} with boolean
    */
-  @AnyThread
+  @HandlerThread
   public @NonNull GeckoResult<Boolean> hasCookieBannerRuleForBrowsingContextTree() {
+    ThreadUtils.assertOnHandlerThread();
     return mEventDispatcher.queryBoolean("GeckoView:HasCookieBannerRuleForBrowsingContextTree");
   }
 
@@ -2742,8 +2744,9 @@ public class GeckoSession {
    *
    * @return Result of the check operation as a {@link GeckoResult} object.
    */
-  @AnyThread
+  @HandlerThread
   public @NonNull GeckoResult<Boolean> isPdfJs() {
+    ThreadUtils.assertOnHandlerThread();
     return mEventDispatcher.queryBoolean("GeckoView:IsPdfJs");
   }
 
@@ -3205,8 +3208,9 @@ public class GeckoSession {
    *
    * @return a {@link GeckoResult} result of if there is existing form data.
    */
-  @AnyThread
+  @HandlerThread
   public @NonNull GeckoResult<Boolean> containsFormData() {
+    ThreadUtils.assertOnHandlerThread();
     return mEventDispatcher.queryBoolean("GeckoView:ContainsFormData");
   }
 
@@ -3215,8 +3219,9 @@ public class GeckoSession {
    *
    * @return a {@link GeckoResult} containing the WebCompatInfo as a JSONObject.
    */
-  @AnyThread
+  @HandlerThread
   public @NonNull GeckoResult<JSONObject> getWebCompatInfo() {
+    ThreadUtils.assertOnHandlerThread();
     return mEventDispatcher
         .queryString("GeckoView:GetWebCompatInfo")
         .map(
@@ -3251,8 +3256,9 @@ public class GeckoSession {
    * @return a {@link GeckoResult} wil complete if sending more web compatibility info was
    *     successful. Will complete exceptionally if the web compat info was not sent.
    */
-  @AnyThread
+  @HandlerThread
   public @NonNull GeckoResult<Void> sendMoreWebCompatInfo(@NonNull final JSONObject info) {
+    ThreadUtils.assertOnHandlerThread();
     final GeckoBundle bundle = new GeckoBundle();
     bundle.putString("info", info.toString());
     return mEventDispatcher.queryVoid("GeckoView:SendMoreWebCompatInfo", bundle);
@@ -8288,7 +8294,7 @@ public class GeckoSession {
    *     CompleteExceptionally with a {@link GeckoPrintException}s, if there are any issues while
    *     generating the PDF.
    */
-  @AnyThread
+  @HandlerThread
   public @NonNull GeckoResult<InputStream> saveAsPdf() {
     return saveAsPdfByBrowsingContext(null);
   }
@@ -8303,6 +8309,7 @@ public class GeckoSession {
   @AnyThread
   private @NonNull GeckoResult<InputStream> saveAsPdfByBrowsingContext(
       final @Nullable Long browsingContextId) {
+    ThreadUtils.assertOnHandlerThread();
     final GeckoResult<InputStream> geckoResult = new GeckoResult<>();
     if (browsingContextId == null) {
       // Ensures the canonical browsing context is available
@@ -8327,12 +8334,13 @@ public class GeckoSession {
 
   /**
    * Prints the currently displayed page and provides dialog finished status or if an exception
-   * occured.
+   * occurred.
    *
    * @return if the printing dialog finished or an exception.
    */
-  @AnyThread
+  @HandlerThread
   public @NonNull GeckoResult<Boolean> didPrintPageContent() {
+    ThreadUtils.assertOnHandlerThread();
     final PrintDelegate delegate = getPrintDelegate();
     final GeckoResult<Boolean> result = new GeckoResult<>();
     if (delegate == null) {
