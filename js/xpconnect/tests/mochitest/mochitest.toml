@@ -286,14 +286,6 @@ skip-if = [
 ["test_sandbox_fetch.html"]
 support-files = ["../../../../dom/tests/mochitest/fetch/test_fetch_basic.js"]
 
-["test_shadowRealm.html"]
-# This test has been updated to work with worker modules
-
-["test_shadowRealm_worker.html"]
-skip-if = [
-  "!nightly_build",
-]
-
 ["test_spectre_mitigations.html"]
 skip-if = [
   "os == 'android'", # Fission situation on Android is more complicated.
