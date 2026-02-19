@@ -1678,8 +1678,9 @@ bool Element::ToggleAttribute(const nsAString& aName,
                               const Optional<bool>& aForce,
                               nsIPrincipal* aTriggeringPrincipal,
                               ErrorResult& aError) {
-  aError = nsContentUtils::CheckQName(aName, false);
-  if (aError.Failed()) {
+  // https://dom.spec.whatwg.org/#dom-element-toggleattribute
+  if (!nsContentUtils::IsValidAttributeLocalName(aName)) {
+    aError.ThrowInvalidCharacterError("Invalid attribute name");
     return false;
   }
 
@@ -1713,8 +1714,9 @@ bool Element::ToggleAttribute(const nsAString& aName,
 void Element::SetAttribute(const nsAString& aName, const nsAString& aValue,
                            nsIPrincipal* aTriggeringPrincipal,
                            ErrorResult& aError) {
-  aError = nsContentUtils::CheckQName(aName, false);
-  if (aError.Failed()) {
+  // https://dom.spec.whatwg.org/#dom-element-setattribute
+  if (!nsContentUtils::IsValidAttributeLocalName(aName)) {
+    aError.ThrowInvalidCharacterError("Invalid attribute name");
     return;
   }
 
@@ -1838,8 +1840,9 @@ void Element::SetAttribute(
     const nsAString& aName,
     const TrustedHTMLOrTrustedScriptOrTrustedScriptURLOrString& aValue,
     nsIPrincipal* aTriggeringPrincipal, ErrorResult& aError) {
-  aError = nsContentUtils::CheckQName(aName, false);
-  if (aError.Failed()) {
+  // https://dom.spec.whatwg.org/#dom-element-setattribute
+  if (!nsContentUtils::IsValidAttributeLocalName(aName)) {
+    aError.ThrowInvalidCharacterError("Invalid attribute name");
     return;
   }
 
