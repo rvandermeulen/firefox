@@ -60,6 +60,8 @@ struct NavigationAPIMethodTracker final : public nsISupports {
   Promise* CommittedPromise() { return mCommittedPromise; }
   Promise* FinishedPromise() { return mFinishedPromise; }
 
+  bool IsHandled() const;
+
   RefPtr<Navigation> mNavigationObject;
   Maybe<nsID> mKey;
   JS::Heap<JS::Value> mInfo;
