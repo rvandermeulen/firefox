@@ -5159,12 +5159,13 @@ void nsCSSFrameConstructor::AddFrameConstructionItemsInternal(
 
   const FrameConstructionData* const data =
       FindDataForContent(*aContent, *aComputedStyle, aParentFrame, aFlags);
-  if (!data || data->mBits & FCDATA_SUPPRESS_FRAME) {
+  if (!data) {
     return;
   }
-
   const uint32_t bits = data->mBits;
-
+  if (bits & FCDATA_SUPPRESS_FRAME) {
+    return;
+  }
   // Inside colgroups, suppress everything except columns.
   if (aParentFrame && aParentFrame->IsTableColGroupFrame() &&
       (!(bits & FCDATA_IS_TABLE_PART) ||

@@ -1493,16 +1493,8 @@ class nsCSSFrameConstructor final : public nsFrameManager {
   static const FrameConstructionData* FindXULTagData(const Element&,
                                                      ComputedStyle&);
   // XUL data-finding helper functions and structures
-  static const FrameConstructionData* FindPopupGroupData(const Element&,
-                                                         ComputedStyle&);
-  static const FrameConstructionData* FindXULButtonData(const Element&,
-                                                        ComputedStyle&);
   static const FrameConstructionData* FindXULLabelOrDescriptionData(
       const Element&, ComputedStyle&);
-#ifdef XP_MACOSX
-  static const FrameConstructionData* FindXULMenubarData(const Element&,
-                                                         ComputedStyle&);
-#endif /* XP_MACOSX */
 
   /**
    * Constructs an outer frame, an anonymous child that wraps its real
