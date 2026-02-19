@@ -151,6 +151,7 @@ add_setup(async function () {
       ["browser.smartwindow.enabled", true],
       ["browser.smartwindow.chatHistory.enabled", true],
       ["browser.smartwindow.firstrun.hasCompleted", true],
+      ["browser.smartwindow.endpoint", "http://localhost:0/v1"],
     ],
   });
 
@@ -165,7 +166,12 @@ add_setup(async function () {
   registerCleanupFunction(async () => {
     await gChatStore.destroyDatabase();
     if (gAIWindow) {
+      const { AIWindowUI } = ChromeUtils.importESModule(
+        "moz-src:///browser/components/aiwindow/ui/modules/AIWindowUI.sys.mjs"
+      );
+      AIWindowUI.closeSidebar(gAIWindow);
       await BrowserTestUtils.closeWindow(gAIWindow);
+      gAIWindow = null;
     }
   });
 });
@@ -377,12 +383,12 @@ add_task(async function test_chat_with_url_opens_sidebar() {
     const mainEl = firstRow.shadowRoot.querySelector(".fxview-tab-row-main");
     const tabOpenedPromise = BrowserTestUtils.waitForNewTab(
       tabBrowser,
-      TEST_URL1
+      TEST_URL1,
+      true
     );
     EventUtils.synthesizeMouseAtCenter(mainEl, {}, browser.contentWindow);
 
     const newTab = await tabOpenedPromise;
-    await BrowserTestUtils.browserLoaded(newTab.linkedBrowser);
 
     // Verify the new tab loaded the URL
     Assert.ok(
@@ -404,6 +410,7 @@ add_task(async function test_chat_with_url_opens_sidebar() {
     );
 
     // Clean up
+    AIWindowUI.closeSidebar(newTab.ownerGlobal);
     BrowserTestUtils.removeTab(newTab);
   });
 

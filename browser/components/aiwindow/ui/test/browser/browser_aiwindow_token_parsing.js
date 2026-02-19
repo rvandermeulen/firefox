@@ -13,6 +13,16 @@ const {
   "chrome://browser/content/aiwindow/modules/TokenStreamParser.mjs"
 );
 
+add_setup(async function setup() {
+  await SpecialPowers.pushPrefEnv({
+    set: [
+      ["browser.search.suggest.enabled", false],
+      ["browser.urlbar.suggest.searches", false],
+      ["browser.smartwindow.endpoint", "http://localhost:0/v1"],
+    ],
+  });
+});
+
 add_task(function test_parseToken() {
   Assert.equal(TOKEN_CHARACTER, "§");
 
