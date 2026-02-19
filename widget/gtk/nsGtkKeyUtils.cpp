@@ -1270,7 +1270,16 @@ uint32_t KeymapWrapper::ComputeDOMKeyCode(const GdkEventKey* aGdkKeyEvent) {
     // refer keyCode value without modifiers because web apps should be
     // able to identify the key as far as possible.
     guint keyvalWithoutModifier = GetGDKKeyvalWithoutModifier(aGdkKeyEvent);
-    return GetDOMKeyCodeFromKeyPairs(keyvalWithoutModifier);
+    if (auto keyCode = GetDOMKeyCodeFromKeyPairs(keyvalWithoutModifier)) {
+      return keyCode;
+    }
+    // If the unmodified keyval is a basic Latin letter or numeral (e.g., '6'
+    // for a dead key produced by Shift+6), compute the keyCode from it.
+    // This matches Chromium's behavior for dead keys. (Bug 2004800)
+    if (IsBasicLatinLetterOrNumeral(keyvalWithoutModifier)) {
+      return WidgetUtils::ComputeKeyCodeFromChar(keyvalWithoutModifier);
+    }
+    return 0;
   }
 
   // printable numpad keys should be resolved here.
