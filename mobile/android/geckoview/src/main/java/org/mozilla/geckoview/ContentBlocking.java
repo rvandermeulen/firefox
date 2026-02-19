@@ -521,7 +521,7 @@ public class ContentBlocking {
 
     /* package */ final Pref<String> mSbHarmfulAddonList =
         new Pref<String>(
-            "urlclassifier.features.harmfuladdonV2.blocklistTables",
+            "urlclassifier.features.harmfuladdon.blocklistTables",
             ContentBlocking.catToPref(AntiTracking.NONE, SafeBrowsing.HARMFULADDON, HARMFULADDON));
 
     /* package */ final Pref<String> mSafeBrowsingMalwareTable =
@@ -2045,7 +2045,7 @@ public class ContentBlocking {
   private static final String STP =
       "social-tracking-protection-facebook-digest256,social-tracking-protection-linkedin-digest256,social-tracking-protection-twitter-digest256";
   private static final String EMAIL = "base-email-track-digest256";
-  private static final String HARMFULADDON = "harmfuladdon-block-digest256";
+  private static final String HARMFULADDON = "harmful-addon-block-digest256";
 
   /* package */ static @CBSafeBrowsing int sbMalwareToSbCat(final boolean enabled) {
     return enabled

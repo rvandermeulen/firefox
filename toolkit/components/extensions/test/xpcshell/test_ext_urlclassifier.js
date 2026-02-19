@@ -9,27 +9,27 @@ add_setup(async () => {
   Services.fog.initializeFOG();
 
   Services.prefs.setCharPref(
-    "urlclassifier.features.harmfuladdonV2.blocklistHosts",
+    "urlclassifier.features.harmfuladdon.blocklistHosts",
     "example.org"
   );
   Services.prefs.setCharPref(
-    "urlclassifier.features.harmfuladdonV2.entitylistHosts",
+    "urlclassifier.features.harmfuladdon.entitylistHosts",
     ""
   );
   Services.prefs.setCharPref(
-    "urlclassifier.features.harmfuladdonV2.skipURLs",
+    "urlclassifier.features.harmfuladdon.skipURLs",
     ""
   );
 
   registerCleanupFunction(() => {
     Services.prefs.clearUserPref(
-      "urlclassifier.features.harmfuladdonV2.blocklistHosts"
+      "urlclassifier.features.harmfuladdon.blocklistHosts"
     );
     Services.prefs.clearUserPref(
-      "urlclassifier.features.harmfuladdonV2.entitylistHosts"
+      "urlclassifier.features.harmfuladdon.entitylistHosts"
     );
     Services.prefs.clearUserPref(
-      "urlclassifier.features.harmfuladdonV2.skipURLs"
+      "urlclassifier.features.harmfuladdon.skipURLs"
     );
   });
 });
