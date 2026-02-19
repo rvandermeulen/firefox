@@ -97,14 +97,19 @@
 }
 
 ::slotted([slot="icon"]) {
-  /* Intentionally using a custom height to match larger font sizes. */
-  /* stylelint-disable-next-line stylelint-plugin-mozilla/use-design-tokens */
-  height: 1.8lh;
+  height: var(--icon-size-large);
+  width: var(--icon-size-large);
 }
 
 ::slotted([slot="location-icon"]) {
   -moz-context-properties: fill;
-  fill: currentColor;
+  /* Intentionally set the icon color to match the deemphasized text */
+  /* stylelint-disable-next-line stylelint-plugin-mozilla/use-design-tokens */
+  fill: var(--text-color-deemphasized);
+
+  @media (prefers-contrast) {
+    fill: currentColor;
+  }
 }
 
 ::slotted([slot="bandwidth"]),
