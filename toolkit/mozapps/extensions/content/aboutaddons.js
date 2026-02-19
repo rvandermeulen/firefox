@@ -3470,6 +3470,7 @@ class AddonList extends HTMLElement {
     this.pendingUninstallAddons = new Set();
     this._addonsToUpdate = new Set();
     this._userFocusListenersAdded = false;
+    this._listeningForInstallUpdates = false;
   }
 
   async connectedCallback() {
@@ -3499,6 +3500,10 @@ class AddonList extends HTMLElement {
 
   /**
    * Configure the sections in the list.
+   *
+   * Warning: if filterFn uses criteria that are not tied to add-on events,
+   * make sure to add an implementation that calls updateAddon(addon) as
+   * needed. Not doing so can result in missing or out-of-date add-on cards!
    *
    * @param {object[]} sections
    *        The options for the section. Each entry in the array should have:
@@ -3847,6 +3852,11 @@ class AddonList extends HTMLElement {
   }
 
   _updateAddon(addon) {
+    if (this._listeningForInstallUpdates) {
+      // For stability of the UI, do not remove the card from the updates view
+      // when it is already there, even when an update is installed.
+      return;
+    }
     let card = this.getCard(addon);
     if (card) {
       let sectionIndex = this._addonSectionIndex(addon);
@@ -3986,16 +3996,42 @@ class AddonList extends HTMLElement {
   }
 
   onInstalled(addon) {
-    if (this.querySelector(`addon-card[addon-id="${addon.id}"]`)) {
-      return;
-    }
-    this.addAddon(addon);
+    this.updateAddon(addon);
   }
 
   onUninstalled(addon) {
     this.pendingUninstallAddons.delete(addon);
     this.removePendingUninstallBar(addon);
     this.removeAddon(addon);
+  }
+
+  onNewInstall(install) {
+    if (this._listeningForInstallUpdates) {
+      this._updateOnNewInstall(install);
+    }
+  }
+
+  onInstallPostponed(install) {
+    if (this._listeningForInstallUpdates) {
+      this._updateOnNewInstall(install);
+    }
+  }
+
+  listenForUpdates() {
+    this._listeningForInstallUpdates = true;
+  }
+
+  async _updateOnNewInstall(install) {
+    if (!install.existingAddon) {
+      // Not from an update check.
+      return;
+    }
+    // install.existingAddon can differ from the actual add-on (bug 2007749).
+    // To make sure that we use the real, live add-on state, look it up again.
+    const addon = await AddonManager.getAddonByID(install.existingAddon.id);
+    if (addon) {
+      this.updateAddon(addon);
+    }
   }
 }
 customElements.define("addon-list", AddonList);
@@ -4453,6 +4489,7 @@ gViewController.defineView("updates", async param => {
         },
       },
     ]);
+    list.listenForUpdates();
   } else if (param == "recent") {
     list.sortByFn = (a, b) => {
       if (a.updateDate > b.updateDate) {
