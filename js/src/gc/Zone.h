@@ -460,9 +460,12 @@ class Zone : public js::ZoneAllocator, public js::gc::GraphNodeBase<JS::Zone> {
   // Number of allocations since the most recent minor GC for this thread.
   uint32_t tenuredAllocsSinceMinorGC_ = 0;
 
-  // Live weakmaps in this zone.
+  // Live weakmaps in this zone, used internally by the JS engine and used to
+  // implement JS WeakMap objects respectively.
   js::MainThreadOrGCTaskData<mozilla::LinkedList<js::WeakMapBase>>
-      gcWeakMapList_;
+      gcSystemWeakMaps_;
+  js::MainThreadOrGCTaskData<mozilla::LinkedList<js::WeakMapBase>>
+      gcUserWeakMaps_;
 
   // The set of compartments in this zone.
   using CompartmentVector =
@@ -524,6 +527,11 @@ class Zone : public js::ZoneAllocator, public js::gc::GraphNodeBase<JS::Zone> {
   js::MainThreadData<bool> gcPreserveCode_;
   js::MainThreadData<bool> keepPropMapTables_;
   js::MainThreadData<bool> wasCollected_;
+
+  // Cached information about weak maps in the zone, to speed up finding sweep
+  // group edges.
+  js::MainThreadOrGCTaskData<bool> gcUserWeakMapsMayHaveKeyDelegates_;
+  js::MainThreadOrGCTaskData<bool> gcWeakMapsMayHaveSymbolKeys_;
 
   js::MainThreadOrIonCompileData<JSObject**> preservedWrappers_;
   js::MainThreadOrIonCompileData<size_t> preservedWrappersCount_;
@@ -773,8 +781,26 @@ class Zone : public js::ZoneAllocator, public js::gc::GraphNodeBase<JS::Zone> {
     return res;
   }
 
-  mozilla::LinkedList<js::WeakMapBase>& gcWeakMapList() {
-    return gcWeakMapList_.ref();
+  mozilla::LinkedList<js::WeakMapBase>& gcSystemWeakMaps() {
+    return gcSystemWeakMaps_.ref();
+  }
+  mozilla::LinkedList<js::WeakMapBase>& gcUserWeakMaps() {
+    return gcUserWeakMaps_.ref();
+  }
+
+  bool gcUserWeakMapsMayHaveKeyDelegates() const {
+    return gcUserWeakMapsMayHaveKeyDelegates_;
+  }
+  void setGCWeakMapsMayHaveKeyDelegates() {
+    gcUserWeakMapsMayHaveKeyDelegates_ = true;
+  }
+  bool gcWeakMapsMayHaveSymbolKeys() const {
+    return gcWeakMapsMayHaveSymbolKeys_;
+  }
+  void setGCWeakMapsMayHaveSymbolKeys() { gcWeakMapsMayHaveSymbolKeys_ = true; }
+  void clearGCCachedWeakMapKeyData() {
+    gcUserWeakMapsMayHaveKeyDelegates_ = false;
+    gcWeakMapsMayHaveSymbolKeys_ = false;
   }
 
   CompartmentVector& compartments() { return compartments_.ref(); }

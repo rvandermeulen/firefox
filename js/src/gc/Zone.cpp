@@ -196,7 +196,8 @@ Zone::~Zone() {
   DebugAPI::deleteDebugScriptMap(debugScriptMap);
   js_delete(finalizationObservers_.ref().release());
 
-  MOZ_ASSERT(gcWeakMapList().isEmpty());
+  MOZ_ASSERT(gcSystemWeakMaps().isEmpty());
+  MOZ_ASSERT(gcUserWeakMaps().isEmpty());
   MOZ_ASSERT(objectsWithWeakPointers.ref().empty());
 
   JSRuntime* rt = runtimeFromAnyThread();

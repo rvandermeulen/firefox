@@ -28,6 +28,18 @@
 
 namespace js {
 
+template <typename F>
+void ForAllWeakMapsInZone(Zone* zone, F&& func) {
+  for (WeakMapBase* map : zone->gcSystemWeakMaps()) {
+    MOZ_ASSERT(map->isSystem());
+    func(map);
+  }
+  for (WeakMapBase* map : zone->gcUserWeakMaps()) {
+    MOZ_ASSERT(!map->isSystem());
+    func(map);
+  }
+}
+
 namespace gc::detail {
 
 static inline bool IsObject(JSObject* obj) { return true; }
@@ -122,6 +134,7 @@ WeakMap<K, V, AP>::WeakMap(JS::Zone* zone)
     : WeakMapBase(nullptr, zone),
       map_(AP(zone), InitialWeakMapLength),
       nurseryKeys(AP(zone)) {
+  mayHaveKeyDelegates = true;  // Assume true for system maps.
   staticAssertions();
 }
 
@@ -355,7 +368,9 @@ void WeakMap<K, V, AP>::traceWeakEdgesDuringSweeping(JSTracer* trc) {
   // Scan the map, removing all entries whose keys remain unmarked. Rebuild
   // cached key state at the same time.
   mayHaveSymbolKeys = false;
-  mayHaveKeyDelegates = false;
+  if (!isSystem()) {
+    mayHaveKeyDelegates = false;
+  }
 
   mozilla::Maybe<Enum> e;
   e.emplace(*this);
@@ -405,6 +420,21 @@ void WeakMap<K, V, AP>::addNurseryKey(const K& key) {
     nurseryKeys.clear();
     nurseryKeysValid = false;
   }
+}
+
+template <class K, class V, class AP>
+void WeakMap<K, V, AP>::setMayHaveSymbolKeys() {
+  MOZ_ASSERT(!mayHaveSymbolKeys);
+  mayHaveSymbolKeys = true;
+  zone()->setGCWeakMapsMayHaveSymbolKeys();
+}
+
+template <class K, class V, class AP>
+void WeakMap<K, V, AP>::setMayHaveKeyDelegates() {
+  MOZ_ASSERT(!mayHaveKeyDelegates);
+  MOZ_ASSERT(!isSystem());  // This flag is always set for system maps.
+  mayHaveKeyDelegates = true;
+  zone()->setGCWeakMapsMayHaveKeyDelegates();
 }
 
 template <class K, class V, class AP>
@@ -623,29 +653,30 @@ void WeakMap<K, V, AP>::traceMappings(WeakMapTracer* tracer) {
   }
 }
 
-template <class K, class V, class AP>
-bool WeakMap<K, V, AP>::findSweepGroupEdges(Zone* atomsZone) {
-  // For weakmap keys with delegates in a different zone, add a zone edge to
-  // ensure that the delegate zone finishes marking before the key zone.
-
 #ifdef DEBUG
+template <class K, class V, class AP>
+void WeakMap<K, V, AP>::checkCachedFlags() const {
+  MOZ_ASSERT_IF(!zone()->gcUserWeakMapsMayHaveKeyDelegates() && !isSystem(),
+                !mayHaveKeyDelegates);
+  MOZ_ASSERT_IF(!zone()->gcWeakMapsMayHaveSymbolKeys(), !mayHaveSymbolKeys);
+
   if (!mayHaveSymbolKeys || !mayHaveKeyDelegates) {
-    for (Range r = all(); !r.empty(); r.popFront()) {
+    for (auto r = all(); !r.empty(); r.popFront()) {
       const K& key = r.front().key();
       MOZ_ASSERT_IF(!mayHaveKeyDelegates, !gc::detail::GetDelegate(key));
       MOZ_ASSERT_IF(!mayHaveSymbolKeys, !gc::detail::IsSymbol(key));
     }
   }
+}
 #endif
 
-  if (mayHaveSymbolKeys) {
-    MOZ_ASSERT(JS::Prefs::experimental_symbols_as_weakmap_keys());
-    if (atomsZone->isGCMarking()) {
-      if (!atomsZone->addSweepGroupEdgeTo(zone())) {
-        return false;
-      }
-    }
-  }
+template <class K, class V, class AP>
+bool WeakMap<K, V, AP>::findSweepGroupEdges(Zone* atomsZone) {
+  // For weakmap keys with delegates in a different zone, add a zone edge to
+  // ensure that the delegate zone finishes marking before the key zone.
+
+  // We keep this set for system maps.
+  MOZ_ASSERT_IF(isSystem(), mayHaveKeyDelegates);
 
   if (mayHaveKeyDelegates) {
     for (Range r = all(); !r.empty(); r.popFront()) {

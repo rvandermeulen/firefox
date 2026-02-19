@@ -2603,11 +2603,11 @@ IncrementalProgress JS::Zone::enterWeakMarkingMode(GCMarker* marker,
   MOZ_ASSERT(marker->isWeakMarking());
 
   if (!marker->incrementalWeakMapMarkingEnabled) {
-    for (WeakMapBase* m : gcWeakMapList()) {
-      if (IsMarked(m->mapColor())) {
-        (void)m->markEntries(marker);
+    ForAllWeakMapsInZone(this, [marker](WeakMapBase* map) {
+      if (IsMarked(map->mapColor())) {
+        (void)map->markEntries(marker);
       }
-    }
+    });
     return IncrementalProgress::Finished;
   }
 
