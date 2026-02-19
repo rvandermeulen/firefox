@@ -308,6 +308,22 @@ sealed interface TabSearchAction : TabsTrayAction {
 }
 
 /**
+ *[TabsTrayAction]'s that represent user interactions for the Tab Group feature.
+ */
+sealed interface TabGroupAction : TabsTrayAction {
+
+    /**
+     * Confirms the save of a tab group.
+     */
+    data object SaveClicked : TabGroupAction
+
+    /**
+     * Dismisses editing a tab group.
+     */
+    data object Dismiss : TabGroupAction
+}
+
+/**
  * Reducer for [TabsTrayStore].
  */
 internal object TabsTrayReducer {
@@ -378,6 +394,7 @@ internal object TabsTrayReducer {
                 }
             }
             is TabsTrayAction.SyncedTabsHeaderToggled -> handleSyncedTabHeaderToggle(state, action)
+            is TabGroupAction -> state
         }
     }
 }
