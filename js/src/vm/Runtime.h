@@ -39,6 +39,7 @@
 #include "js/Modules.h"  // JS::Module{DynamicImport,Metadata,Resolve}Hook
 #include "js/ScriptPrivate.h"
 #include "js/shadow/Zone.h"
+#include "js/ShadowRealmCallbacks.h"
 #include "js/Stack.h"
 #include "js/StreamConsumer.h"
 #include "js/Symbol.h"
@@ -1152,6 +1153,20 @@ struct JSRuntime {
 #endif  // defined(NIGHTLY_BUILD)
 
  public:
+  JS::GlobalInitializeCallback getShadowRealmInitializeGlobalCallback() {
+    return shadowRealmInitializeGlobalCallback;
+  }
+
+  JS::GlobalCreationCallback getShadowRealmGlobalCreationCallback() {
+    return shadowRealmGlobalCreationCallback;
+  }
+
+  js::MainThreadData<JS::GlobalInitializeCallback>
+      shadowRealmInitializeGlobalCallback;
+
+  js::MainThreadData<JS::GlobalCreationCallback>
+      shadowRealmGlobalCreationCallback;
+
   js::MainThreadData<js::RuntimeFuses> runtimeFuses;
 };
 

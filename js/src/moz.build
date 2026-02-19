@@ -172,6 +172,7 @@ EXPORTS.js += [
     "../public/SavedFrameAPI.h",
     "../public/ScalarType.h",
     "../public/ScriptPrivate.h",
+    "../public/ShadowRealmCallbacks.h",
     "../public/SharedArrayBuffer.h",
     "../public/SliceBudget.h",
     "../public/SourceText.h",
