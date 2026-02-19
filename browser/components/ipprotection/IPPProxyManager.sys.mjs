@@ -366,7 +366,7 @@ class IPPProxyManagerSingleton extends EventTarget {
       if (usage) {
         this.#setUsage(usage);
         if (this.#usage.remaining <= 0) {
-          this.#pass == null;
+          this.#pass = null;
           this.#setState(IPPProxyStates.PAUSED);
           return false;
         }
