@@ -160,8 +160,6 @@ def release_level(params):
 
     :return str: One of "production" or "staging".
     """
-    if params["level"] != "3":
-        return "staging"
     if branches := PROJECT_RELEASE_BRANCHES.get(params.get("project")):
         if branches is True:
             return "production"
