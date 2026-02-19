@@ -69,6 +69,8 @@ skip-if = [
 support-files = ["../../../../search/test/browser/trendingSuggestionEngine.sjs"]
 skip-if = [
   "verify", # Bug 1852375 - MerinoTestUtils.initWeather() doesn't play well with pushPrefEnv()
+  "os == 'linux' && os_version == '24.04' && arch == 'x86_64' && opt", # Bug 2017808
+  "os == 'win' && os_version == '11.26100' && arch == 'x86_64'", # Bug 2017808
 ]
 
 ["browser_glean_telemetry_engagement_tips.js"]
