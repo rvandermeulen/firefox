@@ -1435,32 +1435,21 @@ already_AddRefed<ShadowRoot> Element::AttachShadow(const ShadowRootInit& aInit,
     OwnerDoc()->ReportShadowDOMUsage();
   }
 
-  const nsString& referenceTarget = aInit.mReferenceTarget.WasPassed()
-                                        ? aInit.mReferenceTarget.Value()
-                                        : VoidString();
-  return AttachShadowWithoutNameChecks(
-      aInit.mMode, DelegatesFocus(aInit.mDelegatesFocus), aInit.mSlotAssignment,
-      ShadowRootClonable(aInit.mClonable),
-      ShadowRootSerializable(aInit.mSerializable), referenceTarget);
+  return AttachShadowWithoutNameChecks(aInit);
 }
 
 already_AddRefed<ShadowRoot> Element::AttachShadowWithoutNameChecks(
-    ShadowRootMode aMode, DelegatesFocus aDelegatesFocus,
-    SlotAssignmentMode aSlotAssignment, ShadowRootClonable aClonable,
-    ShadowRootSerializable aSerializable, const nsAString& aReferenceTarget) {
+    const ShadowRootInit& aInit, bool aNotify) {
   nsAutoScriptBlocker scriptBlocker;
 
   auto* nim = NodeInfoManager();
   RefPtr<mozilla::dom::NodeInfo> nodeInfo = nim->GetDocumentFragmentNodeInfo();
 
-  // If there are no children, the flat tree is not changing due to the presence
-  // of the shadow root, so we don't need to invalidate style / layout.
-  //
-  // This is a minor optimization, but also works around nasty stuff like
-  // bug 1397876.
-  if (Document* doc = GetComposedDoc()) {
-    if (PresShell* presShell = doc->GetPresShell()) {
-      presShell->ShadowRootWillBeAttached(*this);
+  if (aNotify) {
+    if (Document* doc = GetComposedDoc()) {
+      if (PresShell* presShell = doc->GetPresShell()) {
+        presShell->ShadowRootWillBeAttached(*this);
+      }
     }
   }
 
@@ -1470,9 +1459,13 @@ already_AddRefed<ShadowRoot> Element::AttachShadowWithoutNameChecks(
    *    and mode is init's mode.
    */
   RefPtr<ShadowRoot> shadowRoot = new (nim)
-      ShadowRoot(this, aMode, aDelegatesFocus, aSlotAssignment, aClonable,
-                 aSerializable, ShadowRootDeclarative::No, nodeInfo.forget());
-  shadowRoot->SetReferenceTarget(aReferenceTarget);
+      ShadowRoot(this, aInit.mMode, DelegatesFocus(aInit.mDelegatesFocus),
+                 aInit.mSlotAssignment, ShadowRootClonable(aInit.mClonable),
+                 ShadowRootSerializable(aInit.mSerializable),
+                 ShadowRootDeclarative::No, nodeInfo.forget());
+  if (aInit.mReferenceTarget.WasPassed()) {
+    shadowRoot->SetReferenceTarget(aInit.mReferenceTarget.Value());
+  }
 
   if (NodeOrAncestorHasDirAuto()) {
     shadowRoot->SetAncestorHasDirAuto();
@@ -1524,22 +1517,26 @@ already_AddRefed<ShadowRoot> Element::AttachShadowWithoutNameChecks(
   return shadowRoot.forget();
 }
 
-void Element::AttachAndSetUAShadowRoot(NotifyUAWidget aNotify,
-                                       DelegatesFocus aDelegatesFocus) {
+void Element::AttachAndSetUAShadowRoot(NotifyUAWidget aNotifyUAWidget,
+                                       DelegatesFocus aDelegatesFocus,
+                                       bool aNotify) {
   MOZ_DIAGNOSTIC_ASSERT(!CanAttachShadowDOM(),
-                        "Cannot be used to attach UI shadow DOM");
+                        "Cannot be used to attach UA shadow DOM");
   if (OwnerDoc()->IsStaticDocument()) {
     return;
   }
 
   if (!GetShadowRoot()) {
+    ShadowRootInit init;
+    init.mMode = ShadowRootMode::Closed;
+    init.mDelegatesFocus = aDelegatesFocus == DelegatesFocus::Yes;
     RefPtr<ShadowRoot> shadowRoot =
-        AttachShadowWithoutNameChecks(ShadowRootMode::Closed, aDelegatesFocus);
+        AttachShadowWithoutNameChecks(init, aNotify);
     shadowRoot->SetIsUAWidget();
   }
 
   MOZ_ASSERT(GetShadowRoot()->IsUAWidget());
-  if (aNotify == NotifyUAWidget::Yes) {
+  if (aNotifyUAWidget == NotifyUAWidget::Yes) {
     NotifyUAWidgetSetupOrChange();
   }
 }

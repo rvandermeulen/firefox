@@ -23,6 +23,7 @@
 #include "mozilla/MouseEvents.h"
 #include "mozilla/PresShell.h"
 #include "mozilla/PresState.h"
+#include "mozilla/RestyleManager.h"
 #include "mozilla/ServoCSSParser.h"
 #include "mozilla/ServoComputedData.h"
 #include "mozilla/StaticPrefs_dom.h"
@@ -4589,7 +4590,7 @@ nsresult HTMLInputElement::BindToTree(BindContext& aContext, nsINode& aParent) {
   // And now make sure our state is up to date
   UpdateValidityElementStates(true);
 
-  if (mDoneCreating && IsInComposedDoc() && CreatesUAShadowTree()) {
+  if (mDoneCreating && IsInComposedDoc() && CreatesDateTimeWidget()) {
     SetupShadowTree(/* aNotify = */ false);
   }
 
@@ -4601,23 +4602,44 @@ nsresult HTMLInputElement::BindToTree(BindContext& aContext, nsINode& aParent) {
 void HTMLInputElement::SetupShadowTree(bool aNotify) {
   MOZ_ASSERT(CreatesUAShadowTree());
   MOZ_ASSERT(IsInComposedDoc());
+  MOZ_ASSERT(!GetShadowRoot());
   MOZ_ASSERT(mDoneCreating);
 
   auto uaWidget = NotifiesUAWidget();
-  AttachAndSetUAShadowRoot(uaWidget, uaWidget == NotifyUAWidget::Yes
-                                         ? DelegatesFocus::Yes
-                                         : DelegatesFocus::No);
+  AttachAndSetUAShadowRoot(uaWidget,
+                           uaWidget == NotifyUAWidget::Yes ? DelegatesFocus::Yes
+                                                           : DelegatesFocus::No,
+                           aNotify);
   if (uaWidget == NotifyUAWidget::Yes) {
     // The UA widget system takes care of this.
     return;
   }
-  RefPtr shadow = GetShadowRoot();
+  auto* shadow = GetShadowRoot();
   if (!shadow) {
     return;
   }
   // For now, only text controls should get here.
   MOZ_ASSERT(IsSingleLineTextControl());
   TextControlElement::SetupShadowTree(*shadow, aNotify);
+}
+
+ShadowRoot* HTMLInputElement::CreateShadowTreeFromLayoutIfNeeded() {
+  if (!CreatesUAShadowTree()) {
+    return nullptr;
+  }
+  auto* existing = GetShadowRoot();
+  if (existing) {
+    return nullptr;
+  }
+  if (HasChildren()) [[unlikely]] {
+    // In the unlikely case we have any child, they are guaranteed to not have
+    // frames, but they might still be styled and about to go out of the flat
+    // tree, so need to clear their styles now, before creating the shadow tree.
+    RestyleManager::ClearServoDataFromSubtree(this,
+                                              RestyleManager::IncludeRoot::No);
+  }
+  SetupShadowTree(/* aNotify = */ false);
+  return GetShadowRoot();
 }
 
 void HTMLInputElement::MaybeDispatchLoginManagerEvents(HTMLFormElement* aForm) {
@@ -4958,7 +4980,9 @@ void HTMLInputElement::HandleTypeChange(FormControlType aNewType,
           NotifyUAWidgetSetupOrChange();
         } else {
           TeardownUAShadowRoot(oldNotifiesUAWidget);
-          SetupShadowTree(aNotify);
+          if (notifiesUAWidget == NotifyUAWidget::Yes) {
+            SetupShadowTree(aNotify);
+          }
         }
       } else {
         TeardownUAShadowRoot(oldNotifiesUAWidget);
@@ -6420,7 +6444,7 @@ void HTMLInputElement::DoneCreatingElement() {
     }
   }
 
-  if (CreatesUAShadowTree() && IsInComposedDoc()) {
+  if (CreatesDateTimeWidget() && IsInComposedDoc()) {
     SetupShadowTree(/* aNotify = */ false);
   }
 

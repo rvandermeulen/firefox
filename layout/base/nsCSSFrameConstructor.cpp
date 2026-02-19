@@ -5173,6 +5173,15 @@ void nsCSSFrameConstructor::AddFrameConstructionItemsInternal(
     return;
   }
 
+  // Create our shadow tree lazily if needed.
+  // NOTE(emilio): This is rather hacky, we should ideally remove this and make
+  // shadow tree creation faster, see bug 2017005.
+  if (auto* input = HTMLInputElement::FromNode(aContent)) {
+    if (auto* sr = input->CreateShadowTreeFromLayoutIfNeeded()) {
+      StyleNewChildRange(sr->GetFirstChild(), nullptr);
+    }
+  }
+
   const bool canHavePageBreak =
       aFlags.contains(ItemFlag::AllowPageBreak) &&
       aState.mPresContext->IsPaginated() &&

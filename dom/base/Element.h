@@ -1606,8 +1606,8 @@ class Element : public FragmentOrElement {
   enum class ShadowRootDeclarative : bool { No, Yes };
 
   MOZ_CAN_RUN_SCRIPT_BOUNDARY
-  already_AddRefed<ShadowRoot> AttachShadow(const ShadowRootInit& aInit,
-                                            ErrorResult& aError);
+  already_AddRefed<ShadowRoot> AttachShadow(const ShadowRootInit&,
+                                            ErrorResult&);
   bool CanAttachShadowDOM() const;
 
   enum class DelegatesFocus : bool { No, Yes };
@@ -1615,16 +1615,13 @@ class Element : public FragmentOrElement {
   enum class ShadowRootSerializable : bool { No, Yes };
 
   already_AddRefed<ShadowRoot> AttachShadowWithoutNameChecks(
-      ShadowRootMode aMode, DelegatesFocus = DelegatesFocus::No,
-      SlotAssignmentMode aSlotAssignmentMode = SlotAssignmentMode::Named,
-      ShadowRootClonable aClonable = ShadowRootClonable::No,
-      ShadowRootSerializable aSerializable = ShadowRootSerializable::No,
-      const nsAString& aReferenceTarget = VoidString());
+      const ShadowRootInit&, bool aNotify = true);
 
   // Attach UA Shadow Root if it is not attached.
   enum class NotifyUAWidget : bool { No, Yes };
   void AttachAndSetUAShadowRoot(NotifyUAWidget = NotifyUAWidget::Yes,
-                                DelegatesFocus = DelegatesFocus::No);
+                                DelegatesFocus = DelegatesFocus::No,
+                                bool aNotify = true);
 
   // Dispatch an event to UAWidgetsChild, triggering construction
   // or onchange callback on the existing widget.

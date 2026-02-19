@@ -911,6 +911,10 @@ class HTMLInputElement final : public TextControlElement,
   using nsGenericHTMLFormControlElementWithState::IsSingleLineTextControl;
   using TextControlElement::IsSingleLineTextControl;
 
+  // If needed, lazily sets up the shadow tree for this <input> element.
+  // Returns the ShadowRoot _only if it was just created_!
+  ShadowRoot* CreateShadowTreeFromLayoutIfNeeded();
+
  protected:
   MOZ_CAN_RUN_SCRIPT_BOUNDARY virtual ~HTMLInputElement();
 
