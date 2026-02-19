@@ -797,6 +797,7 @@ Preferences.addSetting(
 
         deletionOptions = {
           id: toggleId,
+          l10nId: "search-enable-engine",
           control: "moz-toggle",
           slot: "actions",
         };
@@ -837,6 +838,7 @@ Preferences.addSetting(
 
         deletionOptions = {
           id: deletionId,
+          l10nId: "search-delete-engine",
           control: "moz-button",
           iconSrc: "chrome://global/skin/icons/delete.svg",
           slot: "actions",
@@ -885,6 +887,7 @@ Preferences.addSetting(
           items: [
             {
               id: editId,
+              l10nId: "search-edit-engine-2",
               control: "moz-button",
               iconSrc: "chrome://global/skin/icons/edit-outline.svg",
               slot: "actions",
@@ -911,6 +914,7 @@ Preferences.addSetting(
 
           config.items.push({
             id: outlinkId,
+            l10nId: "search-outlink-to-extensions-page",
             control: "moz-button",
             iconSrc: "chrome://global/skin/icons/open-in-new.svg",
             slot: "actions",

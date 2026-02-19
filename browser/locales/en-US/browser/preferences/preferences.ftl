@@ -1163,6 +1163,15 @@ search-one-click-header-3 =
 update-search-engine-success =
     .message = Search engine successfully updated
 
+search-edit-engine-2 =
+    .title = Edit search engine
+search-delete-engine =
+    .title = Delete search engine
+search-enable-engine =
+    .title = Enable search engine
+search-outlink-to-extensions-page =
+    .title = Manage in extensions and themes
+
 search-choose-engine-column =
     .label = Search Engine
 search-choose-keyword-column =
