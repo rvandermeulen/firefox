@@ -1185,7 +1185,8 @@ abstract class BaseBrowserFragment :
 
                     override suspend fun onEmailMaskClick(generatedFor: String) = withContext(IO) {
                         val relay = requireComponents.relayFeatureIntegration
-                        val created = relay.getOrCreateNewMask(generatedFor)
+                        // For this phase, we'll also use the generatedFor value for the description.
+                        val created = relay.getOrCreateNewMask(generatedFor, generatedFor)
 
                         if (created == null) {
                             // Record failure telemetry

@@ -69,9 +69,10 @@ class RelayFeatureIntegration(
      * Creates a new email mask with the specified data, otherwise, falls back to using an existing one.
      *
      * @param generatedFor The website for which the address is generated.
+     * @param description The description of the email mask.
      *
      * @return the newly created email mask or `null` if the operation fails.
      */
-    suspend fun getOrCreateNewMask(generatedFor: String): EmailMask? =
-        relayFeature.getOrCreateNewMask(generatedFor)
+    suspend fun getOrCreateNewMask(generatedFor: String, description: String): EmailMask? =
+        relayFeature.getOrCreateNewMask(generatedFor, description)
 }
