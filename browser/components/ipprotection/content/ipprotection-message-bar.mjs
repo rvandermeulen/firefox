@@ -118,13 +118,12 @@ export default class IPProtectionMessageBarElement extends MozLitElement {
   }
 
   render() {
-    let messageBarTemplate = this.#MESSAGE_TYPE_MAP.get(this.type)();
-
-    if (!messageBarTemplate) {
+    let templateFn = this.#MESSAGE_TYPE_MAP.get(this.type);
+    if (!templateFn) {
       return null;
     }
 
-    return html` ${messageBarTemplate} `;
+    return html` ${templateFn()} `;
   }
 }
 
