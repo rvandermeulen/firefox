@@ -8,6 +8,8 @@ ChromeUtils.defineESModuleGetters(lazy, {
   sessionStoreLogger: "resource:///modules/sessionstore/SessionLogger.sys.mjs",
 });
 
+const BROWSER_PURGE_SESSION_HISTORY = "browser:purge-session-history";
+
 /**
  * We just started (we haven't written anything to disk yet) from
  * `Paths.clean`. The backup directory may not exist.
@@ -60,6 +62,10 @@ export const SessionWriter = {
     return SessionWriterInternal.init(origin, useOldExtension, paths, prefs);
   },
 
+  deinit() {
+    return SessionWriterInternal.deinit();
+  },
+
   /**
    * Write the contents of the session file.
    *
@@ -81,6 +87,13 @@ export const SessionWriter = {
     } finally {
       unlock();
     }
+  },
+
+  /**
+   * *Test Only* Return the SessionWriter's length hint for writing JSON.
+   */
+  get _jsonLengthHint() {
+    return SessionWriterInternal.jsonLengthHint;
   },
 };
 
@@ -105,6 +118,15 @@ const SessionWriterInternal = {
    * Number of old upgrade backups that are being kept
    */
   maxUpgradeBackups: null,
+
+  /**
+   * The size of the last write with IOUtils.writeJSON.
+   *
+   * Because SessionWriter writes such a large object graph we will otherwise
+   * spend a large portion of `write()` doing memory allocations and memcpy
+   * when serializing the session file to disk.
+   */
+  jsonLengthHint: 0,
 
   /**
    * Initialize (or reinitialize) the writer.
@@ -138,7 +160,14 @@ const SessionWriterInternal = {
     this.maxSerializeBack = prefs.maxSerializeBack;
     this.maxSerializeForward = prefs.maxSerializeForward;
     this.upgradeBackupNeeded = paths.nextUpgradeBackup != paths.upgradeBackup;
+
+    Services.obs.addObserver(this, BROWSER_PURGE_SESSION_HISTORY);
+
     return { result: true };
+  },
+
+  deinit() {
+    Services.obs.removeObserver(this, BROWSER_PURGE_SESSION_HISTORY);
   },
 
   /**
@@ -210,10 +239,12 @@ const SessionWriterInternal = {
         // originally present and valid, it has been moved to
         // $Paths.cleanBackup a long time ago. We can therefore write
         // with the guarantees that we erase no important data.
-        await IOUtils.writeJSON(this.Paths.clean, state, {
+        const result = await IOUtils.writeJSON(this.Paths.clean, state, {
           tmpPath: this.Paths.clean + ".tmp",
           compress: true,
+          lengthHint: this.jsonLengthHint,
         });
+        this.jsonLengthHint = result.jsonLength;
         fileStat = await IOUtils.stat(this.Paths.clean);
       } else if (this.state == STATE_RECOVERY) {
         // At this stage, either $Paths.recovery was written >= 15
@@ -222,20 +253,24 @@ const SessionWriterInternal = {
         // way, $Paths.recovery is good. We can move $Path.backup to
         // $Path.recoveryBackup without erasing a good file with a bad
         // file.
-        await IOUtils.writeJSON(this.Paths.recovery, state, {
+        const result = await IOUtils.writeJSON(this.Paths.recovery, state, {
           tmpPath: this.Paths.recovery + ".tmp",
           backupFile: this.Paths.recoveryBackup,
           compress: true,
+          lengthHint: this.jsonLengthHint,
         });
+        this.jsonLengthHint = result.jsonLength;
         fileStat = await IOUtils.stat(this.Paths.recovery);
       } else {
         // In other cases, either $Path.recovery is not necessary, or
         // it doesn't exist or it has been corrupted. Regardless,
         // don't backup $Path.recovery.
-        await IOUtils.writeJSON(this.Paths.recovery, state, {
+        const result = await IOUtils.writeJSON(this.Paths.recovery, state, {
           tmpPath: this.Paths.recovery + ".tmp",
           compress: true,
+          lengthHint: this.jsonLengthHint,
         });
+        this.jsonLengthHint = result.jsonLength;
         fileStat = await IOUtils.stat(this.Paths.recovery);
       }
 
@@ -421,5 +456,17 @@ const SessionWriterInternal = {
     if (exn) {
       throw exn;
     }
+  },
+
+  observe(_subject, topic, _data) {
+    switch (topic) {
+      case BROWSER_PURGE_SESSION_HISTORY:
+        this._onPurgeSessionHistory();
+        break;
+    }
+  },
+
+  _onPurgeSessionHistory() {
+    this.jsonLengthHint = 0;
   },
 };
