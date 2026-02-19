@@ -607,7 +607,7 @@ export var SelectParentHelper = {
         item.setAttribute("value", option.index);
 
         if (parentElement) {
-          item.classList.add("contentSelectDropdown-ingroup");
+          item.setAttribute("indented", true);
         }
       }
     }
@@ -722,10 +722,8 @@ export var SelectParentHelper = {
           allHidden = true;
         } else {
           if (
-            !currentItem.classList.contains("contentSelectDropdown-ingroup") &&
-            currentItem.previousElementSibling.classList.contains(
-              "contentSelectDropdown-ingroup"
-            )
+            !currentItem.hasAttribute("indented") &&
+            currentItem.previousElementSibling.hasAttribute("indented")
           ) {
             if (prevCaption != null) {
               prevCaption.hidden = allHidden;
