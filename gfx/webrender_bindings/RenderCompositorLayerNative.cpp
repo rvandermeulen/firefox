@@ -88,6 +88,9 @@ inline layers::WebRenderCompositor RenderCompositorLayerNative::CompositorType()
   return layers::WebRenderCompositor::CORE_ANIMATION;
 #elif defined(MOZ_WAYLAND)
   return layers::WebRenderCompositor::WAYLAND;
+#else
+  MOZ_ASSERT_UNREACHABLE("Unexpected to be called!");
+  return layers::WebRenderCompositor::Unknown;
 #endif
 }
 

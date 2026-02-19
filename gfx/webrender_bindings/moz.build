@@ -11,6 +11,7 @@ EXPORTS.mozilla.webrender += [
     "RenderBufferTextureHost.h",
     "RenderCompositor.h",
     "RenderCompositorEGL.h",
+    "RenderCompositorLayerNative.h",
     "RenderCompositorLayersSWGL.h",
     "RenderCompositorOGL.h",
     "RenderCompositorOGLSWGL.h",
@@ -34,6 +35,7 @@ UNIFIED_SOURCES += [
     "RenderBufferTextureHost.cpp",
     "RenderCompositor.cpp",
     "RenderCompositorEGL.cpp",
+    "RenderCompositorLayerNative.cpp",
     "RenderCompositorLayersSWGL.cpp",
     "RenderCompositorOGL.cpp",
     "RenderCompositorOGLSWGL.cpp",
@@ -99,11 +101,9 @@ if CONFIG["MOZ_WIDGET_TOOLKIT"] == "gtk":
 
 if CONFIG["MOZ_WAYLAND"]:
     EXPORTS.mozilla.webrender += [
-        "RenderCompositorLayerNative.h",
         "RenderCompositorNative.h",
     ]
     SOURCES += [
-        "RenderCompositorLayerNative.cpp",
         "RenderCompositorNative.cpp",
     ]
 
