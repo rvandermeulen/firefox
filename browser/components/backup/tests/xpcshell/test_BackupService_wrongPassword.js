@@ -70,8 +70,7 @@ async function testWrongPassword(passwordToUse) {
       passwordToUse,
       false,
       testBackupDirPath,
-      recoveredProfilePath,
-      true
+      recoveredProfilePath
     ),
     err => err.cause == ERRORS.UNAUTHORIZED
   );
@@ -84,7 +83,7 @@ async function testWrongPassword(passwordToUse) {
   );
   Assert.deepEqual(
     events[0].extra,
-    { restore_id: restoreID, replace: "true" },
+    { restore_id: restoreID },
     "Restore event should have the right data"
   );
 

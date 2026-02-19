@@ -316,8 +316,7 @@ async function testCreateBackupHelper(sandbox, taskFn) {
     null,
     false,
     fakeProfilePath,
-    recoveredProfilePath,
-    true
+    recoveredProfilePath
   );
 
   Assert.ok(
@@ -343,10 +342,7 @@ async function testCreateBackupHelper(sandbox, taskFn) {
   );
   Assert.deepEqual(
     restoreStartedEvents[0].extra,
-    {
-      restore_id: restoreID,
-      replace: "true",
-    },
+    { restore_id: restoreID },
     "Restore start event should have the right data"
   );
 

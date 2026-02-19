@@ -329,8 +329,7 @@ async function restoreTemplate({ internalReason, disable, enable }) {
       null,
       false,
       PathUtils.profileDir,
-      recoveryDir,
-      true
+      recoveryDir
     ),
     /.*disabled.*/,
     "Recovery should throw when the restore is disabled."
@@ -345,8 +344,7 @@ async function restoreTemplate({ internalReason, disable, enable }) {
     null,
     false,
     PathUtils.profileDir,
-    recoveryDir,
-    true
+    recoveryDir
   );
   Assert.ok(
     recoveredProfile,

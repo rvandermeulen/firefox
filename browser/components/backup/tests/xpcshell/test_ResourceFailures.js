@@ -95,8 +95,7 @@ add_task(async function testResourceFailure() {
       null,
       false,
       testBackupPath,
-      recoveredProfilePath,
-      true
+      recoveredProfilePath
     ),
     err => err.cause == ERRORS.RECOVERY_FAILED
   );

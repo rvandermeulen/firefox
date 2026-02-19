@@ -74,36 +74,6 @@ export class PreferencesBackupResource extends BackupResource {
     return prefsOverrideMap;
   }
 
-  /**
-   * Parses preferences from a prefs.js file buffer.
-   *
-   * @param {Uint8Array} prefsBuffer - The raw bytes of a prefs.js file.
-   * @param {string[]} [prefNames] - Optional list of pref names to extract.
-   *                                 If not provided, returns all prefs.
-   * @returns {Map<string, *>} Map of pref names to their values.
-   */
-  static getPrefsFromBuffer(prefsBuffer, prefNames = null) {
-    const prefSet = prefNames ? new Set(prefNames) : null;
-    const prefs = new Map();
-
-    const addPref = (_kind, name, value) => {
-      if (!prefSet || prefSet.has(name)) {
-        prefs.set(name, value);
-      }
-    };
-
-    Services.prefs.parsePrefsFromBuffer(prefsBuffer, {
-      onStringPref: addPref,
-      onIntPref: addPref,
-      onBoolPref: addPref,
-      onError(_message) {
-        // ignore any errors here, we'll use the default value when evaluating
-      },
-    });
-
-    return prefs;
-  }
-
   async backup(
     stagingPath,
     profilePath = PathUtils.profileDir,
@@ -252,37 +222,6 @@ export class PreferencesBackupResource extends BackupResource {
       lazy.logConsole.debug(
         `We're recovering into a profile group, let's make sure to set the right selectable profile prefs`
       );
-
-      // Before adding prefs to the db, let's make sure we choose the most restrictive settings
-      // for data collection in the group.
-      const dataCollectionPrefs = [
-        "browser.discovery.enabled",
-        "app.shield.optoutstudies.enabled",
-        "datareporting.healthreport.uploadEnabled",
-        "datareporting.usage.uploadEnabled",
-        "browser.crashReports.unsubmittedCheck.autoSubmit2",
-      ];
-
-      const prefsFilePath = PathUtils.join(recoveryPath, "prefs.js");
-      const prefsBuffer = await IOUtils.read(prefsFilePath);
-      const backupPrefs = PreferencesBackupResource.getPrefsFromBuffer(
-        prefsBuffer,
-        dataCollectionPrefs
-      );
-      const defaults = Services.prefs.getDefaultBranch(null);
-
-      for (let pref of dataCollectionPrefs) {
-        let groupPrefValue =
-          await lazy.SelectableProfileService.getDBPref(pref);
-        let backupPrefValue = backupPrefs.has(pref)
-          ? backupPrefs.get(pref)
-          : defaults.getBoolPref(pref, false);
-
-        // the group has it enabled, but our backup has it disabled!
-        if (groupPrefValue && !backupPrefValue) {
-          Services.prefs.setBoolPref(pref, false);
-        }
-      }
 
       // Since the user might have messed with their prefs, let's make sure to
       // update the selectable profile specific ones (including the shared prefs db)

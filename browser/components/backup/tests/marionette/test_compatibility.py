@@ -16,14 +16,10 @@ To add a new version:
 """
 
 import os
-import sys
 import tempfile
-from pathlib import Path
 
 import mozfile
-
-sys.path.append(os.fspath(Path(__file__).parents[0]))
-from backup_test_base import BackupTestBase
+from marionette_harness import MarionetteTestCase
 
 VERSION_CONFIG = {
     1: {
@@ -34,160 +30,78 @@ VERSION_CONFIG = {
 }
 
 
-class BackupCompatibilityTest(BackupTestBase):
+class BackupCompatibilityTest(MarionetteTestCase):
     """Test backward compatibility of backup recovery across schema versions."""
 
-    def test_recover_v1_backup_selectable(self):
-        """Test that a v1 backup can be recovered into a selectable profile environment."""
-        self.logger.info("=== Test: V1 Backup -> Selectable ===")
-        self._test_recover_backup_selectable(1)
+    def setUp(self):
+        MarionetteTestCase.setUp(self)
 
-    def test_recover_v1_backup_legacy(self):
-        """Test that a v1 backup can be recovered into a legacy profile environment."""
-        self.logger.info("=== Test: V1 Backup -> Legacy ===")
-        self._test_recover_backup_legacy(1)
-
-    def _test_recover_backup_selectable(self, version):
-        """Test recovering a backup into a selectable profile environment."""
-        config = VERSION_CONFIG[version]
-        backup_path = self._get_backup_path(config["backup_file"])
-        self.assertTrue(
-            os.path.exists(backup_path),
-            f"V{version} backup fixture must exist at {backup_path}",
-        )
-
-        self.logger.info("Step 1: Setting up selectable profile environment")
-        profile_name = self.register_profile_and_restart()
-        self._cleanups.append({"profile_name": profile_name})
-
-        selectable_info = self.setup_selectable_profile()
-        original_store_id = selectable_info["store_id"]
-        self.assertIsNotNone(original_store_id, "storeID should be set")
-        self.logger.info(f"Recovery environment storeID: {original_store_id}")
-
-        self.logger.info(f"Step 2: Recovering v{version} backup")
-        self._recovery_path = os.path.join(
-            tempfile.gettempdir(), f"v{version}-compat-selectable-recovery"
-        )
-        mozfile.remove(self._recovery_path)
-        self._cleanups.append({"path": self._recovery_path})
-
-        result = self._recover_backup(
-            backup_path, self._recovery_path, config["recovery_password"]
-        )
-        self._new_profile_path = result["path"]
-        self._new_profile_id = result["id"]
-        self._cleanups.append({"path": self._new_profile_path})
-        self.logger.info(
-            f"Recovery complete. New profile path: {self._new_profile_path}"
-        )
-
-        self.logger.info("Step 3: Launching recovered profile and verifying data")
-        self.marionette.quit()
-        intermediate_profile = self.marionette.instance.profile
-        self.marionette.instance.profile = self._new_profile_path
-        self.marionette.start_session()
-        self.marionette.set_context("chrome")
-
-        self.wait_for_post_recovery()
-
-        self.init_selectable_profile_service()
-
-        store_id = self.get_store_id()
-        self.assertEqual(
-            store_id,
-            original_store_id,
-            "Recovered profile should have the same storeID as profile group",
-        )
-        self.logger.info(f"Verified storeID matches: {store_id}")
-
-        self._verify_common_data(version)
-
-        for check in config["extra_checks"]:
-            verify_method = getattr(self, f"_verify_{check}")
-            verify_method(version)
-
-        self.logger.info("Step 4: Cleaning up")
-        self.marionette.quit()
-        self.marionette.instance.profile = intermediate_profile
-        self.marionette.start_session()
-        self.marionette.set_context("chrome")
-
-        self.cleanup_selectable_profiles()
-        self.logger.info(f"=== Test: V{version} Backup -> Selectable PASSED ===")
-
-    def _test_recover_backup_legacy(self, version):
-        """Test recovering a backup into a legacy profile environment."""
-        config = VERSION_CONFIG[version]
-        backup_path = self._get_backup_path(config["backup_file"])
-        self.assertTrue(
-            os.path.exists(backup_path),
-            f"V{version} backup fixture must exist at {backup_path}",
-        )
-
-        self.logger.info("Step 1: Setting up legacy profile environment")
-        profile_name = self.register_profile_and_restart()
-        self._cleanups.append({"profile_name": profile_name})
-
-        self.set_prefs({
-            "browser.profiles.enabled": True,
-            "browser.profiles.created": False,
+        self.marionette.enforce_gecko_prefs({
+            "browser.backup.enabled": True,
+            "browser.backup.log": True,
+            "browser.backup.archive.enabled": True,
+            "browser.backup.restore.enabled": True,
+            "browser.backup.archive.overridePlatformCheck": True,
+            "browser.backup.restore.overridePlatformCheck": True,
         })
 
-        has_selectable = self.has_selectable_profiles()
-        self.assertFalse(has_selectable, "Should start as legacy profile")
-        self.logger.info("Verified profile is legacy")
+        self.marionette.set_context("chrome")
+        self._recovery_path = None
+        self._new_profile_path = None
+        self._intermediate_profile = None
 
-        self.logger.info(f"Step 2: Recovering v{version} backup")
+    def tearDown(self):
+        if self._intermediate_profile:
+            self.marionette.quit()
+            self.marionette.instance.profile = self._intermediate_profile
+            self.marionette.start_session()
+
+        if self._recovery_path:
+            mozfile.remove(self._recovery_path)
+        if self._new_profile_path:
+            mozfile.remove(self._new_profile_path)
+
+        self.marionette.quit()
+        self.marionette.instance.switch_profile()
+        self.marionette.start_session()
+        MarionetteTestCase.tearDown(self)
+
+    def test_recover_v1_backup(self):
+        """Test that a v1 backup can be recovered and data is intact."""
+        self._test_recover_backup(1)
+
+    def _test_recover_backup(self, version):
+        """Generic test for recovering a backup of a specific version."""
+        config = VERSION_CONFIG[version]
+        backup_path = self._get_backup_path(config["backup_file"])
+        self.assertTrue(
+            os.path.exists(backup_path),
+            f"V{version} backup fixture must exist at {backup_path}",
+        )
+
         self._recovery_path = os.path.join(
-            tempfile.gettempdir(), f"v{version}-compat-legacy-recovery"
+            tempfile.gettempdir(), f"v{version}-compat-recovery"
         )
         mozfile.remove(self._recovery_path)
-        self._cleanups.append({"path": self._recovery_path})
 
         result = self._recover_backup(
             backup_path, self._recovery_path, config["recovery_password"]
         )
         self._new_profile_path = result["path"]
-        self._new_profile_id = result["id"]
-        self._cleanups.append({"path": self._new_profile_path})
-        self.logger.info(
-            f"Recovery complete. New profile path: {self._new_profile_path}"
-        )
 
-        self.logger.info("Step 3: Verifying legacy profile was converted to selectable")
-        has_selectable_after = self.has_selectable_profiles()
-        self.assertTrue(
-            has_selectable_after,
-            "Legacy profile should be converted to selectable after recovery",
-        )
-        self.logger.info("Legacy profile converted to selectable")
-
-        self.logger.info("Step 4: Launching recovered profile and verifying data")
         self.marionette.quit()
-        intermediate_profile = self.marionette.instance.profile
+        self._intermediate_profile = self.marionette.instance.profile
         self.marionette.instance.profile = self._new_profile_path
         self.marionette.start_session()
         self.marionette.set_context("chrome")
 
-        self.wait_for_post_recovery()
-
-        self.init_selectable_profile_service()
+        self._wait_for_post_recovery()
 
         self._verify_common_data(version)
 
         for check in config["extra_checks"]:
             verify_method = getattr(self, f"_verify_{check}")
             verify_method(version)
-
-        self.logger.info("Step 5: Cleaning up")
-        self.marionette.quit()
-        self.marionette.instance.profile = intermediate_profile
-        self.marionette.start_session()
-        self.marionette.set_context("chrome")
-
-        self.cleanup_selectable_profiles()
-        self.logger.info(f"=== Test: V{version} Backup -> Legacy PASSED ===")
 
     def _verify_common_data(self, version):
         """Verify data that should exist in all backup versions."""
@@ -202,15 +116,9 @@ class BackupCompatibilityTest(BackupTestBase):
         test_dir = os.path.dirname(__file__)
         return os.path.join(test_dir, "backups", filename)
 
-    def _recover_backup(
-        self,
-        archive_path,
-        recovery_path,
-        recovery_password,
-        replace_current_profile=False,
-    ):
+    def _recover_backup(self, archive_path, recovery_path, recovery_password):
         """Recover from an encrypted backup archive."""
-        return self.run_async(
+        return self.marionette.execute_async_script(
             """
             const { OSKeyStore } = ChromeUtils.importESModule(
                 "resource://gre/modules/OSKeyStore.sys.mjs"
@@ -218,26 +126,37 @@ class BackupCompatibilityTest(BackupTestBase):
             const { BackupService } = ChromeUtils.importESModule(
                 "resource:///modules/backup/BackupService.sys.mjs"
             );
-            let [archivePath, recoveryCode, recoveryPath, replaceCurrentProfile] = arguments;
-            // Use a fake OSKeyStore label to avoid keychain auth prompts
-            OSKeyStore.STORE_LABEL = "test-" + Math.random().toString(36).substr(2);
+            let [archivePath, recoveryCode, recoveryPath, outerResolve] = arguments;
+            (async () => {
+                // Use a fake OSKeyStore label to avoid keychain auth prompts
+                OSKeyStore.STORE_LABEL = "test-" + Math.random().toString(36).substr(2);
 
-            let bs = BackupService.init();
-            let newProfileRoot = await IOUtils.createUniqueDirectory(
-                PathUtils.tempDir, "backupCompatTest"
-            );
-            let profile = await bs.recoverFromBackupArchive(
-                archivePath, recoveryCode, false, recoveryPath, newProfileRoot, replaceCurrentProfile
-            );
-            let rootDir = await profile.rootDir;
-            return { name: profile.name, path: rootDir.path, id: profile.id };
+                let bs = BackupService.init();
+                let newProfileRoot = await IOUtils.createUniqueDirectory(
+                    PathUtils.tempDir, "backupCompatTest"
+                );
+                let profile = await bs.recoverFromBackupArchive(
+                    archivePath, recoveryCode, false, recoveryPath, newProfileRoot
+                );
+                let rootDir = await profile.rootDir;
+                return { name: profile.name, path: rootDir.path, id: profile.id };
+            })().then(outerResolve);
             """,
-            script_args=[
-                archive_path,
-                recovery_password,
-                recovery_path,
-                replace_current_profile,
-            ],
+            script_args=[archive_path, recovery_password, recovery_path],
+        )
+
+    def _wait_for_post_recovery(self):
+        """Wait for post-recovery actions to complete."""
+        self.marionette.execute_async_script(
+            """
+            const { BackupService } = ChromeUtils.importESModule(
+                "resource:///modules/backup/BackupService.sys.mjs"
+            );
+            let [outerResolve] = arguments;
+            (async () => {
+                await BackupService.get().postRecoveryComplete;
+            })().then(outerResolve);
+            """
         )
 
     def _verify_login(self, origin):
