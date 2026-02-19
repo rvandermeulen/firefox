@@ -11613,9 +11613,9 @@ static StyleAlignmentBaseline ConvertSVGDominantBaselineToAlignmentBaseline(
   // Most of these are approximate mappings.
   switch (aDominantBaseline) {
     case StyleDominantBaseline::Hanging:
-    case StyleDominantBaseline::TextBeforeEdge:
+    case StyleDominantBaseline::TextTop:
       return StyleAlignmentBaseline::TextTop;
-    case StyleDominantBaseline::TextAfterEdge:
+    case StyleDominantBaseline::TextBottom:
     case StyleDominantBaseline::Ideographic:
       return StyleAlignmentBaseline::TextBottom;
     case StyleDominantBaseline::Central:
@@ -11631,12 +11631,62 @@ static StyleAlignmentBaseline ConvertSVGDominantBaselineToAlignmentBaseline(
   }
 }
 
+StyleDominantBaseline nsIFrame::DominantBaseline() const {
+  auto dominantBaseline = StyleVisibility()->mDominantBaseline;
+  if (dominantBaseline != StyleDominantBaseline::Auto) {
+    return dominantBaseline;
+  }
+
+  WritingMode writingMode = GetWritingMode();
+  StyleTextOrientation textOrientation = StyleVisibility()->mTextOrientation;
+
+  // https://drafts.csswg.org/css-inline-3/#alignment-baseline-property
+  // > Equivalent to alphabetic in horizontal writing modes and
+  // > in vertical writing modes when text-orientation is sideways.
+  // > Equivalent to central in vertical writing modes when
+  // > text-orientation is mixed or upright.
+  if (writingMode.IsVertical() &&
+      textOrientation != StyleTextOrientation::Sideways) {
+    return StyleDominantBaseline::Central;
+  }
+
+  return StyleDominantBaseline::Alphabetic;
+}
+
 StyleAlignmentBaseline nsIFrame::AlignmentBaseline() const {
   if (IsInSVGTextSubtree()) {
     // TODO Bug 2010721 - Implement alignment-baseline directly for SVG
     // text elements instead of only approximating from dominant-baseline.
-    StyleDominantBaseline dominantBaseline = StyleSVG()->mDominantBaseline;
+    auto dominantBaseline = StyleVisibility()->mDominantBaseline;
     return ConvertSVGDominantBaselineToAlignmentBaseline(dominantBaseline);
+  }
+
+  if (StyleDisplay()->mAlignmentBaseline == StyleAlignmentBaseline::Baseline) {
+    // The CSS Inline Layout specification says `alignment-baseline: baseline`
+    // uses the dominant baseline choice of the parent.
+    auto dominantBaseline =
+        GetParent() ? GetParent()->DominantBaseline() : DominantBaseline();
+    switch (dominantBaseline) {
+      case StyleDominantBaseline::TextBottom:
+        return StyleAlignmentBaseline::TextBottom;
+      case StyleDominantBaseline::Alphabetic:
+        return StyleAlignmentBaseline::Alphabetic;
+      case StyleDominantBaseline::Ideographic:
+        return StyleAlignmentBaseline::Ideographic;
+      case StyleDominantBaseline::Middle:
+        return StyleAlignmentBaseline::Middle;
+      case StyleDominantBaseline::Central:
+        return StyleAlignmentBaseline::Central;
+      case StyleDominantBaseline::Mathematical:
+        return StyleAlignmentBaseline::Mathematical;
+      case StyleDominantBaseline::Hanging:
+        return StyleAlignmentBaseline::Hanging;
+      case StyleDominantBaseline::TextTop:
+        return StyleAlignmentBaseline::TextTop;
+      case StyleDominantBaseline::Auto:
+        MOZ_ASSERT_UNREACHABLE("Auto is resolved in DominantBaseline()");
+        break;
+    }
   }
 
   return StyleDisplay()->mAlignmentBaseline;

@@ -590,9 +590,9 @@ static void ReleaseValue(T* aPropertyValue) {
     return nsQueryFrame::class##_id;                                           \
   }
 
-#define NS_IMPL_FRAMEARENA_HELPERS(class)                              \
-  void* class ::operator new(size_t sz, mozilla::PresShell * aShell) { \
-    return aShell->AllocateFrame(nsQueryFrame::class##_id, sz);        \
+#define NS_IMPL_FRAMEARENA_HELPERS(class)                             \
+  void* class ::operator new(size_t sz, mozilla::PresShell* aShell) { \
+    return aShell->AllocateFrame(nsQueryFrame::class##_id, sz);       \
   }
 
 #define NS_DECL_ABSTRACT_FRAME(class)                                         \
@@ -4756,7 +4756,14 @@ class nsIFrame : public nsQueryFrame {
   inline bool HasAnchorPosReference() const;
 
   /**
-   * Returns the alignment-baseline value to be used for layout. If this is an
+   * Returns the dominant baseline choice for this frame. If the choice is
+   * auto, it resolves to the appropriate baseline choice given the frame's
+   * writing mode and text orientation.
+   */
+  mozilla::StyleDominantBaseline DominantBaseline() const;
+
+  /**
+   * Returns the alignment baseline to be used for layout. If this is an
    * SVG text frame, it returns a value that corresponds to the value of
    * dominant-baseline.
    */

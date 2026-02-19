@@ -9223,6 +9223,8 @@ var gCSSProperties = {
       "mathematical",
       "central",
       "middle",
+      "text-top",
+      "text-bottom",
       "text-after-edge",
       "text-before-edge",
     ],

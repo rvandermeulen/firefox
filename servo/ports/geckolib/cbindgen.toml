@@ -116,6 +116,7 @@ include = [
   "OutlineStyle",
   "CaptionSide",
   "ColorGamut",
+  "DominantBaseline",
   "FontSizeAdjust",
   "FontPalette",
   "FontLanguageOverride",

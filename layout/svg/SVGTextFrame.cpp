@@ -274,7 +274,7 @@ static nscoord GetBaselinePosition(nsTextFrame* aFrame,
   switch (aDominantBaseline) {
     case StyleDominantBaseline::Hanging:
       return convertIfVerticalRL(ascent * 0.2);
-    case StyleDominantBaseline::TextBeforeEdge:
+    case StyleDominantBaseline::TextTop:
       return convertIfVerticalRL(0);
 
     case StyleDominantBaseline::Alphabetic:
@@ -291,7 +291,7 @@ static nscoord GetBaselinePosition(nsTextFrame* aFrame,
                                      AppUnitsPerCSSPixel() *
                                      aFontSizeScaleFactor);
 
-    case StyleDominantBaseline::TextAfterEdge:
+    case StyleDominantBaseline::TextBottom:
     case StyleDominantBaseline::Ideographic:
       return writingMode.IsVerticalLR() ? 0 : ascent + descent;
 
@@ -1568,7 +1568,7 @@ class MOZ_STACK_CLASS TextFrameIterator {
       return;
     }
 
-    mBaselines.AppendElement(mRootFrame->StyleSVG()->mDominantBaseline);
+    mBaselines.AppendElement(mRootFrame->StyleVisibility()->mDominantBaseline);
     GetNext();
   }
 
@@ -1711,7 +1711,8 @@ nsTextFrame* TextFrameIterator::GetNext() {
 }
 
 void TextFrameIterator::PushBaseline(nsIFrame* aNextFrame) {
-  StyleDominantBaseline baseline = aNextFrame->StyleSVG()->mDominantBaseline;
+  StyleDominantBaseline baseline =
+      aNextFrame->StyleVisibility()->mDominantBaseline;
   mBaselines.AppendElement(baseline);
 }
 

@@ -820,7 +820,6 @@ nsStyleSVG::nsStyleSVG()
       mShapeRendering(StyleShapeRendering::Auto),
       mStrokeLinecap(StyleStrokeLinecap::Butt),
       mStrokeLinejoin(StyleStrokeLinejoin::Miter),
-      mDominantBaseline(StyleDominantBaseline::Auto),
       mTextAnchor(StyleTextAnchor::Start) {
   MOZ_COUNT_CTOR(nsStyleSVG);
 }
@@ -846,7 +845,6 @@ nsStyleSVG::nsStyleSVG(const nsStyleSVG& aSource)
       mShapeRendering(aSource.mShapeRendering),
       mStrokeLinecap(aSource.mStrokeLinecap),
       mStrokeLinejoin(aSource.mStrokeLinejoin),
-      mDominantBaseline(aSource.mDominantBaseline),
       mTextAnchor(aSource.mTextAnchor) {
   MOZ_COUNT_CTOR(nsStyleSVG);
 }
@@ -902,7 +900,6 @@ nsChangeHint nsStyleSVG::CalcDifference(const nsStyleSVG& aNewData) const {
       mStrokeMiterlimit != aNewData.mStrokeMiterlimit ||
       mStrokeLinecap != aNewData.mStrokeLinecap ||
       mStrokeLinejoin != aNewData.mStrokeLinejoin ||
-      mDominantBaseline != aNewData.mDominantBaseline ||
       mTextAnchor != aNewData.mTextAnchor) {
     return hint | nsChangeHint_NeedReflow | nsChangeHint_RepaintFrame;
   }
@@ -2788,6 +2785,7 @@ nsStyleVisibility::nsStyleVisibility(const Document& aDocument)
       mTextOrientation(StyleTextOrientation::Mixed),
       mMozBoxCollapse(StyleBoxCollapse::Flex),
       mPrintColorAdjust(StylePrintColorAdjust::Economy),
+      mDominantBaseline(StyleDominantBaseline::Auto),
       mImageOrientation(StyleImageOrientation::FromImage) {
   MOZ_COUNT_CTOR(nsStyleVisibility);
 }
@@ -2800,6 +2798,7 @@ nsStyleVisibility::nsStyleVisibility(const nsStyleVisibility& aSource)
       mTextOrientation(aSource.mTextOrientation),
       mMozBoxCollapse(aSource.mMozBoxCollapse),
       mPrintColorAdjust(aSource.mPrintColorAdjust),
+      mDominantBaseline(aSource.mDominantBaseline),
       mImageOrientation(aSource.mImageOrientation) {
   MOZ_COUNT_CTOR(nsStyleVisibility);
 }
@@ -2833,7 +2832,8 @@ nsChangeHint nsStyleVisibility::CalcDifference(
     }
   }
   if (mTextOrientation != aNewData.mTextOrientation ||
-      mMozBoxCollapse != aNewData.mMozBoxCollapse) {
+      mMozBoxCollapse != aNewData.mMozBoxCollapse ||
+      mDominantBaseline != aNewData.mDominantBaseline) {
     hint |= NS_STYLE_HINT_REFLOW;
   }
   if (mImageRendering != aNewData.mImageRendering) {

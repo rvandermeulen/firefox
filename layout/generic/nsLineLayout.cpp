@@ -2047,8 +2047,14 @@ void nsLineLayout::VerticalAlignFrames(PerSpanData* psd) {
       }
     }
 
-    // Get block-direction alignment values
-    StyleAlignmentBaseline alignmentBaseline = frame->AlignmentBaseline();
+    // Get block-direction alignment values. For text frames, don't perform any
+    // special baseline alignment; their inline container box is responsible for
+    // performing baseline alignment.
+    StyleAlignmentBaseline alignmentBaseline = StyleAlignmentBaseline::Baseline;
+    if (!pfd->mIsTextFrame) {
+      alignmentBaseline = frame->AlignmentBaseline();
+    }
+
     const StyleBaselineShift& baselineShift =
         frame->StyleDisplay()->mBaselineShift;
     Maybe<StyleBaselineShiftKeyword> baselineShiftEnum =

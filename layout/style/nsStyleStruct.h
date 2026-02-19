@@ -1472,6 +1472,7 @@ struct MOZ_NEEDS_MEMMOVABLE_MEMBERS nsStyleVisibility {
   mozilla::StyleTextOrientation mTextOrientation;
   mozilla::StyleBoxCollapse mMozBoxCollapse;
   mozilla::StylePrintColorAdjust mPrintColorAdjust;
+  mozilla::StyleDominantBaseline mDominantBaseline;
 
  private:
   mozilla::StyleImageOrientation mImageOrientation;
@@ -2247,7 +2248,6 @@ struct MOZ_NEEDS_MEMMOVABLE_MEMBERS nsStyleSVG {
   mozilla::StyleShapeRendering mShapeRendering;
   mozilla::StyleStrokeLinecap mStrokeLinecap;
   mozilla::StyleStrokeLinejoin mStrokeLinejoin;
-  mozilla::StyleDominantBaseline mDominantBaseline;
   mozilla::StyleTextAnchor mTextAnchor;
 
   /// Returns true if style has been set to expose the computed values of
