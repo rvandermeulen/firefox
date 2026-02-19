@@ -14,7 +14,6 @@ import androidx.core.net.toUri
 import androidx.test.espresso.Espresso
 import androidx.test.filters.SdkSuppress
 import androidx.test.rule.ActivityTestRule
-import mozilla.components.concept.engine.utils.EngineReleaseChannel
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.After
 import org.junit.Assume
@@ -22,16 +21,13 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
-import org.mozilla.fenix.FenixApplication
 import org.mozilla.fenix.IntentReceiverActivity
 import org.mozilla.fenix.R
 import org.mozilla.fenix.customannotations.SkipLeaks
 import org.mozilla.fenix.customannotations.SmokeTest
-import org.mozilla.fenix.ext.components
 import org.mozilla.fenix.ext.settings
 import org.mozilla.fenix.helpers.AppAndSystemHelper.enableOrDisableBackGestureNavigationOnDevice
 import org.mozilla.fenix.helpers.AppAndSystemHelper.grantSystemPermission
-import org.mozilla.fenix.helpers.AppAndSystemHelper.runWithCondition
 import org.mozilla.fenix.helpers.AppAndSystemHelper.verifyKeyboardVisibility
 import org.mozilla.fenix.helpers.DataGenerationHelper.createCustomTabIntent
 import org.mozilla.fenix.helpers.DataGenerationHelper.getStringResource
@@ -44,7 +40,6 @@ import org.mozilla.fenix.helpers.MockBrowserDataHelper.setCustomSearchEngine
 import org.mozilla.fenix.helpers.SearchDispatcher
 import org.mozilla.fenix.helpers.TestAssetHelper.getGenericAsset
 import org.mozilla.fenix.helpers.TestAssetHelper.htmlControlsFormAsset
-import org.mozilla.fenix.helpers.TestAssetHelper.loremIpsumAsset
 import org.mozilla.fenix.helpers.TestAssetHelper.waitingTimeLong
 import org.mozilla.fenix.helpers.TestHelper
 import org.mozilla.fenix.helpers.TestHelper.clickSnackbarButton
@@ -54,7 +49,6 @@ import org.mozilla.fenix.helpers.TestHelper.verifyLightThemeApplied
 import org.mozilla.fenix.helpers.TestSetup
 import org.mozilla.fenix.helpers.perf.DetectMemoryLeaksRule
 import org.mozilla.fenix.nimbus.FxNimbus
-import org.mozilla.fenix.ui.robots.checkTextSizeOnWebsite
 import org.mozilla.fenix.ui.robots.clickContextMenuItem
 import org.mozilla.fenix.ui.robots.customTabScreen
 import org.mozilla.fenix.ui.robots.homeScreen
@@ -807,6 +801,55 @@ class NavigationToolbarTest : TestSetup() {
         }
         homeScreen(composeTestRule) {
             verifyHomeScreenAppBarItems()
+        }
+    }
+
+    // TestRail link: https://mozilla.testrail.io/index.php?/cases/view/3135066
+    @Test
+    fun verifyTheToolbarItemsTest() {
+        navigationToolbar(composeTestRule) {
+            verifyDefaultSearchEngine("Google")
+            verifySearchBarPlaceholder()
+            verifyTheTabCounter("0")
+            verifyTheMainMenuButton()
+        }
+        homeScreen(composeTestRule) {
+        }.togglePrivateBrowsingMode()
+        navigationToolbar(composeTestRule) {
+            verifyDefaultSearchEngine("Google")
+            verifySearchBarPlaceholder()
+            verifyTheTabCounter("0", isPrivateBrowsingEnabled = true)
+            verifyTheMainMenuButton()
+        }
+    }
+
+    // TestRail link: https://mozilla.testrail.io/index.php?/cases/view/3135067
+    @Test
+    fun verifyTheNewTabButtonTest() {
+        val firstPage = mockWebServer.getGenericAsset(1)
+        val secondPage = mockWebServer.getGenericAsset(2)
+
+        navigationToolbar(composeTestRule) {
+        }.enterURLAndEnterToBrowser(firstPage.url) {
+            verifyTabCounter("1")
+        }
+        navigationToolbar(composeTestRule) {
+            verifyTheNewTabButton()
+        }.clickTheNewTabButton {
+        }.submitQuery(secondPage.url.toString()) {
+            verifyTabCounter("2")
+        }.goToHomescreen {
+        }.togglePrivateBrowsingMode()
+
+        navigationToolbar(composeTestRule) {
+        }.enterURLAndEnterToBrowser(firstPage.url) {
+            verifyTabCounter("1", isPrivateBrowsingEnabled = true)
+        }
+        navigationToolbar(composeTestRule) {
+            verifyTheNewTabButton(isPrivateModeEnabled = true)
+        }.clickTheNewTabButton(isPrivateModeEnabled = true) {
+        }.submitQuery(secondPage.url.toString()) {
+            verifyTabCounter("2", isPrivateBrowsingEnabled = true)
         }
     }
 }
