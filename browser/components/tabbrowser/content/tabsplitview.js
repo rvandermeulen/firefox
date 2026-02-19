@@ -344,6 +344,18 @@
     replaceTab(tabToReplace, newTab) {
       let indexOfReplacedTab = this.tabs.indexOf(tabToReplace);
       this.addTabs([newTab], { isSessionRestore: false, indexOfReplacedTab });
+
+      // Get the adopted tab reference from the split view's internal tabs array.
+      // If the tab was adopted from another window, the original newTab reference
+      // is stale and points to the tab in the old window.
+      let adoptedTab = this.#tabs[indexOfReplacedTab];
+
+      // Select the adopted tab BEFORE removing the old one to prevent Firefox
+      // from auto-selecting the wrong tab when the old selected tab is removed.
+      if (tabToReplace.selected) {
+        gBrowser.selectedTab = adoptedTab;
+      }
+
       gBrowser.removeTab(tabToReplace);
 
       // We need to re-activate after removing one of the split view tabs
