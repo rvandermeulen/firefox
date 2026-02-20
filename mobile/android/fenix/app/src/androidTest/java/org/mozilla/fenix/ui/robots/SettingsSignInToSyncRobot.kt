@@ -5,24 +5,41 @@
 package org.mozilla.fenix.ui.robots
 
 import android.util.Log
+import androidx.compose.ui.test.junit4.ComposeTestRule
 import androidx.test.espresso.Espresso.onView
-import androidx.test.espresso.action.ViewActions
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withParent
 import androidx.test.espresso.matcher.ViewMatchers.withText
+import androidx.test.uiautomator.UiSelector
 import org.hamcrest.CoreMatchers
 import org.hamcrest.Matchers.allOf
 import org.mozilla.fenix.R
 import org.mozilla.fenix.helpers.Constants.TAG
+import org.mozilla.fenix.helpers.MatcherHelper.assertUIObjectExists
+import org.mozilla.fenix.helpers.MatcherHelper.itemWithResId
+import org.mozilla.fenix.helpers.TestAssetHelper.waitingTime
+import org.mozilla.fenix.helpers.TestHelper.mDevice
+import org.mozilla.fenix.helpers.TestHelper.packageName
 import org.mozilla.fenix.helpers.click
 
 /**
  * Implementation of Robot Pattern for the settings turn on sync option.
  */
-class SettingsTurnOnSyncRobot {
+class SettingsSignInToSyncRobot {
+
+    fun verifyTurnOnSyncMenu() {
+        Log.i(TAG, "verifyTurnOnSyncMenu: Waiting for $waitingTime ms for sign in to sync menu to exist")
+        mDevice.findObject(UiSelector().resourceId("$packageName:id/container")).waitForExists(waitingTime)
+        Log.i(TAG, "verifyTurnOnSyncMenu: Waited for $waitingTime ms for sign in to sync menu to exist")
+        assertUIObjectExists(
+            itemWithResId("$packageName:id/signInScanButton"),
+            itemWithResId("$packageName:id/signInEmailButton"),
+        )
+    }
+
     fun verifyUseEmailOption() {
         Log.i(TAG, "verifyUseEmailOption: Trying to verify that the \"Use email instead\" button is visible")
         onView(withText("Use email instead"))
@@ -54,14 +71,23 @@ class SettingsTurnOnSyncRobot {
         Log.i(TAG, "verifyTurnOnSyncToolbarTitle: Verified that the \"Sync and save your data\" toolbar title is displayed")
     }
 
-    class Transition {
-        fun goBack(interact: SettingsSubMenuLoginsAndPasswordRobot.() -> Unit): SettingsRobot.Transition {
+    class Transition(private val composeTestRule: ComposeTestRule) {
+        fun goBack(interact: BrowserRobot.() -> Unit): BrowserRobot.Transition {
             Log.i(TAG, "goBack: Trying to click the navigate up button")
-            goBackButton().perform(ViewActions.click())
+            goBackButton().click()
             Log.i(TAG, "goBack: Clicked the navigate up button")
 
-            SettingsSubMenuLoginsAndPasswordRobot().interact()
-            return SettingsRobot.Transition()
+            BrowserRobot(composeTestRule).interact()
+            return BrowserRobot.Transition(composeTestRule)
+        }
+
+        fun goBackToHomeScreen(interact: HomeScreenRobot.() -> Unit): HomeScreenRobot.Transition {
+            Log.i(TAG, "goBackToHomeScreen: Trying to click the navigate up button")
+            goBackButton().click()
+            Log.i(TAG, "goBackToHomeScreen: Clicked the navigate up button")
+
+            HomeScreenRobot(composeTestRule).interact()
+            return HomeScreenRobot.Transition(composeTestRule)
         }
     }
 }

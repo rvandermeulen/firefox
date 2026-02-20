@@ -802,16 +802,16 @@ class HomeScreenRobot(private val composeTestRule: ComposeTestRule) {
         }
 
         fun clickSignInOnboardingButton(
-            interact: SyncSignInRobot.() -> Unit,
-        ): SyncSignInRobot.Transition {
+            interact: SettingsSignInToSyncRobot.() -> Unit,
+        ): SettingsSignInToSyncRobot.Transition {
             Log.i(TAG, "clickSignInOnboardingButton: Trying to click \"Sign in\" onboarding button")
             composeTestRule.onNodeWithText(
                 getStringResource(R.string.juno_onboarding_sign_in_positive_button),
             ).performClick()
             Log.i(TAG, "clickSignInOnboardingButton: Clicked \"Sign in\" onboarding button")
 
-            SyncSignInRobot().interact()
-            return SyncSignInRobot.Transition(composeTestRule)
+            SettingsSignInToSyncRobot().interact()
+            return SettingsSignInToSyncRobot.Transition(composeTestRule)
         }
     }
 }

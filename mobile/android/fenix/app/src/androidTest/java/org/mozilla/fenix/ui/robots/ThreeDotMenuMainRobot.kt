@@ -454,13 +454,13 @@ class ThreeDotMenuMainRobot(private val composeTestRule: ComposeTestRule) {
             return SettingsSubMenuLoginsAndPasswordsSavedLoginsRobot.Transition(composeTestRule)
         }
 
-        fun clickSignInToSyncButton(interact: SyncSignInRobot.() -> Unit): SyncSignInRobot.Transition {
+        fun clickSignInToSyncButton(interact: SettingsSignInToSyncRobot.() -> Unit): SettingsSignInToSyncRobot.Transition {
             Log.i(TAG, "clickSignInToSyncButton: Trying to click \"Sign in\" main menu button")
             composeTestRule.onNodeWithContentDescription("Sign in Sync passwords, bookmarks, and more").performClick()
             Log.i(TAG, "clickSignInToSyncButton: Clicked \"Sign in\" main menu button")
 
-            SyncSignInRobot().interact()
-            return SyncSignInRobot.Transition(composeTestRule)
+            SettingsSignInToSyncRobot().interact()
+            return SettingsSignInToSyncRobot.Transition(composeTestRule)
         }
 
         fun clickBookmarksButton(interact: BookmarksRobot.() -> Unit): BookmarksRobot.Transition {
