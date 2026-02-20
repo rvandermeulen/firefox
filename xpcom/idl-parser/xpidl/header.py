@@ -19,7 +19,7 @@ if printdoccomments:
 
     def printComments(fd, clist, indent):
         for c in clist:
-            fd.write("%s%s\n" % (indent, c))
+            fd.write(f"{indent}{c}\n")
 
 else:
 
@@ -47,7 +47,8 @@ def attributeParamNames(a, getter, return_param=True):
 
 def attributeNativeName(a, getter):
     binaryname = a.binaryname is not None and a.binaryname or firstCap(a.name)
-    return "%s%s" % (getter and "Get" or "Set", binaryname)
+    prefix = getter and "Get" or "Set"
+    return f"{prefix}{binaryname}"
 
 
 def attributeAttributes(a, getter):
@@ -81,11 +82,11 @@ def attributeReturnType(a, getter, macro):
     if a.nostdcall:
         if macro == "NS_IMETHOD":
             # This is the declaration.
-            ret = "virtual %s" % ret
+            ret = f"virtual {ret}"
     elif ret == "nsresult":
         ret = macro
     else:
-        ret = "%s_(%s)" % (macro, ret)
+        ret = f"{macro}_({ret})"
 
     return attributeAttributes(a, getter) + ret
 
@@ -94,10 +95,8 @@ def attributeParamlist(a, getter, return_param=True):
     if getter and (a.notxpcom or not return_param):
         l = []
     else:
-        l = [
-            "%s%s"
-            % (a.realtype.nativeType(getter and "out" or "in"), attributeParamName(a))
-        ]
+        prefix = a.realtype.nativeType(getter and "out" or "in")
+        l = [f"{prefix}{attributeParamName(a)}"]
     if a.implicit_jscontext:
         l.insert(0, "JSContext* cx")
 
@@ -105,12 +104,10 @@ def attributeParamlist(a, getter, return_param=True):
 
 
 def attributeAsNative(a, getter, declType="NS_IMETHOD"):
-    params = {
-        "returntype": attributeReturnType(a, getter, declType),
-        "binaryname": attributeNativeName(a, getter),
-        "paramlist": attributeParamlist(a, getter),
-    }
-    return "%(returntype)s %(binaryname)s(%(paramlist)s)" % params
+    returntype = attributeReturnType(a, getter, declType)
+    binaryname = attributeNativeName(a, getter)
+    paramlist = attributeParamlist(a, getter)
+    return f"{returntype} {binaryname}({paramlist})"
 
 
 def methodNativeName(m):
@@ -144,21 +141,20 @@ def methodReturnType(m, macro):
     if m.nostdcall:
         if macro == "NS_IMETHOD":
             # This is the declaration
-            ret = "virtual %s" % ret
+            ret = f"virtual {ret}"
     elif ret == "nsresult":
         ret = macro
     else:
-        ret = "%s_(%s)" % (macro, ret)
+        ret = f"{macro}_({ret})"
 
     return methodAttributes(m) + ret
 
 
 def methodAsNative(m, declType="NS_IMETHOD"):
-    return "%s %s(%s)" % (
-        methodReturnType(m, declType),
-        methodNativeName(m),
-        paramlistAsNative(m),
-    )
+    returntype = methodReturnType(m, declType)
+    binaryname = methodNativeName(m)
+    paramlist = paramlistAsNative(m)
+    return f"{returntype} {binaryname}({paramlist})"
 
 
 def paramlistAsNative(m, empty="void", return_param=True):
@@ -219,7 +215,7 @@ def paramAsNative(p):
     default_spec = ""
     if p.default_value:
         default_spec = " = " + p.default_value
-    return "%s%s%s" % (p.nativeType(), p.name, default_spec)
+    return f"{p.nativeType()}{p.name}{default_spec}"
 
 
 def paramlistNames(m, return_param=True):
@@ -338,7 +334,8 @@ def print_header(idl, fd, filename, relpath):
             continue
         if p.kind == "typedef":
             printComments(fd, p.doccomments, "")
-            fd.write("typedef %s %s;\n\n" % (p.realtype.nativeType("in"), p.name))
+            nativetype = p.realtype.nativeType("in")
+            fd.write(f"typedef {nativetype} {p.name};\n\n")
 
     fd.write(footer % {"basename": idl_basename(filename)})
 
@@ -346,10 +343,10 @@ def print_header(idl, fd, filename, relpath):
 def write_webidl(p, fd):
     path = p.native.split("::")
     for seg in path[:-1]:
-        fd.write("namespace %s {\n" % seg)
-    fd.write("class %s; /* webidl %s */\n" % (path[-1], p.name))
+        fd.write(f"namespace {seg} {{\n")
+    fd.write(f"class {path[-1]}; /* webidl {p.name} */\n")
     for seg in reversed(path[:-1]):
-        fd.write("} // namespace %s\n" % seg)
+        fd.write(f"}} // namespace {seg}\n")
     fd.write("\n")
 
 
@@ -483,8 +480,7 @@ def write_interface(iface, fd):
     def record_name(name):
         if name in names:
             raise Exception(
-                "Unexpected overloaded virtual method %s in interface %s"
-                % (name, iface.name)
+                f"Unexpected overloaded virtual method {name} in interface {iface.name}"
             )
         names.add(name)
 
@@ -503,28 +499,22 @@ def write_interface(iface, fd):
             printComments(fd, c.doccomments, "  ")
             basetype = c.basetype
             value = c.getValue()
-            enums.append(
-                "    %(name)s = %(value)s%(signed)s"
-                % {
-                    "name": c.name,
-                    "value": value,
-                    "signed": (not basetype.signed) and "U" or "",
-                }
-            )
+            signed = (not basetype.signed) and "U" or ""
+            enums.append(f"    {c.name} = {value}{signed}")
         fd.write(",\n".join(enums))
         fd.write("\n  };\n\n")
 
     def write_cenum_decl(b):
-        fd.write("  enum %s : uint%d_t {\n" % (b.basename, b.width))
+        fd.write(f"  enum {b.basename} : uint{b.width}_t {{\n")
         for var in b.variants:
-            fd.write("    %s = %s,\n" % (var.name, var.value))
+            fd.write(f"    {var.name} = {var.value},\n")
         fd.write("  };\n\n")
 
     def write_method_decl(m):
         printComments(fd, m.doccomments, "  ")
 
-        fd.write("  /* %s */\n" % m.toIDL())
-        fd.write("  %s%s = 0;\n\n" % (runScriptAnnotation(m), methodAsNative(m)))
+        fd.write(f"  /* {m.toIDL()} */\n")
+        fd.write(f"  {runScriptAnnotation(m)}{methodAsNative(m)} = 0;\n\n")
 
         if m.infallible:
             fd.write(infallibleDecl(m))
@@ -532,16 +522,14 @@ def write_interface(iface, fd):
     def write_attr_decl(a):
         printComments(fd, a.doccomments, "  ")
 
-        fd.write("  /* %s */\n" % a.toIDL())
+        fd.write(f"  /* {a.toIDL()} */\n")
 
-        fd.write("  %s%s = 0;\n" % (runScriptAnnotation(a), attributeAsNative(a, True)))
+        fd.write(f"  {runScriptAnnotation(a)}{attributeAsNative(a, True)} = 0;\n")
         if a.infallible:
             fd.write(infallibleDecl(a))
 
         if not a.readonly:
-            fd.write(
-                "  %s%s = 0;\n" % (runScriptAnnotation(a), attributeAsNative(a, False))
-            )
+            fd.write(f"  {runScriptAnnotation(a)}{attributeAsNative(a, False)} = 0;\n")
         fd.write("\n")
 
     defname = iface.name.upper()
@@ -550,7 +538,7 @@ def write_interface(iface, fd):
 
     names = uuid_decoder.match(iface.attributes.uuid).groupdict()
     m3str = names["m3"] + names["m4"]
-    names["m3joined"] = ", ".join(["0x%s" % m3str[i : i + 2] for i in range(0, 16, 2)])
+    names["m3joined"] = ", ".join([f"0x{m3str[i : i + 2]}" for i in range(0, 16, 2)])
 
     if iface.name[2] == "I":
         implclass = iface.name[:2] + iface.name[3:]
@@ -580,7 +568,7 @@ def write_interface(iface, fd):
 
     fd.write(iface.name)
     if iface.base:
-        fd.write(" : public %s" % iface.base)
+        fd.write(f" : public {iface.base}")
     fd.write(iface_prolog % names)
 
     if iface.attributes.scriptable:
@@ -600,7 +588,7 @@ def write_interface(iface, fd):
                 elif key == xpidl.CEnum:
                     write_cenum_decl(member)
                 else:
-                    raise Exception("Unexpected interface member: %s" % member)
+                    raise Exception(f"Unexpected interface member: {member}")
 
     fd.write(iface_epilog % names)
 
@@ -616,19 +604,15 @@ def write_interface(iface, fd):
             if isinstance(member, xpidl.Attribute):
                 if member.infallible:
                     fd.write(
-                        "\\\n  using %s::%s; "
-                        % (iface.name, attributeNativeName(member, True))
+                        f"\\\n  using {iface.name}::{attributeNativeName(member, True)}; "
                     )
-                fd.write(
-                    "\\\n  %s%s; " % (attributeAsNative(member, True, declType), suffix)
-                )
+                fd.write(f"\\\n  {attributeAsNative(member, True, declType)}{suffix}; ")
                 if not member.readonly:
                     fd.write(
-                        "\\\n  %s%s; "
-                        % (attributeAsNative(member, False, declType), suffix)
+                        f"\\\n  {attributeAsNative(member, False, declType)}{suffix}; "
                     )
             elif isinstance(member, xpidl.Method):
-                fd.write("\\\n  %s%s; " % (methodAsNative(member, declType), suffix))
+                fd.write(f"\\\n  {methodAsNative(member, declType)}{suffix}; ")
         if len(iface.members) == 0:
             fd.write("\\\n  /* no methods! */")
         elif member.kind not in ("attribute", "method"):
@@ -646,8 +630,7 @@ def write_interface(iface, fd):
             if isinstance(member, xpidl.Attribute):
                 if forward_infallible and member.infallible:
                     fd.write(
-                        "\\\n  using %s::%s; "
-                        % (iface.name, attributeNativeName(member, True))
+                        f"\\\n  using {iface.name}::{attributeNativeName(member, True)}; "
                     )
                 attr_tmpl = tmpl_notxpcom if member.notxpcom else tmpl
                 fd.write(
