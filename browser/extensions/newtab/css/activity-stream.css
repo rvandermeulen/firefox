@@ -4790,9 +4790,28 @@ dialog:dir(rtl)::after {
   margin-block-start: var(--space-small);
 }
 
+.outer-wrapper .forecast-anchor {
+  text-decoration: none;
+  color: unset;
+}
+.outer-wrapper .forecast-anchor:has(.forecast-error-state) {
+  cursor: default;
+}
+.outer-wrapper .forecast-anchor:hover .weather-forecast-widget {
+  background: var(--newtab-background-card);
+}
+.outer-wrapper .forecast-anchor:hover .sponsored-text {
+  visibility: visible;
+}
+.outer-wrapper .forecast-anchor:hover .full-forecast {
+  text-decoration: underline;
+  color: var(--newtab-primary-action-background);
+}
+
 .weather-forecast-widget {
   background: var(--newtab-background-card);
   transition: opacity 0.2s ease;
+  text-decoration: none;
   grid-column: span 1;
   width: var(--newtab-card-width-medium);
   border-radius: var(--border-radius-large);
@@ -4863,6 +4882,20 @@ dialog:dir(rtl)::after {
 }
 .weather-forecast-widget .current-weather-wrapper:has(.iconId30), .weather-forecast-widget.small-widget .forecast-row-items > li:first-of-type:has(.iconId30) {
   background-color: var(--weather-hot-background-color);
+}
+.weather-forecast-widget.forecast-error-state .full-forecast {
+  display: none;
+}
+.weather-forecast-widget .forecast-error {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: space-evenly;
+  margin-block-start: auto;
+}
+.weather-forecast-widget .forecast-error p {
+  font-size: var(--font-size-small);
+  color: var(--text-color-deemphasized);
 }
 .weather-forecast-widget .weather-icon-column {
   display: flex;
@@ -5041,22 +5074,32 @@ hr {
   justify-content: space-between;
   margin-block-start: auto;
 }
-.forecast-footer a {
-  font-size: var(--font-size-small);
-}
 .forecast-footer span {
   font-size: var(--font-size-xsmall);
+}
+.forecast-footer .sponsored-text {
+  visibility: hidden;
 }
 
 .small-widget {
   height: 100%;
   padding: var(--space-small);
 }
+.small-widget .forecast-error {
+  flex-direction: row;
+  justify-content: flex-start;
+}
+.small-widget .forecast-error span {
+  margin-inline-end: var(--space-small);
+}
 .small-widget .forecast-row-items li {
   padding: var(--space-xsmall) var(--space-medium);
 }
 .small-widget .forecast-footer {
   margin-block-start: auto;
+}
+.small-widget .forecast-footer .full-forecast {
+  display: none;
 }
 .small-widget:has(.location-search) .forecast-row-items {
   display: none;
