@@ -500,7 +500,7 @@
           } else if (
             shouldDropIntoCollapsedTabGroup &&
             isTabGroupLabel(dropElement) &&
-            isTab(draggedTab)
+            (isTab(draggedTab) || isSplitViewWrapper(draggedTab))
           ) {
             // If the dragged tab is the active tab in a collapsed tab group
             // and the user dropped it onto the label of its tab group, leave
