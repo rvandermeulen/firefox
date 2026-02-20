@@ -663,7 +663,7 @@ class HomeFragment : Fragment() {
             true -> {
                 val toolbarStore by buildToolbarStore(activity)
 
-                if (isEdgeToEdgeBackgroundEnabled() && homepageEdgeToEdgeFeature.get() == null) {
+                if (homepageEdgeToEdgeFeature.get() == null) {
                     homepageEdgeToEdgeFeature.set(
                         feature = HomepageEdgeToEdgeFeature(
                             appStore = activity.components.appStore,

@@ -15,15 +15,21 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.google.android.material.color.MaterialColors
-import mozilla.components.compose.browser.toolbar.store.BrowserToolbarAction
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import mozilla.components.compose.browser.toolbar.store.BrowserToolbarState
 import mozilla.components.compose.browser.toolbar.store.BrowserToolbarStore
-import mozilla.components.lib.state.Store
+import mozilla.components.lib.state.ext.flowScoped
 import mozilla.components.support.base.feature.LifecycleAwareFeature
 import org.mozilla.fenix.R
 import org.mozilla.fenix.browser.browsingmode.BrowsingMode
 import org.mozilla.fenix.components.AppStore
 import org.mozilla.fenix.utils.Settings
+import org.mozilla.fenix.wallpapers.Wallpaper
 
 /**
  * Feature responsible for managing window insets, background styling, and toolbar visibility
@@ -33,24 +39,58 @@ import org.mozilla.fenix.utils.Settings
  * @param activity The activity containing the window to manage.
  * @param settings The [Settings] used to determine the current position of the toolbar.
  * @param toolbarStore The [BrowserToolbarStore] which state is observed to manage status bar background in edit mode.
+ * @param mainDispatcher The [CoroutineDispatcher] used for main thread operations.
  */
 class HomepageEdgeToEdgeFeature(
     private val appStore: AppStore,
     private val activity: Activity,
     private val settings: Settings,
     private val toolbarStore: BrowserToolbarStore,
+    private val mainDispatcher: CoroutineDispatcher = Dispatchers.Main,
 ) : LifecycleAwareFeature {
 
     private var backgroundView: View? = null
     private var statusBarHeight: Int = 0
-    private var toolbarSubscription: Store.Subscription<BrowserToolbarState, BrowserToolbarAction>? = null
+    private var toolbarScope: CoroutineScope? = null
+    private var wallpaperScope: CoroutineScope? = null
 
     override fun start() {
-        setBackground(Background.Home)
-        setupStatusBarBackground()
+        observeWallpaperUpdates()
+    }
+
+    private fun observeWallpaperUpdates() {
+        wallpaperScope = appStore.flowScoped(dispatcher = mainDispatcher) { flow ->
+            flow.map { state -> state.wallpaperState.currentWallpaper }
+                .distinctUntilChanged()
+                .collect { wallpaper ->
+                    setWallpaper(wallpaper)
+                }
+        }
     }
 
     override fun stop() {
+        removeEdgeToEdgeComponents()
+        wallpaperScope?.cancel()
+        wallpaperScope = null
+    }
+
+    private fun setBackground(background: Background) {
+        val isPrivateMode = appStore.state.mode == BrowsingMode.Private
+        activity.window?.setBackgroundDrawableResource(
+            if (isPrivateMode) R.color.fx_mobile_private_surface else background.resourceId,
+        )
+    }
+
+    private fun setWallpaper(wallpaper: Wallpaper) {
+        if (wallpaper == Wallpaper.EdgeToEdge) {
+            setBackground(Background.HomeEdgeToEdge)
+            setupStatusBarBackground()
+        } else {
+            removeEdgeToEdgeComponents()
+        }
+    }
+
+    private fun removeEdgeToEdgeComponents() {
         setBackground(Background.Regular)
         activity.window?.decorView?.let { decorView ->
             (decorView as? ViewGroup)?.apply {
@@ -59,16 +99,9 @@ class HomepageEdgeToEdgeFeature(
                 }
             }
         }
-        toolbarSubscription?.unsubscribe()
-        toolbarSubscription = null
+        toolbarScope?.cancel()
+        toolbarScope = null
         backgroundView = null
-    }
-
-    private fun setBackground(background: Background) {
-        val isPrivateMode = appStore.state.mode == BrowsingMode.Private
-        activity.window?.setBackgroundDrawableResource(
-            if (isPrivateMode) R.color.fx_mobile_private_surface else background.resourceId,
-        )
     }
 
     /**
@@ -96,10 +129,12 @@ class HomepageEdgeToEdgeFeature(
             }
         }
 
-        toolbarSubscription = toolbarStore.observeManually { toolbarState ->
-            backgroundView?.setBackgroundColor(getStatusBarColor(settings, toolbarState))
-        }.also {
-            it.resume()
+        if (toolbarScope == null) {
+            toolbarScope = toolbarStore.flowScoped(dispatcher = mainDispatcher) { flow ->
+                flow.collect { toolbarState ->
+                    backgroundView?.setBackgroundColor(getStatusBarColor(settings, toolbarState))
+                }
+            }
         }
     }
 
@@ -128,6 +163,6 @@ class HomepageEdgeToEdgeFeature(
      */
     enum class Background(val resourceId: Int) {
         Regular(R.color.fx_mobile_surface),
-        Home(R.drawable.home_background_gradient),
+        HomeEdgeToEdge(R.drawable.home_background_gradient),
     }
 }

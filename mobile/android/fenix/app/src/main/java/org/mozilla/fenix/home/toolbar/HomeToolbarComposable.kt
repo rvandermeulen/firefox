@@ -90,8 +90,6 @@ internal class HomeToolbarComposable(
 ) : FenixHomeToolbar {
     private val addressBarVisibility = mutableStateOf(true)
 
-    private val isEdgeToEdgeBackgroundEnabled = settings.currentWallpaperName == Wallpaper.EDGE_TO_EDGE
-
     init {
         // Reset the toolbar visibility & position whenever coming back to the home screen
         // like after changing the toolbar position in settings.
@@ -111,6 +109,9 @@ internal class HomeToolbarComposable(
                 toolbarStore.observeAsComposableState { it.editState.query.current.isEmpty() }.value
             val shouldShowTabStrip: Boolean = remember { settings.isTabStripEnabled }
             val isAddressBarVisible = remember { addressBarVisibility }
+
+            val currentWallpaperName = appStore.observeAsComposableState { it.wallpaperState.currentWallpaper.name }
+            val isEdgeToEdgeBackgroundEnabled = currentWallpaperName.value == Wallpaper.EDGE_TO_EDGE
 
             BackInvokedHandler(isSearching) {
                 val sourceTabId = appStore.state.searchState.sourceTabId
