@@ -9665,11 +9665,11 @@ LayoutDeviceIntPoint nsContentUtils::ToWidgetPoint(
 
 namespace {
 
-class SynthesizedMouseEventCallback final : public nsISynthesizedEventCallback {
+class SynthesizedEventCallback final : public nsISynthesizedEventCallback {
   NS_DECL_ISUPPORTS
 
  public:
-  explicit SynthesizedMouseEventCallback(VoidFunction& aCallback)
+  explicit SynthesizedEventCallback(VoidFunction& aCallback)
       : mCallback(&aCallback) {}
 
   MOZ_CAN_RUN_SCRIPT_BOUNDARY NS_IMETHOD OnCompleteDispatch() override {
@@ -9685,12 +9685,12 @@ class SynthesizedMouseEventCallback final : public nsISynthesizedEventCallback {
   }
 
  private:
-  virtual ~SynthesizedMouseEventCallback() = default;
+  virtual ~SynthesizedEventCallback() = default;
 
   const RefPtr<VoidFunction> mCallback;
 };
 
-NS_IMPL_ISUPPORTS(SynthesizedMouseEventCallback, nsISynthesizedEventCallback)
+NS_IMPL_ISUPPORTS(SynthesizedEventCallback, nsISynthesizedEventCallback)
 
 }  // namespace
 
@@ -9785,7 +9785,7 @@ Result<bool, nsresult> nsContentUtils::SynthesizeMouseEvent(
 
   nsCOMPtr<nsISynthesizedEventCallback> callback;
   if (aCallback.WasPassed()) {
-    callback = MakeAndAddRef<SynthesizedMouseEventCallback>(aCallback.Value());
+    callback = MakeAndAddRef<SynthesizedEventCallback>(aCallback.Value());
   }
 
   mozilla::widget::AutoSynthesizedEventCallbackNotifier notifier(callback);
