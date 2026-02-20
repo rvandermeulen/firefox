@@ -157,7 +157,8 @@ class Builtin:
             const = "const "
         else:
             const = ""
-        return "%s%s %s" % (const, self.nativename, "*" if "out" in calltype else "")
+        suffix = "*" if "out" in calltype else ""
+        return f"{const}{self.nativename} {suffix}"
 
     def rustType(self, calltype, shared=False, const=False):
         # We want to rewrite any *mut pointers to *const pointers if constness
@@ -536,7 +537,8 @@ class Typedef:
             raise IDLError("Unsupported typedef target type", self.location)
 
     def nativeType(self, calltype):
-        return "%s %s" % (self.name, "*" if "out" in calltype else "")
+        suffix = "*" if "out" in calltype else ""
+        return f"{self.name} {suffix}"
 
     def rustType(self, calltype):
         return "%s%s" % ("*mut " if "out" in calltype else "", self.name)
@@ -577,8 +579,9 @@ class Forward:
 
     def nativeType(self, calltype):
         if calltype == "element":
-            return "RefPtr<%s>" % self.name
-        return "%s *%s" % (self.name, "*" if "out" in calltype else "")
+            return f"RefPtr<{self.name}>"
+        suffix = "*" if "out" in calltype else ""
+        return f"{self.name} *{suffix}"
 
     def rustType(self, calltype):
         if rustPreventForward(self.name):
@@ -697,7 +700,8 @@ class Native:
             m = "* " if "out" in calltype else ""
             if self.isPtr(calltype):
                 m += "* "
-        return "%s%s %s" % (const and "const " or "", self.nativename, m)
+        prefix = "const " if const else ""
+        return f"{prefix}{self.nativename} {m}"
 
     def rustType(self, calltype, const=False, shared=False):
         # For the most part, 'native' types don't make sense in rust, as they
@@ -818,13 +822,12 @@ class WebIDL:
         parent.setName(self)
 
     def nativeType(self, calltype, const=False):
+        prefix = "const " if const else ""
+        elemtype = f"{prefix}{self.native}"
         if calltype == "element":
-            return "RefPtr<%s%s>" % ("const " if const else "", self.native)
-        return "%s%s *%s" % (
-            "const " if const else "",
-            self.native,
-            "*" if "out" in calltype else "",
-        )
+            return f"RefPtr<{elemtype}>"
+        suffix = "*" if "out" in calltype else ""
+        return f"{elemtype} *{suffix}"
 
     def rustType(self, calltype, const=False):
         # Just expose the type as a void* - we can't do any better.
@@ -954,12 +957,10 @@ class Interface:
 
     def nativeType(self, calltype, const=False):
         if calltype == "element":
-            return "RefPtr<%s>" % self.name
-        return "%s%s *%s" % (
-            "const " if const else "",
-            self.name,
-            "*" if "out" in calltype else "",
-        )
+            return f"RefPtr<{self.name}>"
+        prefix = "const " if const else ""
+        suffix = "*" if "out" in calltype else ""
+        return f"{prefix}{self.name} *{suffix}"
 
     def rustType(self, calltype, const=False):
         if calltype == "element":
@@ -1190,9 +1191,8 @@ class CEnum:
         return 0
 
     def nativeType(self, calltype):
-        if "out" in calltype:
-            return "%s::%s *" % (self.iface.name, self.basename)
-        return "%s::%s " % (self.iface.name, self.basename)
+        suffix = "*" if "out" in calltype else ""
+        return f"{self.iface.name}::{self.basename} {suffix}"
 
     def rustType(self, calltype):
         return "%s u%d" % ("*mut" if "out" in calltype else "", self.width)
@@ -1733,11 +1733,10 @@ class LegacyArray:
         ):
             const = True
 
-        return "%s%s*%s" % (
-            "const " if const else "",
-            self.type.nativeType("legacyelement"),
-            "*" if "out" in calltype else "",
-        )
+        prefix = "const " if const else ""
+        elemtype = self.type.nativeType("legacyelement")
+        suffix = "*" if "out" in calltype else ""
+        return f"{prefix}{elemtype}*{suffix}"
 
     def rustType(self, calltype, const=False):
         return "%s%s%s" % (
@@ -1768,13 +1767,13 @@ class Array:
         if calltype == "legacyelement":
             raise IDLError("[array] Array<T> is unsupported", self.location)
 
-        base = "nsTArray<%s>" % self.type.nativeType("element")
+        elemtype = self.type.nativeType("element")
+        base = f"nsTArray<{elemtype}>"
         if "out" in calltype:
-            return "%s& " % base
-        elif "in" == calltype:
-            return "const %s& " % base
-        else:
-            return base
+            return f"{base}& "
+        if "in" == calltype:
+            return f"const {base}& "
+        return base
 
     def rustType(self, calltype):
         if calltype == "legacyelement":
