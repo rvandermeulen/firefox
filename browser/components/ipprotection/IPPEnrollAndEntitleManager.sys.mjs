@@ -238,7 +238,7 @@ class IPPEnrollAndEntitleManagerSingleton extends EventTarget {
    */
   static async #isLinkedToGuardian(useCache = true) {
     try {
-      let isLinked = lazy.IPProtectionService.guardian.isLinkedToGuardian(
+      let isLinked = await lazy.IPProtectionService.guardian.isLinkedToGuardian(
         /* only cache: */ useCache
       );
 
