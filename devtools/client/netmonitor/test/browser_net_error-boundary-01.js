@@ -7,7 +7,6 @@
  */
 add_task(async function () {
   Services.fog.testResetFOG();
-  startTelemetry();
 
   await pushPref("devtools.netmonitor.persistlog", true);
   const { monitor } = await initNetMonitor(SIMPLE_URL, {
@@ -36,12 +35,11 @@ add_task(async function () {
     content.fetch(url);
   });
 
-  // Wait for the panel to fall back to the error UI
-  const errorPanel = await waitUntil(() =>
-    document.querySelector(".app-error-panel")
+  const errorPanel = await waitFor(
+    () => document.querySelector(".app-error-panel"),
+    "Wait for the error panel to be displayed"
   );
-
-  is(errorPanel, !undefined);
+  ok(errorPanel, "Error panel is displayed");
 
   const events = Glean.devtoolsMain.toolboxComponentError.testGetValue();
   is(
