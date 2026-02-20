@@ -1620,6 +1620,7 @@ export class MLEngine {
    */
   async *runWithGenerator(request) {
     lazy.console.debug(`runWithGenerator called for request ${request}`);
+    const startTime = ChromeUtils.now();
 
     // Create a promise to track when the engine has fully completed all runs
     const responseChunkResolvers = new ResponseOrChunkResolvers();
@@ -1675,7 +1676,13 @@ export class MLEngine {
         lazy.setTimeout(() => resolve({ timeout: true, ok: true }), delay)
       );
 
+    // Collect both the token and text counts, as the tokens aren't always available.
+    let tokenCount = 0;
+    let characterCount = 0;
+
     let chunkPromise = responseChunkResolvers.getAndAdvanceChunkPromise();
+    let chunkStartTime = ChromeUtils.now();
+
     // Loop to yield chunks as they arrive
     while (true) {
       // Wait for the chunk with a timeout
@@ -1686,12 +1693,34 @@ export class MLEngine {
         lazy.console.debug(
           `Chunk received ${lazy.stringifyForLog(chunk.metadata)}`
         );
+        tokenCount += chunk.metadata.tokens?.length ?? 0;
+        characterCount += chunk.metadata.text?.length ?? 0;
         yield {
           text: chunk.metadata.text,
           tokens: chunk.metadata.tokens,
           isPrompt: chunk.metadata.isPrompt,
           toolCalls: chunk.metadata.toolCalls,
         };
+
+        // Be a bit defensive here in getting the metadata, as different engines may
+        // report different things back.
+        let markerText;
+        if (chunk.metadata.tokens?.length) {
+          markerText = `${chunk.metadata.tokens?.length} tokens`;
+        } else if (chunk.metadata.text?.length) {
+          markerText = `${chunk.metadata.text?.length} characters`;
+        } else {
+          markerText = "empty response";
+        }
+
+        ChromeUtils.addProfilerMarker(
+          "MLEngineParent",
+          { startTime: chunkStartTime },
+          `chunk generated ${markerText}` +
+            ` (${this.pipelineOptions.backend} ${this.pipelineOptions.modelId})`
+        );
+
+        chunkStartTime = ChromeUtils.now();
         chunkPromise = responseChunkResolvers.getAndAdvanceChunkPromise();
       } else if (this.#port === null) {
         // in case of a timeout check if the inference process is still alive
@@ -1723,6 +1752,36 @@ export class MLEngine {
     }
 
     // Wait for the engine to fully complete before exiting
-    return completionPromise;
+    const result = await completionPromise;
+
+    // Tokens may not be available.
+    let markerText;
+    if (tokenCount) {
+      markerText = `${tokenCount} tokens`;
+    } else if (characterCount) {
+      markerText = `${characterCount} characters`;
+    } else {
+      markerText = "an empty response";
+    }
+
+    ChromeUtils.addProfilerMarker(
+      "MLEngineParent",
+      { startTime },
+      `runWithGenerator generated ${markerText}` +
+        ` (${this.pipelineOptions.backend} ${this.pipelineOptions.modelId})`
+    );
+
+    this.telemetry.recordEngineRun({
+      beforeRun: startTime,
+      resourcesBefore: result.resourcesBefore,
+      resourcesAfter: result.resourcesAfter,
+      engineId: this.engineId,
+      modelId: this.pipelineOptions.modelId,
+      backend: this.pipelineOptions.backend,
+      tokenCount,
+      characterCount,
+    });
+
+    return result;
   }
 }

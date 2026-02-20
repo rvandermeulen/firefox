@@ -362,6 +362,8 @@ export class MLTelemetry {
    * @param {number} options.beforeRun
    * @param {{cpuTime: number | null, memory: number | null}} [options.resourcesBefore]
    * @param {{cpuTime: number | null, memory: number | null}} [options.resourcesAfter]
+   * @param {number | null} [options.tokenCount]
+   * @param {number | null} [options.characterCount]
    * @param {string} [options.flow_id]
    * @param {string} [options.feature_id]
    */
@@ -372,6 +374,8 @@ export class MLTelemetry {
     beforeRun,
     resourcesBefore,
     resourcesAfter,
+    tokenCount,
+    characterCount,
     flow_id = this.#flowId,
     feature_id = this.#featureId,
   }) {
@@ -409,6 +413,11 @@ export class MLTelemetry {
       engine_id: engineId,
       model_id: modelId,
       backend,
+      // Specifically use the "||" operator since Glean expects "null" rather than
+      // "undefined". When the counts are 0, this can mean nothing was generated for
+      // the counts. We should count these as null.
+      token_count: tokenCount || null,
+      character_count: characterCount || null,
     };
 
     Glean.firefoxAiRuntime.engineRun.record(payload);
