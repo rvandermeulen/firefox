@@ -246,7 +246,8 @@ class WebIDLCodegenManager(LoggingMixin):
 
         config_path refers to a WebIDL config file (e.g. Bindings.conf).
         inputs is a 4-tuple describing the input .webidl files and how to
-        process them. Members are:
+        process them. Members are::
+
             (set(.webidl files), set(basenames of exported files),
                 set(basenames of generated events files),
                 set(example interface names))

@@ -926,7 +926,8 @@ class BaseFinder:
         """
         Iterates over all files under the base directory (excluding files
         starting with a '.' and files at any level under a directory starting
-        with a '.').
+        with a '.')::
+
             for path, file in finder:
                 ...
         """
@@ -1091,10 +1092,12 @@ class FileFinder(BaseFinder):
         """
         Actual implementation of FileFinder.find() when the given pattern
         contains globbing patterns ('*' or '**'). This is meant to be an
-        equivalent of:
+        equivalent of::
+
             for p, f in self:
                 if mozpath.match(p, pattern):
                     yield p, f
+
         but avoids scanning the entire tree.
         """
         if not pattern:

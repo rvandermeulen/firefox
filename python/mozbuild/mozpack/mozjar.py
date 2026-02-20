@@ -34,10 +34,9 @@ class JarStruct:
     structured as described in subclasses STRUCT field.
 
     The STRUCT field contains a list of (name, type) pairs where name is a
-    field name, and the type can be one of 'uint32', 'uint16' or one of the
+    field name, and the type can be one of ``uint32``, ``uint16`` or one of the
     field names. In the latter case, the field is considered to be a string
-    buffer with a length given in that field.
-    For example,
+    buffer with a length given in that field. For example:
 
     .. code-block:: python
 
@@ -470,7 +469,8 @@ class JarReader:
     def __iter__(self):
         """
         Iterate over all files in the Jar archive, in the form of
-        JarFileReaders.
+        JarFileReaders::
+
             for file in jarReader:
                 ...
         """

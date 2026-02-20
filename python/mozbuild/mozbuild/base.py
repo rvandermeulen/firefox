@@ -774,15 +774,16 @@ class MozbuildObject(ProcessExecutionMixin):
     ):
         """Invoke make.
 
-        directory -- Relative directory to look for Makefile in.
-        filename -- Explicit makefile to run.
-        target -- Makefile target(s) to make. Can be a string or iterable of
-            strings.
-        srcdir -- If True, invoke make from the source directory tree.
-            Otherwise, make will be invoked from the object directory.
-        silent -- If True (the default), run make in silent mode.
-        print_directory -- If True (the default), have make print directories
-        while doing traversal.
+        Args:
+            directory: Relative directory to look for Makefile in.
+            filename: Explicit makefile to run.
+            target: Makefile target(s) to make. Can be a string or iterable of
+                strings.
+            srcdir: If True, invoke make from the source directory tree.
+                Otherwise, make will be invoked from the object directory.
+            silent: If True (the default), run make in silent mode.
+            print_directory: If True (the default), have make print directories
+                while doing traversal.
         """
         self._ensure_objdir_exists()
 
