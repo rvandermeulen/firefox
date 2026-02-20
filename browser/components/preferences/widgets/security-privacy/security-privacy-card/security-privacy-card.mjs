@@ -125,13 +125,13 @@ export default class SecurityPrivacyCard extends MozLitElement {
     if (this.configIssueCount > 0) {
       return html`<img
         class="status-image"
-        src="chrome://global/skin/illustrations/kit-looking-left.svg"
+        src="chrome://global/skin/illustrations/shield-alert.svg"
         data-l10n-id="security-privacy-image-warning"
       />`;
     }
     return html`<img
       class="status-image"
-      src="chrome://global/skin/illustrations/kit-looking-forward.svg"
+      src="chrome://global/skin/illustrations/shield-check.svg"
       data-l10n-id="security-privacy-image-ok"
     />`;
   }
