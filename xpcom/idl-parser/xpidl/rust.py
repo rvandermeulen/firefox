@@ -133,7 +133,7 @@ printdoccomments = True
 if printdoccomments:
 
     def printComments(fd, clist, indent):
-        fd.write("%s%s" % (indent, doccomments(clist)))
+        fd.write(f"{indent}{doccomments(clist)}")
 
     def doccomments(clist):
         if len(clist) == 0:
@@ -161,7 +161,8 @@ def firstCap(str):
 # Attribute VTable Methods
 def attributeNativeName(a, getter):
     binaryname = rustSanitize(a.binaryname if a.binaryname else firstCap(a.name))
-    return "%s%s" % ("Get" if getter else "Set", binaryname)
+    prefix = "Get" if getter else "Set"
+    return f"{prefix}{binaryname}"
 
 
 def attributeReturnType(a, getter):
@@ -190,24 +191,20 @@ def attributeRawParamList(iface, a, getter):
 
 def attributeParamList(iface, a, getter):
     l = ["this: *const " + iface.name]
-    l += ["%s: %s" % x for x in attributeRawParamList(iface, a, getter)]
+    l += [f"{name}: {ty}" for name, ty in attributeRawParamList(iface, a, getter)]
     return ", ".join(l)
 
 
 def attrAsVTableEntry(iface, m, getter):
+    name = attributeNativeName(m, getter)
     try:
-        return 'pub %s: unsafe extern "system" fn (%s) -> %s' % (
-            attributeNativeName(m, getter),
-            attributeParamList(iface, m, getter),
-            attributeReturnType(m, getter),
-        )
+        params = attributeParamList(iface, m, getter)
+        ret_ty = attributeReturnType(m, getter)
+        return f'pub {name}: unsafe extern "system" fn ({params}) -> {ret_ty}'
     except xpidl.RustNoncompat as reason:
-        return """\
-/// Unable to generate binding because `%s`
-pub %s: *const ::libc::c_void""" % (
-            reason,
-            attributeNativeName(m, getter),
-        )
+        return f"""\
+/// Unable to generate binding because `{reason}`
+pub {name}: *const ::libc::c_void"""
 
 
 # Method VTable generation functions
@@ -241,25 +238,21 @@ def methodRawParamList(iface, m):
 
 
 def methodParamList(iface, m):
-    l = ["this: *const %s" % iface.name]
-    l += ["%s: %s" % x for x in methodRawParamList(iface, m)]
+    l = [f"this: *const {iface.name}"]
+    l += [f"{name}: {ty}" for name, ty in methodRawParamList(iface, m)]
     return ", ".join(l)
 
 
 def methodAsVTableEntry(iface, m):
+    name = methodNativeName(m)
     try:
-        return 'pub %s: unsafe extern "system" fn (%s) -> %s' % (
-            methodNativeName(m),
-            methodParamList(iface, m),
-            methodReturnType(m),
-        )
+        params = methodParamList(iface, m)
+        ret_ty = methodReturnType(m)
+        return f'pub {name}: unsafe extern "system" fn ({params}) -> {ret_ty}'
     except xpidl.RustNoncompat as reason:
-        return """\
-/// Unable to generate binding because `%s`
-pub %s: *const ::libc::c_void""" % (
-            reason,
-            methodNativeName(m),
-        )
+        return f"""\
+/// Unable to generate binding because `{reason}`
+pub {name}: *const ::libc::c_void"""
 
 
 method_impl_tmpl = """\
@@ -271,9 +264,10 @@ pub unsafe fn %(name)s(&self, %(params)s) -> %(ret_ty)s {
 
 
 def methodAsWrapper(iface, m):
+    name = methodNativeName(m)
     try:
         param_list = methodRawParamList(iface, m)
-        params = ["%s: %s" % x for x in param_list]
+        params = [f"{name}: {ty}" for name, ty in param_list]
         args = [x[0] for x in param_list]
 
         return method_impl_tmpl % {
@@ -285,7 +279,7 @@ def methodAsWrapper(iface, m):
     except xpidl.RustNoncompat:
         # Dummy field for the doc comments to attach to.
         # Private so that it's not shown in rustdoc.
-        return "const _%s: () = ();" % methodNativeName(m)
+        return f"const _{name}: () = ();"
 
 
 infallible_impl_tmpl = """\
@@ -300,6 +294,7 @@ pub unsafe fn %(name)s(&self) -> %(realtype)s {
 
 
 def attrAsWrapper(iface, m, getter):
+    name = attributeNativeName(m, getter)
     try:
         if m.implicit_jscontext:
             raise xpidl.RustNoncompat("jscontext is unsupported")
@@ -307,28 +302,28 @@ def attrAsWrapper(iface, m, getter):
         if m.nostdcall:
             raise xpidl.RustNoncompat("nostdcall is unsupported")
 
-        name = attributeParamName(m)
+        param_name = attributeParamName(m)
 
         if getter and m.infallible and m.realtype.kind == "builtin":
             # NOTE: We don't support non-builtin infallible getters in Rust code.
             return infallible_impl_tmpl % {
-                "name": attributeNativeName(m, getter),
+                "name": name,
                 "realtype": m.realtype.rustType("in"),
             }
 
         param_list = attributeRawParamList(iface, m, getter)
-        params = ["%s: %s" % x for x in param_list]
+        params = [f"{name}: {ty}" for name, ty in param_list]
         return method_impl_tmpl % {
-            "name": attributeNativeName(m, getter),
+            "name": name,
             "params": ", ".join(params),
             "ret_ty": attributeReturnType(m, getter),
-            "args": "" if getter and m.notxpcom else name,
+            "args": "" if getter and m.notxpcom else param_name,
         }
 
     except xpidl.RustNoncompat:
         # Dummy field for the doc comments to attach to.
         # Private so that it's not shown in rustdoc.
-        return "const _%s: () = ();" % attributeNativeName(m, getter)
+        return f"const _{name}: () = ();"
 
 
 header = """\
@@ -364,16 +359,14 @@ def print_rust_bindings(idl, fd, relpath):
         if p.kind == "typedef":
             try:
                 if printdoccomments:
-                    fd.write(
-                        "/// `typedef %s %s;`\n///\n"
-                        % (p.realtype.nativeType("in"), p.name)
-                    )
+                    ty = p.realtype.nativeType("in")
+                    fd.write(f"/// `typedef {ty} {p.name};`\n///\n")
                     fd.write(doccomments(p.doccomments))
-                fd.write("pub type %s = %s;\n\n" % (p.name, p.realtype.rustType("in")))
+                rust_ty = p.realtype.rustType("in")
+                fd.write(f"pub type {p.name} = {rust_ty};\n\n")
             except xpidl.RustNoncompat as reason:
                 fd.write(
-                    "/* unable to generate %s typedef because `%s` */\n\n"
-                    % (p.name, reason)
+                    f"/* unable to generate {p.name} typedef because `{reason}` */\n\n"
                 )
 
 
@@ -563,14 +556,14 @@ def write_interface(iface, fd):
     # Extract the UUID's information so that it can be written into the struct definition
     names = uuid_decoder.match(iface.attributes.uuid).groupdict()
     m3str = names["m3"] + names["m4"]
-    names["m3joined"] = ", ".join(["0x%s" % m3str[i : i + 2] for i in range(0, 16, 2)])
+    names["m3joined"] = ", ".join([f"0x{m3str[i : i + 2]}" for i in range(0, 16, 2)])
     names["name"] = iface.name
 
     if printdoccomments:
         if iface.base is not None:
-            fd.write("/// `interface %s : %s`\n///\n" % (iface.name, iface.base))
+            fd.write(f"/// `interface {iface.name} : {iface.base}`\n///\n")
         else:
-            fd.write("/// `interface %s`\n///\n" % iface.name)
+            fd.write(f"/// `interface {iface.name}`\n///\n")
     printComments(fd, iface.doccomments, "")
     fd.write(struct_tmpl % names)
 
