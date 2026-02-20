@@ -58,7 +58,11 @@ def changedir(dirname):
 
 
 class PathOptions:
-    def __init__(self, location, requested_paths, excluded_paths):
+    def __init__(self, topsrc_dir, location, requested_paths, excluded_paths):
+        self.topsrc_dir = topsrc_dir
+        self.test_prefix = (
+            os.path.abspath(os.path.relpath(location, topsrc_dir)) + os.sep
+        )
         self.requested_paths = requested_paths
         self.excluded_files, self.excluded_dirs = PathOptions._split_files_and_dirs(
             location, excluded_paths
@@ -82,7 +86,7 @@ class PathOptions:
     def should_run(self, filename):
         # If any tests are requested by name, skip tests that do not match.
         if self.requested_paths and not any(
-            req in filename for req in self.requested_paths
+            req in (self.test_prefix + filename) for req in self.requested_paths
         ):
             return False
 
@@ -686,7 +690,15 @@ def load_tests(options, requested_paths, excluded_paths):
         xul_tester = manifest.XULInfoTester(xul_info, options, feature_args)
 
     test_dir = dirname(abspath(__file__))
-    path_options = PathOptions(test_dir, requested_paths, excluded_paths)
+
+    # Given this file is js/src/tests/jstests.py, let's compute
+    # the base path directory as test_dir/../../../
+    #
+    # This has precedent in WPT loading and jorendb stuff
+    # despite being surprising :)
+    topsrc_dir = os.path.normpath(os.path.join(test_dir, "..", "..", ".."))
+
+    path_options = PathOptions(topsrc_dir, test_dir, requested_paths, excluded_paths)
     test_count = manifest.count_tests(test_dir, path_options)
     test_gen = manifest.load_reftests(test_dir, path_options, xul_tester)
 
