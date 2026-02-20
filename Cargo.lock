@@ -4701,6 +4701,7 @@ dependencies = [
 name = "mozurl"
 version = "0.0.1"
 dependencies = [
+ "malloc_size_of",
  "nserror",
  "nsstring",
  "url",

@@ -5,9 +5,12 @@
 #ifndef mozURL_h_
 #define mozURL_h_
 
+#include "nsIMemoryReporter.h"
 #include "mozilla/net/MozURL_ffi.h"
 #include "mozilla/RefPtr.h"
 #include "mozilla/Result.h"
+
+MOZ_DEFINE_MALLOC_SIZE_OF(MozURLMallocSizeOf)
 
 namespace mozilla {
 namespace net {
@@ -82,7 +85,7 @@ class MozURL final {
     return mozurl_relative(this, aOther, aRelative);
   }
 
-  size_t SizeOf() { return mozurl_sizeof(this); }
+  size_t SizeOf() { return mozurl_sizeof(this, MozURLMallocSizeOf); }
 
   class Mutator {
    public:
