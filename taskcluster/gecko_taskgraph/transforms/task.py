@@ -17,6 +17,7 @@ import typing
 from pathlib import Path
 from urllib.parse import quote
 
+import msgspec
 import taskgraph
 from mozbuild.util import memoize
 from mozilla_taskgraph.util.signed_artifacts import get_signed_artifacts
@@ -1937,8 +1938,23 @@ def validate(config, tasks):
             task,
             "In task {!r}:".format(task.get("label", "?no-label?")),
         )
+        worker_schema = payload_builders[task["worker"]["implementation"]].schema
+        if isinstance(worker_schema, dict):
+            from voluptuous import ALLOW_EXTRA
+
+            worker_schema = LegacySchema(worker_schema, extra=ALLOW_EXTRA)
+        elif isinstance(worker_schema, type) and issubclass(
+            worker_schema, msgspec.Struct
+        ):
+            worker_schema = type(
+                worker_schema.__name__,
+                (worker_schema,),
+                {},
+                forbid_unknown_fields=False,
+                kw_only=True,
+            )
         validate_schema(
-            payload_builders[task["worker"]["implementation"]].schema,
+            worker_schema,
             task["worker"],
             "In task.run {!r}:".format(task.get("label", "?no-label?")),
         )
