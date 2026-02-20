@@ -203,6 +203,5 @@ load 2014860.html
 load 2014874.html
 load 2014870.html
 load 2014861.html
-load 2016504.html
-load 2016883.html
-load 2016493.html
+skip-if(Android) load 2016504.html
+skip-if(Android) load 2016883.html
