@@ -143,7 +143,7 @@ class IPPEarlyStartupFilter {
   initOnStartupCompleted() {}
 
   uninit() {
-    if (this.autoStartAndAtStartup) {
+    if (this.#autoStartAndAtStartup) {
       this.#autoStartAndAtStartup = false;
 
       lazy.IPPProxyManager.removeEventListener(
