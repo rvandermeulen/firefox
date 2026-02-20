@@ -455,20 +455,6 @@ class IPPProxyManagerSingleton extends EventTarget {
     } else {
       this.#setState(IPPProxyStates.READY);
     }
-
-    if (userAction) {
-      this.#reloadCurrentTab();
-    }
-  }
-
-  /**
-   * Gets the current window and reloads the selected tab.
-   */
-  #reloadCurrentTab() {
-    let win = Services.wm.getMostRecentBrowserWindow();
-    if (win) {
-      win.gBrowser.reloadTab(win.gBrowser.selectedTab);
-    }
   }
 
   /**
