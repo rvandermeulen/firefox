@@ -508,7 +508,7 @@ class CDATA:
         first = self.location.lineno() + 1
         last = first + len(body.split("\n")) - 1
 
-        return "// %%{C++:%d-%d\n%s\n// %%}\n" % (first, last, body)
+        return f"// %{{C++:{first}-{last}\n{body}\n// %}}\n"
 
 
 class Typedef:
@@ -1733,7 +1733,7 @@ class Array:
 
     @property
     def name(self):
-        return "Array<%s>" % self.type.name
+        return f"Array<{self.type.name}>"
 
     def resolve(self, idl):
         idl.getName(self.type, self.location)
