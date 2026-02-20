@@ -15,6 +15,23 @@ const { AppConstants } = ChromeUtils.importESModule(
  * @import { SearchEngine } from "moz-src:///toolkit/components/search/SearchEngine.sys.mjs"
  */
 
+/**
+ * @typedef {object} AutofillPlaceholder
+ * @property {string} value
+ *   The autofill value.
+ * @property {"origin" | "url" | "adaptive"} type
+ *   The autofill type.
+ * @property {string} adaptiveHistoryInput
+ *   If the type is "adaptive", this is the matching input value from adaptive
+ *   history.
+ * @property {number} selectionStart
+ *   The selectionStart at the time of autofill.
+ * @property {number} selectionEnd
+ *   The selectionEnd at the time of autofill.
+ * @property {string} [untrimmedValue]
+ *   The untrimmed value including the protocol.
+ */
+
 const lazy = XPCOMUtils.declareLazy({
   ASRouter: "resource:///modules/asrouter/ASRouter.sys.mjs",
   BrowserSearchTelemetry:
@@ -223,7 +240,10 @@ export class UrlbarInput extends HTMLElement {
 
   // Properties accessed in tests.
   lastQueryContextPromise = Promise.resolve();
+
+  /** @type {AutofillPlaceholder|null} */
   _autofillPlaceholder = null;
+
   _resultForCurrentValue = null;
   _untrimmedValue = "";
   _enableAutofillPlaceholder = true;
@@ -3725,24 +3745,11 @@ export class UrlbarInput extends HTMLElement {
   }
 
   /**
-   * Autofills a value into the input.  The value will be autofilled regardless
+   * Autofills a value into the input. The value will be autofilled regardless
    * of the input's current value.
    *
-   * @param {object} options
-   *   The options object.
-   * @param {string} options.value
-   *   The value to autofill.
-   * @param {number} options.selectionStart
-   *   The new selectionStart.
-   * @param {number} options.selectionEnd
-   *   The new selectionEnd.
-   * @param {"origin" | "url" | "adaptive"} options.type
-   *   The autofill type, one of: "origin", "url", "adaptive"
-   * @param {string} options.adaptiveHistoryInput
-   *   If the autofill type is "adaptive", this is the matching `input` value
-   *   from adaptive history.
-   * @param {string} [options.untrimmedValue]
-   *   Untrimmed value including a protocol.
+   * @param {AutofillPlaceholder} options
+   *   The autofill options.
    */
   _autofillValue({
     value,
