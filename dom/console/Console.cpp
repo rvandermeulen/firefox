@@ -3029,7 +3029,6 @@ uint32_t Console::ConsoleMethodNameToInteger(MethodName aName) const {
       return 1;
     case MethodDebug:
       return 2;
-    case MethodAssert:
     case MethodClear:
     case MethodCount:
     case MethodCountReset:
@@ -3050,6 +3049,7 @@ uint32_t Console::ConsoleMethodNameToInteger(MethodName aName) const {
       return 3;
     case MethodWarn:
       return 4;
+    case MethodAssert:
     case MethodError:
     case MethodException:
       return 5;

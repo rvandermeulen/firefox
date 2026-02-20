@@ -16,6 +16,7 @@ export async function runBackgroundTask(_commandLine) {
 
   console.log("foo");
   console.debug("bar");
+  console.assert(false, "assert-failure");
   const prefixed = console.createInstance({
     prefix: "my-prefix",
     // Test setting a more restrictive level from MOZ_LOG
@@ -27,6 +28,7 @@ export async function runBackgroundTask(_commandLine) {
   });
   prefixed.warn("warning");
   prefixed.log("not-logged");
+  prefixed.assert(false, "prefixed-assert-failure");
 
   const limitedLevel = console.createInstance({
     prefix: "limited-level",
@@ -35,6 +37,15 @@ export async function runBackgroundTask(_commandLine) {
   });
   limitedLevel.error("log-unless-disabled-by-mozlog");
   limitedLevel.log("may-be-logged-via-mozlog");
+  limitedLevel.assert(false, "limited-assert-failure");
+
+  const errorOnly = console.createInstance({
+    prefix: "error-only",
+    maxLogLevel: "Error",
+  });
+  errorOnly.log("error-only-log");
+  errorOnly.error("error-only-error");
+  errorOnly.assert(false, "error-only-assert");
 
   (async function () {
     throw new Error("Async exception");
