@@ -441,7 +441,9 @@ class IPPProxyManagerSingleton extends EventTarget {
 
     lazy.logConsole.info("Stopped");
 
-    const sessionLength = ChromeUtils.now() - this.#activatedAt;
+    const sessionLength = this.#activatedAt
+      ? ChromeUtils.now() - this.#activatedAt
+      : 0;
 
     Glean.ipprotection.toggled.record({
       userAction,
