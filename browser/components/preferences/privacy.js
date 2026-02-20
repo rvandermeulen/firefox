@@ -293,12 +293,18 @@ Preferences.addAll([
 
   // Permissions
   { id: "media.setsinkid.enabled", type: "bool" },
+
+  // Security and Privacy Warnings
+  { id: "browser.preferences.config_warning.dismissAll", type: "bool" },
+  {
+    id: "browser.preferences.config_warning.warningSafeBrowsing.dismissed",
+    type: "bool",
+  },
 ]);
 
 if (SECURITY_PRIVACY_STATUS_CARD_ENABLED) {
   Preferences.addAll([
     // Security and Privacy Warnings
-    { id: "browser.preferences.config_warning.dismissAll", type: "bool" },
     { id: "privacy.ui.status_card.testing.show_issue", type: "bool" },
     {
       id: "browser.preferences.config_warning.warningTest.dismissed",
@@ -322,10 +328,6 @@ if (SECURITY_PRIVACY_STATUS_CARD_ENABLED) {
     },
     {
       id: "browser.preferences.config_warning.warningExtensionInstall.dismissed",
-      type: "bool",
-    },
-    {
-      id: "browser.preferences.config_warning.warningSafeBrowsing.dismissed",
       type: "bool",
     },
     {
@@ -972,34 +974,6 @@ if (SECURITY_PRIVACY_STATUS_CARD_ENABLED) {
         blockInstalls: "xpinstall.whitelist.required",
       },
       ({ blockInstalls }) => !blockInstalls.value && !blockInstalls.locked,
-      true
-    )
-  );
-
-  Preferences.addSetting(
-    new WarningSettingConfig(
-      "warningSafeBrowsing",
-      {
-        malware: "browser.safebrowsing.malware.enabled",
-        phishing: "browser.safebrowsing.phishing.enabled",
-        downloads: "browser.safebrowsing.downloads.enabled",
-        unwantedDownloads:
-          "browser.safebrowsing.downloads.remote.block_potentially_unwanted",
-        uncommonDownloads:
-          "browser.safebrowsing.downloads.remote.block_potentially_unwanted",
-      },
-      ({
-        malware,
-        phishing,
-        downloads,
-        unwantedDownloads,
-        uncommonDownloads,
-      }) =>
-        (!malware.value && !malware.locked) ||
-        (!phishing.value && !phishing.locked) ||
-        (!downloads.value && !downloads.locked) ||
-        (!unwantedDownloads.value && !unwantedDownloads.locked) ||
-        (!uncommonDownloads.value && !uncommonDownloads.locked),
       true
     )
   );
@@ -1827,6 +1801,43 @@ Preferences.addSetting({
       deps.enableSafeBrowsingPhishing.locked ||
       deps.enableSafeBrowsingMalware.locked
     );
+  },
+});
+Preferences.addSetting(
+  new WarningSettingConfig(
+    "warningSafeBrowsing",
+    {
+      malware: "browser.safebrowsing.malware.enabled",
+      phishing: "browser.safebrowsing.phishing.enabled",
+      downloads: "browser.safebrowsing.downloads.enabled",
+      unwantedDownloads:
+        "browser.safebrowsing.downloads.remote.block_potentially_unwanted",
+      uncommonDownloads:
+        "browser.safebrowsing.downloads.remote.block_potentially_unwanted",
+    },
+    ({
+      malware,
+      phishing,
+      downloads,
+      unwantedDownloads,
+      uncommonDownloads,
+    }) =>
+      (!malware.value && !malware.locked) ||
+      (!phishing.value && !phishing.locked) ||
+      (!downloads.value && !downloads.locked) ||
+      (!unwantedDownloads.value && !unwantedDownloads.locked) ||
+      (!uncommonDownloads.value && !uncommonDownloads.locked),
+    true
+  )
+);
+Preferences.addSetting({
+  id: "safeBrowsingWarningMessageBox",
+  deps: ["warningSafeBrowsing"],
+  visible({ warningSafeBrowsing }) {
+    return warningSafeBrowsing.visible;
+  },
+  onMessageBarDismiss(_, { warningSafeBrowsing }) {
+    warningSafeBrowsing.config.dismiss();
   },
 });
 Preferences.addSetting({

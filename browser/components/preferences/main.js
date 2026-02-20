@@ -3493,6 +3493,15 @@ SettingGroupManager.registerGroups({
           },
         ],
       },
+      {
+        id: "safeBrowsingWarningMessageBox",
+        l10nId: "security-safe-browsing-warning",
+        control: "moz-message-bar",
+        controlAttrs: {
+          type: "warning",
+          dismissable: true,
+        },
+      },
     ],
   },
   nonTechnicalPrivacy: {

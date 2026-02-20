@@ -2088,6 +2088,9 @@ security-enable-safe-browsing =
     .accesskey = B
 security-enable-safe-browsing-link = Learn more
 
+security-safe-browsing-warning =
+    .message = Turning this off reduces protection against scams, malicious sites, and dangerous downloads.
+
 security-block-downloads =
     .label = Block dangerous downloads
     .accesskey = d
