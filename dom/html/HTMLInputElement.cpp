@@ -1201,11 +1201,11 @@ HTMLInputElement::~HTMLInputElement() {
   FreeData();
 }
 
-void HTMLInputElement::FreeData(bool aFreeInputState) {
+void HTMLInputElement::FreeData() {
   if (!IsSingleLineTextControl(false)) {
     free(mInputData.mValue);
     mInputData.mValue = nullptr;
-  } else if (aFreeInputState && mInputData.mState) {
+  } else if (mInputData.mState) {
     // XXX Passing nullptr to UnbindFromFrame doesn't do anything!
     UnbindFromFrame(nullptr);
     mInputData.mState->Destroy();
@@ -4796,31 +4796,23 @@ void HTMLInputElement::HandleTypeChange(FormControlType aNewType,
     GetValue(oldValue, CallerType::NonSystem);
   }
 
-  const bool previouslySingleLine = IsSingleLineTextControl(false, oldType);
-  const bool nowSingleLine = IsSingleLineTextControl(false, aNewType);
-  const bool previouslySelectable = SupportsTextSelection();
+  TextControlState::SelectionProperties sp;
+
+  if (IsSingleLineTextControl(false) && mInputData.mState) {
+    mInputData.mState->SyncUpSelectionPropertiesBeforeDestruction();
+    sp = mInputData.mState->GetSelectionProperties();
+  }
 
   // We already have a copy of the value, lets free it and changes the type.
-  // But we only need to free mInputData.mState if the new type is not
-  // a single line text control. A reframe will occur after the type is changed,
-  // so the TextEditor will be reinitialized and set up for the new type
-  // (e.g. will be masked if the new type is password).
-  FreeData(!nowSingleLine);
+  FreeData();
   mType = aNewType;
   void* memory = mInputTypeMem;
   mInputType = InputType::Create(this, mType, memory);
 
-  if (nowSingleLine) {
-    const bool nowSelectable = SupportsTextSelection();
-    if (!previouslySingleLine) {
-      mInputData.mState = TextControlState::Construct(this);
-    } else if (!previouslySelectable && nowSelectable && mInputData.mState) {
-      // https://html.spec.whatwg.org/#input-type-change
-      // 9. If previouslySelectable is false and nowSelectable is true, set the
-      //    element's text entry cursor position to the beginning of the text
-      //    control, and set its selection direction to "none".
-      TextControlState::SelectionProperties defaultSp;
-      mInputData.mState->SetSelectionProperties(defaultSp);
+  if (IsSingleLineTextControl()) {
+    mInputData.mState = TextControlState::Construct(this);
+    if (!sp.IsDefault()) {
+      mInputData.mState->SetSelectionProperties(sp);
     }
   }
 
