@@ -6061,20 +6061,16 @@ AttachDecision OptimizeSpreadCallIRGenerator::tryAttachArray() {
   }
 
   // The value must be a packed array.
-  if (!val_.isObject()) {
+  if (!OptimizeGetIterator(val_, cx_)) {
     return AttachDecision::NoAction;
   }
-  Rooted<JSObject*> obj(cx_, &val_.toObject());
-  if (!IsArrayWithDefaultIterator<MustBePacked::Yes>(obj, cx_)) {
-    return AttachDecision::NoAction;
-  }
+  ArrayObject* arr = &val_.toObject().as<ArrayObject>();
 
   ValOperandId valId(writer.setInputOperandId(0));
   ObjOperandId objId = writer.guardToObject(valId);
 
   // Guard the object is a packed array with Array.prototype as proto.
-  MOZ_ASSERT(obj->is<ArrayObject>());
-  writer.guardShape(objId, obj->shape());
+  writer.guardShape(objId, arr->shape());
   writer.guardArrayIsPacked(objId);
 
   // Ensure Array.prototype[@@iterator] and %ArrayIteratorPrototype%.next
@@ -16961,20 +16957,16 @@ AttachDecision OptimizeGetIteratorIRGenerator::tryAttachArray() {
   }
 
   // The value must be a packed array.
-  if (!val_.isObject()) {
+  if (!OptimizeGetIterator(val_, cx_)) {
     return AttachDecision::NoAction;
   }
-  Rooted<JSObject*> obj(cx_, &val_.toObject());
-  if (!IsArrayWithDefaultIterator<MustBePacked::Yes>(obj, cx_)) {
-    return AttachDecision::NoAction;
-  }
+  ArrayObject* arr = &val_.toObject().as<ArrayObject>();
 
   ValOperandId valId(writer.setInputOperandId(0));
   ObjOperandId objId = writer.guardToObject(valId);
 
   // Guard the object is a packed array with Array.prototype as proto.
-  MOZ_ASSERT(obj->is<ArrayObject>());
-  writer.guardShape(objId, obj->shape());
+  writer.guardShape(objId, arr->shape());
   writer.guardArrayIsPacked(objId);
 
   // Guard on Array.prototype[@@iterator] and %ArrayIteratorPrototype%.next.

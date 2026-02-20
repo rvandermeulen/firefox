@@ -5055,9 +5055,9 @@ bool js::SpreadCallOperation(JSContext* cx, HandleScript script, jsbytecode* pc,
   return true;
 }
 
-static bool OptimizeArrayIteration(JSObject* obj, JSContext* cx) {
-  // Optimize spread call by skipping spread operation when following
-  // conditions are met:
+static bool OptimizeGetIteratorForArray(JSObject* obj, JSContext* cx) {
+  // Implementation of JSOp::OptimizeSpreadCall and JSOp::GetIterator for packed
+  // arrays. Ensures the following conditions are met:
   //   * the argument is an array
   //   * the array has no hole
   //   * array[@@iterator] is not modified
@@ -5120,7 +5120,7 @@ bool js::OptimizeSpreadCall(JSContext* cx, HandleValue arg,
   }
 
   RootedObject obj(cx, &arg.toObject());
-  if (OptimizeArrayIteration(obj, cx)) {
+  if (OptimizeGetIteratorForArray(obj, cx)) {
     result.setObject(*obj);
     return true;
   }
@@ -5140,7 +5140,7 @@ bool js::OptimizeGetIterator(Value arg, JSContext* cx) {
   if (!arg.isObject()) {
     return false;
   }
-  return OptimizeArrayIteration(&arg.toObject(), cx);
+  return OptimizeGetIteratorForArray(&arg.toObject(), cx);
 }
 
 ArrayObject* js::ArrayFromArgumentsObject(JSContext* cx,
