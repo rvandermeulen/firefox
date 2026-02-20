@@ -1098,7 +1098,7 @@ class HTMLInputElement final : public TextControlElement,
    */
   bool DoesAutocompleteApply() const;
 
-  MOZ_CAN_RUN_SCRIPT void FreeData();
+  MOZ_CAN_RUN_SCRIPT void FreeData(bool aFreeInputState = true);
   TextControlState* GetEditorState() const;
   void EnsureEditorState();
 
