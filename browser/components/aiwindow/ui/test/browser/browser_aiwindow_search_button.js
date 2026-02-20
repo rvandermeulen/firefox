@@ -20,6 +20,16 @@ const { sinon } = ChromeUtils.importESModule(
 const TEST_PAGE =
   "chrome://mochitests/content/browser/browser/components/aiwindow/ui/test/browser/test_chat_search_button.html";
 
+add_setup(async function setup() {
+  await SpecialPowers.pushPrefEnv({
+    set: [
+      ["browser.search.suggest.enabled", false],
+      ["browser.urlbar.suggest.searches", false],
+      ["browser.smartwindow.endpoint", "http://localhost:0/v1"],
+    ],
+  });
+});
+
 /**
  * Test the chat search hanfoff button params and if it was clicked
  */

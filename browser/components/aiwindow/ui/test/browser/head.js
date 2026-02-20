@@ -18,6 +18,7 @@ const AIWINDOW_URL = "chrome://browser/content/aiwindow/aiWindow.html";
 add_setup(async function () {
   await SpecialPowers.pushPrefEnv({
     set: [
+      ["browser.smartwindow.endpoint", "http://localhost:0/v1"],
       ["browser.smartwindow.enabled", true],
       ["browser.smartwindow.firstrun.hasCompleted", true],
     ],
