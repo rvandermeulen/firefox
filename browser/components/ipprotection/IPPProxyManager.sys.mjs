@@ -139,7 +139,7 @@ class IPPProxyManagerSingleton extends EventTarget {
   #networkErrorObserver = null;
   // If this is set, we're awaiting a proxy pass rotation
   #rotateProxyPassPromise = null;
-  #activatedAt = false;
+  #activatedAt = 0;
 
   #rotationTimer = 0;
   #usageRefreshAbortController = null;
