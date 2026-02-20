@@ -179,8 +179,7 @@ NS_IMPL_CYCLE_COLLECTION_UNLINK_BEGIN(ScriptLoader)
       mLoadedAsyncRequests, mDeferRequests, mXSLTRequests,
       mParserBlockingRequest, mOffThreadCompilingRequests,
       mDiskCacheableDependencyModules, mDiskCacheQueue, mPreloads,
-      mPendingChildLoaders, mModuleLoader, mWebExtModuleLoaders,
-      mShadowRealmModuleLoaders)
+      mPendingChildLoaders, mModuleLoader, mWebExtModuleLoaders)
 NS_IMPL_CYCLE_COLLECTION_UNLINK_END
 
 NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN(ScriptLoader)
@@ -189,8 +188,7 @@ NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN(ScriptLoader)
       mLoadedAsyncRequests, mDeferRequests, mXSLTRequests,
       mParserBlockingRequest, mOffThreadCompilingRequests,
       mDiskCacheableDependencyModules, mDiskCacheQueue, mPreloads,
-      mPendingChildLoaders, mModuleLoader, mWebExtModuleLoaders,
-      mShadowRealmModuleLoaders)
+      mPendingChildLoaders, mModuleLoader, mWebExtModuleLoaders)
 NS_IMPL_CYCLE_COLLECTION_TRAVERSE_END
 
 NS_IMPL_CYCLE_COLLECTING_ADDREF(ScriptLoader)
@@ -349,13 +347,6 @@ void ScriptLoader::RegisterContentScriptModuleLoader(ModuleLoader* aLoader) {
   MOZ_ASSERT(aLoader->GetScriptLoader() == this);
 
   mWebExtModuleLoaders.AppendElement(aLoader);
-}
-
-void ScriptLoader::RegisterShadowRealmModuleLoader(ModuleLoader* aLoader) {
-  MOZ_ASSERT(aLoader);
-  MOZ_ASSERT(aLoader->GetScriptLoader() == this);
-
-  mShadowRealmModuleLoaders.AppendElement(aLoader);
 }
 
 // Collect telemtry data about the cache information, and the kind of source
@@ -1908,9 +1899,6 @@ void ScriptLoader::CancelAndClearScriptLoadRequests() {
     loader->CancelAndClearDynamicImports();
   }
 
-  for (ModuleLoader* loader : mShadowRealmModuleLoaders) {
-    loader->CancelAndClearDynamicImports();
-  }
 
   for (size_t i = 0; i < mPreloads.Length(); i++) {
     mPreloads[i].mRequest->Cancel();
@@ -3925,12 +3913,6 @@ bool ScriptLoader::HasPendingDynamicImports() const {
   }
 
   for (ModuleLoader* loader : mWebExtModuleLoaders) {
-    if (loader->HasPendingDynamicImports()) {
-      return true;
-    }
-  }
-
-  for (ModuleLoader* loader : mShadowRealmModuleLoaders) {
     if (loader->HasPendingDynamicImports()) {
       return true;
     }

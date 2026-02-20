@@ -103,8 +103,7 @@ enum class CompilationType { DirectEval, IndirectEval, Function, Undefined };
  *
  * An Undefined compilationType is used for cases that are not covered by that
  * spec and unused parameters are null/empty. Currently, this includes Wasm
- * (only check if compilation is enabled) and ShadowRealmEval (only check
- * codeString).
+ * (only check if compilation is enabled).
  *
  * `outCanCompileStrings` is set to false if this callback prevents the
  * execution/compilation of the code and to true otherwise.

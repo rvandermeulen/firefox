@@ -2640,9 +2640,6 @@ static bool EvaluateDynamicImportOptions(
 }
 
 // https://tc39.es/ecma262/#sec-evaluate-import-call
-//
-// ShadowRealmImportValue duplicates some of this, so be sure to keep these in
-// sync.
 JSObject* js::StartDynamicModuleImport(JSContext* cx, HandleScript script,
                                        HandleValue specifierArg,
                                        HandleValue optionsArg) {

@@ -66,7 +66,6 @@
 #include "js/Object.h"  // JS::GetClass, JS::GetCompartment, JS::GetPrivate
 #include "js/PropertyAndElement.h"  // JS_DefineProperty
 #include "js/Warnings.h"            // JS::SetWarningReporter
-#include "js/ShadowRealmCallbacks.h"
 #include "js/SliceBudget.h"
 #include "jsfriendapi.h"
 #include "mozilla/AutoRestore.h"
