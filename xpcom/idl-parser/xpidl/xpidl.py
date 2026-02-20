@@ -296,7 +296,7 @@ class NameMap:
     def set(self, object):
         if object.name in builtinMap:
             raise IDLError(
-                "name '%s' is a builtin and cannot be redeclared" % (object.name),
+                f"name '{object.name}' is a builtin and cannot be redeclared",
                 object.location,
             )
         if object.name.startswith("_"):
@@ -311,8 +311,8 @@ class NameMap:
                 pass
             else:
                 raise IDLError(
-                    "name '%s' specified twice. Previous location: %s"
-                    % (object.name, self._d[object.name].location),
+                    f"name '{object.name}' specified twice. Previous "
+                    f"location: {self._d[object.name].location}",
                     object.location,
                 )
         else:
@@ -402,7 +402,7 @@ class Include:
             parent.deps.extend(self.IDL.deps)
             return
 
-        raise IDLError("File '%s' not found" % self.filename, self.location)
+        raise IDLError(f"File '{self.filename}' not found", self.location)
 
 
 class IDL:
@@ -422,12 +422,12 @@ class IDL:
             return Array(self.getName(id.params[0], location), location)
 
         if id.params is not None:
-            raise IDLError("Generic type '%s' unrecognized" % id.name, location)
+            raise IDLError(f"Generic type '{id.name}' unrecognized", location)
 
         try:
             return self.namemap[id.name]
         except KeyError:
-            raise IDLError("type '%s' not found" % id.name, location)
+            raise IDLError(f"type '{id.name}' not found", location)
 
     def hasName(self, id):
         return id in self.namemap
@@ -753,7 +753,7 @@ class Native:
                         )
                     return self.nativename
                 return prefix + self.nativename
-            raise RustNoncompat("special type %s unsupported" % self.specialtype)
+            raise RustNoncompat(f"special type {self.specialtype} unsupported")
 
         # These 3 special types correspond to native pointer types which can
         # generally be supported behind pointers. Other types are not supported
@@ -765,7 +765,7 @@ class Native:
         if self.nativename == "char16_t":
             return prefix + "u16"
 
-        raise RustNoncompat("native type %s unsupported" % self.nativename)
+        raise RustNoncompat(f"native type {self.nativename} unsupported")
 
     ts_special = {
         "astring": "string",
@@ -862,8 +862,8 @@ class Interface:
 
         if not self.attributes.scriptable and self.attributes.builtinclass:
             raise IDLError(
-                "Non-scriptable interface '%s' doesn't need to be marked builtinclass"
-                % self.name,
+                f"Non-scriptable interface '{self.name}' doesn't need to be "
+                f"marked builtinclass",
                 self.location,
             )
 
@@ -882,8 +882,8 @@ class Interface:
                 if member.kind == "method":
                     if has_method:
                         raise IDLError(
-                            "interface '%s' has multiple methods, but marked 'function'"
-                            % self.name,
+                            f"interface '{self.name}' has multiple methods, "
+                            f"but marked 'function'",
                             self.location,
                         )
                     else:
@@ -894,15 +894,15 @@ class Interface:
             realbase = parent.getName(TypeId(self.base), self.location)
             if realbase.kind != "interface":
                 raise IDLError(
-                    "interface '%s' inherits from non-interface type '%s'"
-                    % (self.name, self.base),
+                    f"interface '{self.name}' inherits from non-interface "
+                    f"type '{self.base}'",
                     self.location,
                 )
 
             if self.attributes.scriptable and not realbase.attributes.scriptable:
                 raise IDLError(
-                    "interface '%s' is scriptable but derives from "
-                    "non-scriptable '%s'" % (self.name, self.base),
+                    f"interface '{self.name}' is scriptable but derives from "
+                    f"non-scriptable '{self.base}'",
                     self.location,
                     warning=True,
                 )
@@ -913,15 +913,15 @@ class Interface:
                 and not self.attributes.builtinclass
             ):
                 raise IDLError(
-                    "interface '%s' is not builtinclass but derives from "
-                    "builtinclass '%s'" % (self.name, self.base),
+                    f"interface '{self.name}' is not builtinclass but derives "
+                    f"from builtinclass '{self.base}'",
                     self.location,
                 )
 
             if realbase.attributes.rust_sync and not self.attributes.rust_sync:
                 raise IDLError(
-                    "interface '%s' is not rust_sync but derives from rust_sync '%s'"
-                    % (self.name, self.base),
+                    f"interface '{self.name}' is not rust_sync but derives "
+                    f"from rust_sync '{self.base}'",
                     self.location,
                 )
 
@@ -931,12 +931,12 @@ class Interface:
                 and not self.attributes.builtinclass
             ):
                 raise IDLError(
-                    "interface '%s' is rust_sync but is not builtinclass" % self.name,
+                    f"interface '{self.name}' is rust_sync but is not builtinclass",
                     self.location,
                 )
         elif self.name != "nsISupports":
             raise IDLError(
-                "Interface '%s' must inherit from nsISupports" % self.name,
+                f"Interface '{self.name}' must inherit from nsISupports",
                 self.location,
             )
 
@@ -949,7 +949,7 @@ class Interface:
         # location, or you WILL cause otherwise unknown problems!
         if self.countEntries() > 250 and not self.attributes.builtinclass:
             raise IDLError(
-                "interface '%s' has too many entries" % self.name, self.location
+                f"interface '{self.name}' has too many entries", self.location
             )
 
     def nativeType(self, calltype, const=False):
@@ -983,10 +983,10 @@ class Interface:
         while name not in iface.namemap and iface.base is not None:
             iface = self.idl.getName(TypeId(iface.base), self.location)
         if name not in iface.namemap:
-            raise IDLError("cannot find symbol '%s'" % name, location)
+            raise IDLError(f"cannot find symbol '{name}'", location)
         c = iface.namemap.get(name, location)
         if c.kind != "const":
-            raise IDLError("symbol '%s' is not a constant" % name, location)
+            raise IDLError(f"symbol '{name}' is not a constant", location)
 
         return c.getValue()
 
@@ -1048,18 +1048,18 @@ class InterfaceAttributes:
 
     def __init__(self, attlist, location):
         def badattribute(self):
-            raise IDLError("Unexpected interface attribute '%s'" % name, location)
+            raise IDLError(f"Unexpected interface attribute '{name}'", location)
 
         for name, val, aloc in attlist:
             hasval, action = self.actions.get(name, (False, badattribute))
             if hasval:
                 if val is None:
-                    raise IDLError("Expected value for attribute '%s'" % name, aloc)
+                    raise IDLError(f"Expected value for attribute '{name}'", aloc)
 
                 action(self, val)
             else:
                 if val is not None:
-                    raise IDLError("Unexpected value for attribute '%s'" % name, aloc)
+                    raise IDLError(f"Unexpected value for attribute '{name}'", aloc)
 
                 action(self)
 
@@ -1101,7 +1101,7 @@ class ConstMember:
             basetype = basetype.realtype
         if not isinstance(basetype, Builtin) or not basetype.maybeConst:
             raise IDLError(
-                "const may only be an integer type, not %s" % self.type.name,
+                f"const may only be an integer type, not {self.type.name}",
                 self.location,
             )
 
@@ -1112,9 +1112,9 @@ class ConstMember:
         min_val = -(2**31) if basetype.signed else 0
         max_val = 2**31 - 1 if basetype.signed else 2**32 - 1
         if self.value < min_val or self.value > max_val:
+            nativetype = "int32_t" if basetype.signed else "uint32_t"
             raise IDLError(
-                "xpidl constants must fit within %s"
-                % ("int32_t" if basetype.signed else "uint32_t"),
+                f"xpidl constants must fit within {nativetype}",
                 self.location,
             )
 
@@ -1253,20 +1253,16 @@ def ensureBuiltinClassIfNeeded(methodOrAttribute):
     # interfaces with these methods.
     if methodOrAttribute.notxpcom:
         raise IDLError(
-            (
-                "scriptable interface '%s' must be marked [builtinclass] because it "
-                "contains a [notxpcom] %s '%s'"
-            )
-            % (iface.name, methodOrAttribute.kind, methodOrAttribute.name),
+            f"scriptable interface '{iface.name}' must be marked "
+            f"[builtinclass] because it contains a [notxpcom] "
+            f"{methodOrAttribute.kind} '{methodOrAttribute.name}'",
             methodOrAttribute.location,
         )
     if methodOrAttribute.nostdcall:
         raise IDLError(
-            (
-                "scriptable interface '%s' must be marked [builtinclass] because it "
-                "contains a [nostdcall] %s '%s'"
-            )
-            % (iface.name, methodOrAttribute.kind, methodOrAttribute.name),
+            f"scriptable interface '{iface.name}' must be marked "
+            f"[builtinclass] because it contains a [nostdcall] "
+            f"{methodOrAttribute.kind} '{methodOrAttribute.name}'",
             methodOrAttribute.location,
         )
 
@@ -1291,22 +1287,18 @@ def ensureBuiltinClassIfNeeded(methodOrAttribute):
         for p in methodOrAttribute.params:
             if p.paramtype == "in" and typeNeedsBuiltinclass(p.realtype):
                 raise IDLError(
-                    (
-                        "scriptable interface '%s' must be marked [builtinclass] "
-                        "because it contains method '%s' with a by-value custom native "
-                        "parameter '%s'"
-                    )
-                    % (iface.name, methodOrAttribute.name, p.name),
+                    f"scriptable interface '{iface.name}' must be marked "
+                    f"[builtinclass] because it contains method "
+                    f"'{methodOrAttribute.name}' with a by-value custom native "
+                    f"parameter '{p.names}'",
                     methodOrAttribute.location,
                 )
     elif methodOrAttribute.kind == "attribute" and not methodOrAttribute.readonly:
         if typeNeedsBuiltinclass(methodOrAttribute.realtype):
             raise IDLError(
-                (
-                    "scriptable interface '%s' must be marked [builtinclass] because it "
-                    "contains writable attribute '%s' with a by-value custom native type"
-                )
-                % (iface.name, methodOrAttribute.name),
+                f"scriptable interface '{iface.name}' must be marked "
+                f"[builtinclass] because it contains writable attribute "
+                f"'{methodOrAttribute.name}' with a by-value custom native type",
                 methodOrAttribute.location,
             )
 
@@ -1331,8 +1323,8 @@ def ensureNoscriptIfNeeded(methodOrAttribute):
 
     if typeNeedsNoscript(methodOrAttribute.realtype):
         raise IDLError(
-            "%s '%s' must be marked [noscript] because it has a non-scriptable type"
-            % (methodOrAttribute.kind, methodOrAttribute.name),
+            f"{methodOrAttribute.kind} '{methodOrAttribute.name}' must be "
+            f"marked [noscript] because it has a non-scriptable type",
             methodOrAttribute.location,
         )
     if methodOrAttribute.kind == "method":
@@ -1340,11 +1332,9 @@ def ensureNoscriptIfNeeded(methodOrAttribute):
             # iid_is arguments have their type ignored, so shouldn't be checked.
             if not p.iid_is and typeNeedsNoscript(p.realtype):
                 raise IDLError(
-                    (
-                        "method '%s' must be marked [noscript] because it has a "
-                        "non-scriptable parameter '%s'"
-                    )
-                    % (methodOrAttribute.name, p.name),
+                    f"method '{methodOrAttribute.name}' must be marked "
+                    f"[noscript] because it has a non-scriptable parameter "
+                    f"'{p.name}'",
                     methodOrAttribute.location,
                 )
 
@@ -1428,7 +1418,7 @@ class Attribute:
                     )
                 self.explicit_getter_can_run_script = True
             else:
-                raise IDLError("Unexpected attribute '%s'" % attr_name, aloc)
+                raise IDLError(f"Unexpected attribute '{attr_name}'", aloc)
 
     def resolve(self, iface):
         self.iface = iface
@@ -1510,7 +1500,7 @@ class Method:
             elif attr_name == "infallible":
                 self.infallible = True
             else:
-                raise IDLError("Unexpected attribute '%s'" % attr_name, aloc)
+                raise IDLError(f"Unexpected attribute '{attr_name}'", aloc)
 
         self.namemap = NameMap()
         for p in paramlist:
@@ -1525,7 +1515,7 @@ class Method:
         for p in self.params:
             if p.retval and p != self.params[-1]:
                 raise IDLError(
-                    "'retval' parameter '%s' is not the last parameter" % p.name,
+                    f"'retval' parameter '{p.name}' is not the last parameter",
                     self.location,
                 )
             if p.size_is:
@@ -1633,7 +1623,7 @@ class Param:
             else:
                 if value is not None:
                     raise IDLError(
-                        "Unexpected value for attribute '%s'" % attr_name, aloc
+                        f"Unexpected value for attribute '{attr_name}'", aloc
                     )
 
                 if attr_name == "const":
@@ -1647,7 +1637,7 @@ class Param:
                 elif attr_name == "optional":
                     self.optional = True
                 else:
-                    raise IDLError("Unexpected attribute '%s'" % attr_name, aloc)
+                    raise IDLError(f"Unexpected attribute '{attr_name}'", aloc)
 
     def resolve(self, method):
         self.realtype = method.iface.idl.getName(self.type, self.location)
@@ -1869,8 +1859,9 @@ class IDLParser:
 
     def t_directive(self, t):
         r"\#(?P<directive>[a-zA-Z]+)[^\n]+"
+        directive = t.lexer.lexmatch.group("directive")
         raise IDLError(
-            "Unrecognized directive %s" % t.lexer.lexmatch.group("directive"),
+            f"Unrecognized directive {directive}",
             Location(
                 lexer=self.lexer, lineno=self.lexer.lineno, lexpos=self.lexer.lexpos
             ),
