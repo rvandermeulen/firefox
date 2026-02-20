@@ -45,7 +45,6 @@
 #include "nsIAppShellService.h"
 #include "nsIBaseWindow.h"
 #include "nsIInterfaceRequestorUtils.h"
-#include "mozilla/layers/IAPZCTreeManager.h"
 #include "nsIAppWindow.h"
 #include "nsToolkit.h"
 #include "nsPIDOMWindow.h"
@@ -58,7 +57,6 @@
 #include "nsNativeThemeColors.h"
 #include "nsNativeThemeCocoa.h"
 #include "nsClipboard.h"
-#include "nsChildView.h"
 #include "nsCocoaFeatures.h"
 #include "nsIScreenManager.h"
 #include "nsIWidgetListener.h"
@@ -1597,55 +1595,57 @@ NSEvent* gLastDragMouseDownEvent = nil;  // [strong]
 - (id)initWithFrame:(NSRect)inFrame geckoChild:(nsCocoaWindow*)inChild {
   NS_OBJC_BEGIN_TRY_BLOCK_RETURN;
 
-  if ((self = [super initWithFrame:inFrame])) {
-    mGeckoChild = inChild;
-    mBlockedLastMouseDown = NO;
-    mExpectingWheelStop = NO;
+  self = [super initWithFrame:inFrame];
+  if (!self) {
+    return nil;
+  }
 
-    mLastMouseDownEvent = nil;
-    mLastKeyDownEvent = nil;
-    mClickThroughMouseDownEvent = nil;
-    mDragService = nullptr;
+  mGeckoChild = inChild;
+  mBlockedLastMouseDown = NO;
+  mExpectingWheelStop = NO;
 
-    mGestureState = eGestureState_None;
-    mCumulativeRotation = 0.0;
+  mLastMouseDownEvent = nil;
+  mLastKeyDownEvent = nil;
+  mClickThroughMouseDownEvent = nil;
+  mDragService = nullptr;
 
-    mIsUpdatingLayer = NO;
+  mGestureState = eGestureState_None;
+  mCumulativeRotation = 0.0;
 
-    [self setFocusRingType:NSFocusRingTypeNone];
+  mIsUpdatingLayer = NO;
+
+  [self setFocusRingType:NSFocusRingTypeNone];
 
 #ifdef __LP64__
-    mCancelSwipeAnimation = nil;
+  mCancelSwipeAnimation = nil;
 #endif
 
-    auto bounds = self.bounds;
-    mNonDraggableViewsContainer =
-        [[ViewRegionContainerView alloc] initWithFrame:bounds];
-    mVibrancyViewsContainer =
-        [[ViewRegionContainerView alloc] initWithFrame:bounds];
+  auto bounds = self.bounds;
+  mNonDraggableViewsContainer =
+      [[ViewRegionContainerView alloc] initWithFrame:bounds];
+  mVibrancyViewsContainer =
+      [[ViewRegionContainerView alloc] initWithFrame:bounds];
 
-    mNonDraggableViewsContainer.autoresizingMask =
-        mVibrancyViewsContainer.autoresizingMask =
-            NSViewWidthSizable | NSViewHeightSizable;
+  mNonDraggableViewsContainer.autoresizingMask =
+      mVibrancyViewsContainer.autoresizingMask =
+          NSViewWidthSizable | NSViewHeightSizable;
 
-    [self addSubview:mNonDraggableViewsContainer];
-    [self addSubview:mVibrancyViewsContainer];
+  [self addSubview:mNonDraggableViewsContainer];
+  [self addSubview:mVibrancyViewsContainer];
 
-    mPixelHostingView = [[PixelHostingView alloc] initWithFrame:bounds];
-    mPixelHostingView.autoresizingMask =
-        NSViewWidthSizable | NSViewHeightSizable;
+  mPixelHostingView = [[PixelHostingView alloc] initWithFrame:bounds];
+  mPixelHostingView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
 
-    [self addSubview:mPixelHostingView];
+  [self addSubview:mPixelHostingView];
 
-    mRootCALayer = [[CALayer layer] retain];
-    mRootCALayer.position = NSZeroPoint;
-    mRootCALayer.bounds = NSZeroRect;
-    mRootCALayer.anchorPoint = NSZeroPoint;
-    mRootCALayer.contentsGravity = kCAGravityTopLeft;
-    [mPixelHostingView.layer addSublayer:mRootCALayer];
+  mRootCALayer = [[CALayer layer] retain];
+  mRootCALayer.position = NSZeroPoint;
+  mRootCALayer.bounds = NSZeroRect;
+  mRootCALayer.anchorPoint = NSZeroPoint;
+  mRootCALayer.contentsGravity = kCAGravityTopLeft;
+  [mPixelHostingView.layer addSublayer:mRootCALayer];
 
-    mLastPressureStage = 0;
-  }
+  mLastPressureStage = 0;
 
   // register for things we'll take from other applications
   [ChildView registerViewForDraggedTypes:self];
@@ -2891,7 +2891,7 @@ static gfx::IntPoint GetIntegerDeltaForEvent(NSEvent* aEvent) {
 
 - (void)convertCocoaTabletPointerEvent:(NSEvent*)aPointerEvent
                           toGeckoEvent:(WidgetMouseEvent*)aOutGeckoEvent {
-  NS_OBJC_BEGIN_TRY_BLOCK_RETURN
+  NS_OBJC_BEGIN_TRY_IGNORE_BLOCK
   if (!aOutGeckoEvent || !sIsTabletPointerActivated) {
     return;
   }
@@ -2911,7 +2911,7 @@ static gfx::IntPoint GetIntegerDeltaForEvent(NSEvent* aEvent) {
 }
 
 - (void)tabletProximity:(NSEvent*)theEvent {
-  NS_OBJC_BEGIN_TRY_BLOCK_RETURN
+  NS_OBJC_BEGIN_TRY_IGNORE_BLOCK
   sIsTabletPointerActivated = [theEvent isEnteringProximity];
   NS_OBJC_END_TRY_IGNORE_BLOCK
 }
@@ -4420,6 +4420,9 @@ nsresult nsCocoaWindow::RestoreHiDPIMode() {
 @implementation PixelHostingView
 - (id)initWithFrame:(NSRect)aRect {
   self = [super initWithFrame:aRect];
+  if (!self) {
+    return nil;
+  }
 
   self.wantsLayer = YES;
   self.layerContentsRedrawPolicy = NSViewLayerContentsRedrawDuringViewResize;
@@ -5580,7 +5583,7 @@ void nsCocoaWindow::GetWorkspaceID(nsAString& workspaceID) {
 }
 
 int32_t nsCocoaWindow::GetWorkspaceID() {
-  NS_OBJC_BEGIN_TRY_IGNORE_BLOCK;
+  NS_OBJC_BEGIN_TRY_BLOCK_RETURN;
 
   // Mac OSX space IDs start at '1' (default space), so '0' means 'unknown',
   // effectively.
@@ -5612,7 +5615,7 @@ int32_t nsCocoaWindow::GetWorkspaceID() {
 
   return sid;
 
-  NS_OBJC_END_TRY_IGNORE_BLOCK;
+  NS_OBJC_END_TRY_BLOCK_RETURN(0);
 }
 
 void nsCocoaWindow::MoveToWorkspace(const nsAString& workspaceIDStr) {
@@ -7071,10 +7074,15 @@ already_AddRefed<nsIWidget> nsIWidget::CreateChildWindow() {
 - (id)initWithGeckoWindow:(nsCocoaWindow*)geckoWind {
   NS_OBJC_BEGIN_TRY_BLOCK_RETURN;
 
-  [super init];
+  self = [super init];
+  if (!self) {
+    return nil;
+  }
+
   mGeckoWindow = geckoWind;
   mToplevelActiveState = false;
   mHasEverBeenZoomed = false;
+
   return self;
 
   NS_OBJC_END_TRY_BLOCK_RETURN(nil);
@@ -7552,11 +7560,15 @@ static NSMutableSet* gSwizzledFrameViewClasses = nil;
                 styleMask:(NSUInteger)aStyle
                   backing:(NSBackingStoreType)aBufferingType
                     defer:(BOOL)aFlag {
+  self = [super initWithContentRect:aContentRect
+                          styleMask:aStyle
+                            backing:aBufferingType
+                              defer:aFlag];
+  if (!self) {
+    return nil;
+  }
+
   mDrawsIntoWindowFrame = NO;
-  [super initWithContentRect:aContentRect
-                   styleMask:aStyle
-                     backing:aBufferingType
-                       defer:aFlag];
   mState = nil;
   mDisabledNeedsDisplay = NO;
   mTrackingArea = nil;
@@ -7970,8 +7982,13 @@ static const NSString* kStateCollectionBehavior = @"collectionBehavior";
 
 @implementation FullscreenTitlebarTracker
 - (FullscreenTitlebarTracker*)init {
-  [super init];
+  self = [super init];
+  if (!self) {
+    return nil;
+  }
+
   self.hidden = YES;
+
   return self;
 }
 - (void)loadView {
@@ -8278,11 +8295,17 @@ static CGFloat DefaultTitlebarHeight() {
                     defer:(BOOL)deferCreation {
   NS_OBJC_BEGIN_TRY_BLOCK_RETURN;
 
-  mIsContextMenu = false;
-  return [super initWithContentRect:contentRect
+  self = [super initWithContentRect:contentRect
                           styleMask:styleMask
                             backing:bufferingType
                               defer:deferCreation];
+  if (!self) {
+    return nil;
+  }
+
+  mIsContextMenu = false;
+
+  return self;
 
   NS_OBJC_END_TRY_BLOCK_RETURN(nil);
 }
