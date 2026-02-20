@@ -571,6 +571,11 @@ if (SECURITY_PRIVACY_STATUS_CARD_ENABLED) {
     pref: "browser.contentblocking.category",
     get: prefValue => prefValue == "strict",
   });
+  Preferences.addSetting({
+    id: "etpCustomEnabled",
+    pref: "browser.contentblocking.category",
+    get: prefValue => prefValue == "custom",
+  });
   Preferences.addSetting(
     /** @type {{ cachedValue: number, loadTrackerCount: (emitChange: SettingEmitChange) => Promise<void> } & SettingConfig} */ ({
       id: "trackerCount",
@@ -1416,6 +1421,7 @@ if (SECURITY_PRIVACY_STATUS_CARD_ENABLED) {
       "appUpdateStatus",
       "trackerCount",
       "etpStrictEnabled",
+      "etpCustomEnabled",
       ...SECURITY_WARNINGS.map(warning => warning.id),
     ],
   });
