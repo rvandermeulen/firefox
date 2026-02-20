@@ -119,3 +119,15 @@ fxa-signout-dialog-body-aiwindow = Synced data will remain in your account. Your
 ## Smart Window Toggle Button (in-page)
 
 smartwindow-switch-to-smart-window = Switch to Smart Window
+
+## Fullpage Footer Actions
+
+smartwindow-footer-chats =
+    .tooltiptext = Chats
+    .aria-label = Chats
+    .label = Chats
+
+smartwindow-footer-history =
+    .tooltiptext = History
+    .aria-label = History
+    .label = History

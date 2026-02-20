@@ -19,10 +19,13 @@
 :host([mode="fullpage"]) {
   grid-template-areas:
     "browser"
+    "."
     "smartbar"
-    "prompts";
-  grid-template-rows: 0 auto auto;
-  align-content: center;
+    "prompts"
+    "."
+    "footer";
+  grid-template-rows: 0 1fr auto auto 1fr auto;
+  align-content: stretch;
 }
 
 :host([mode="sidebar"]) {
@@ -129,4 +132,11 @@ moz-button.new-chat-icon-button {
   color: var(--smartbar-button-text-color);
   font-size: var(--button-font-size);
   font-weight: var(--font-weight);
+}
+
+smartwindow-footer {
+  grid-area: footer;
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }

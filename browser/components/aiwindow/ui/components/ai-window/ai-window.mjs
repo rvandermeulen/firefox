@@ -91,6 +91,7 @@ export class AIWindow extends MozLitElement {
   static properties = {
     mode: { type: String, reflect: true }, // sidebar | fullpage
     showStarters: { type: Boolean, state: true },
+    showFooter: { type: Boolean, state: true },
   };
 
   #browser;
@@ -183,6 +184,7 @@ export class AIWindow extends MozLitElement {
     this.#conversation = new lazy.ChatConversation({});
     this.mode = this.#detectModeFromContext();
     this.showStarters = false;
+    this.showFooter = this.mode === FULLPAGE;
 
     // Apply chat-active immediately if loading a conversation to prevent layout flash
     if (this.#getPendingConversationId()) {
@@ -807,6 +809,7 @@ export class AIWindow extends MozLitElement {
       return;
     }
     this.showStarters = false;
+    this.showFooter = false;
     this.#updateTabFavicon();
     this.#setBrowserContainerActiveState(true);
 
@@ -1068,6 +1071,10 @@ export class AIWindow extends MozLitElement {
         this.#smartbar.updateContextChips();
       }
 
+      // This assumes "openConversation" opens an active conversation, possible todo to see
+      // if convo has messages before hiding the footer element.
+      this.showFooter = false;
+
       this.showStarters = false;
       const actor = this.#getAIChatContentActor();
       if (this.#browser && actor) {
@@ -1290,8 +1297,7 @@ export class AIWindow extends MozLitElement {
             ></smartwindow-prompts>
           `
         : ""}
-      <!-- TODO : Example of mode-based rendering -->
-      ${this.mode === FULLPAGE ? html`<div>Fullpage Footer Content</div>` : ""}
+      ${this.showFooter ? html`<smartwindow-footer></smartwindow-footer>` : ""}
     `;
   }
 }
