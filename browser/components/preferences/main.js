@@ -4260,7 +4260,7 @@ SettingGroupManager.registerGroups({
     ],
   },
   dnsOverHttps: {
-    l10nId: "dns-over-https-group",
+    l10nId: "dns-over-https-group2",
     headingLevel: 1,
     inProgress: true,
     items: [
