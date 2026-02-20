@@ -338,10 +338,6 @@ var allowlist = [
   {
     file: "moz-src:///browser/components/qrcode/QRCodeWorker.sys.mjs",
   },
-  // Bug 2011266 - Integrate current tab website chip context in sidebar
-  {
-    file: "chrome://browser/content/aiwindow/components/website-chip-container.mjs",
-  },
 ];
 
 if (AppConstants.NIGHTLY_BUILD) {
