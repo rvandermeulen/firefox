@@ -41,7 +41,7 @@ export default class IPProtectionMessageBarElement extends MozLitElement {
     super();
 
     this.handleDismiss = this.handleDismiss.bind(this);
-    this.handleClickSetingsLink = this.handleClickSettingsLink.bind(this);
+    this.handleClickSettingsLink = this.handleClickSettingsLink.bind(this);
   }
 
   connectedCallback() {
