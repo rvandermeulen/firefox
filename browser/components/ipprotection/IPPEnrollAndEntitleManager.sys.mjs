@@ -155,7 +155,7 @@ class IPPEnrollAndEntitleManagerSingleton extends EventTarget {
     if (entitlementError || !entitlement) {
       // Unset the entitlement if not available.
       this.#setEntitlement(null);
-      return { isEnrolledAndEntitled: null, error: entitlementError };
+      return { isEnrolledAndEntitled: false, error: entitlementError };
     }
 
     this.#setEntitlement(entitlement);
