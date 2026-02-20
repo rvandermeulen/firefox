@@ -1957,7 +1957,7 @@ Preferences.addSetting(
       let { value, unit } = this.usage;
       return {
         ...config,
-        l10nId: "sitedata-total-size2",
+        l10nId: "sitedata-total-size3",
         l10nArgs: {
           value,
           unit,

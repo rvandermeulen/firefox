@@ -12,6 +12,17 @@ global-privacy-control-description =
 non-technical-privacy-group =
     .label = Website Privacy Preferences
 
+do-not-track-removal3 =
+    .message = We no longer support the “Do Not Track” feature.
+
+non-technical-privacy-heading =
+    .label = Additional protections
+
+preferences-privacy-relay-available =
+    .label = Suggest { -relay-brand-name } email masks
+    .description = Hides your real email address to protect your inbox from spam.
+
+
 # Do not translate.
 # "Global Privacy Control" or "GPC" are a web platform feature name and abbreviation
 # included to facilitate power-user search of the about:preferences page.
@@ -1687,10 +1698,11 @@ history-group =
 
 history-remember-option-all =
     .label = Remember history
-history-remember-option-never =
+history-remember-option-never2 =
     .label = Never remember history
-history-remember-option-custom =
-    .label = Use custom settings for history
+    .description = Every window acts like a private window. When on, extensions need to be allowed.
+history-remember-option-custom2 =
+    .label = Customize history
 
 history-remember-description4 =
     .aria-label = { history-group.label }
@@ -1728,6 +1740,20 @@ history-clear-button =
     .label = Clear History…
     .accesskey = s
 
+history-header2 =
+    .heading = History
+
+history-section-header =
+    .label = History
+    .description = Choose what you want { -brand-short-name } to remember when you close the browser.
+
+history-custom-section-header =
+    .label = Advanced settings
+    .description = Customize what you want { -brand-short-name } to remember when you close the browser.
+
+history-custom-button =
+    .label = Choose what you want { -brand-short-name } to remember
+
 ## Privacy Section - Site Data
 
 cookies-site-data-group =
@@ -1738,16 +1764,20 @@ sitedata-total-size-calculating = Calculating site data and cache size…
 # Variables:
 #   $value (number) - Value of the unit (for example: 4.6, 500)
 #   $unit (string) - Name of the unit (for example: "bytes", "KB")
-sitedata-total-size2 = Your stored cookies, history, site data, and cache are currently using <strong>{ $value } { $unit }</strong> of disk space.
+sitedata-total-size3 = Websites are currently using <strong>{ $value } { $unit }</strong> of disk space.
 
 sitedata-learn-more = Learn more
 
-sitedata-delete-on-close =
-    .label = Delete cookies and site data when { -brand-short-name } is closed
+sitedata-delete-on-close2 =
+    .label = Clear cookies and site data every time you close { -brand-short-name }
     .accesskey = c
 
 sitedata-delete-on-close-private-browsing3 =
     .message = Based on your history settings, { -brand-short-name } deletes cookies and site data from your session when you close the browser.
+
+sitedata-delete-on-close-private-browsing4 =
+    .heading = History won’t be saved.
+    .message = { -brand-short-name } clears cookies and site data from your session when you close the browser.
 
 sitedata-option-block-cross-site-trackers =
     .label = Cross-site trackers
@@ -1778,6 +1808,19 @@ sitedata-cookies-exceptions2 =
     .label = Manage exceptions
     .accesskey = x
     .description = You can specify which websites are always or never allowed to use cookies and site data.
+
+sitedata-heading =
+    .label = Browsing data
+    .description = Manage your cookies, history, cache, website data, and more.
+
+sitedata-settings3 =
+    .label = Clear data for specific sites
+    .accesskey = s
+
+sitedata-cookies-exceptions3 =
+    .label = Manage exceptions
+    .accesskey = x
+    .description = Choose how specific sites handle cookies and site data.
 
 ## Privacy Section - Cookie Banner Blocking
 

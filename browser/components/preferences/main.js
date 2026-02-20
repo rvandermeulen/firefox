@@ -3518,6 +3518,7 @@ SettingGroupManager.registerGroups({
   nonTechnicalPrivacy2: {
     inProgress: true,
     l10nId: "non-technical-privacy-heading",
+    iconSrc: "chrome://browser/skin/controlcenter/tracking-protection.svg",
     headingLevel: 2,
     items: [
       {
@@ -3759,13 +3760,14 @@ SettingGroupManager.registerGroups({
       },
       {
         id: "deleteOnClose",
-        l10nId: "sitedata-delete-on-close",
+        l10nId: "sitedata-delete-on-close2",
       },
     ],
   },
   cookiesAndSiteData2: {
     inProgress: true,
     l10nId: "sitedata-heading",
+    iconSrc: "chrome://browser/skin/controlcenter/3rdpartycookies.svg",
     headingLevel: 2,
     items: [
       {
@@ -3827,7 +3829,7 @@ SettingGroupManager.registerGroups({
       },
       {
         id: "deleteOnClose",
-        l10nId: "sitedata-delete-on-close",
+        l10nId: "sitedata-delete-on-close2",
       },
     ],
   },
@@ -3968,8 +3970,8 @@ SettingGroupManager.registerGroups({
             value: "remember",
             l10nId: "history-remember-option-all",
           },
-          { value: "dontremember", l10nId: "history-remember-option-never" },
-          { value: "custom", l10nId: "history-remember-option-custom" },
+          { value: "dontremember", l10nId: "history-remember-option-never2" },
+          { value: "custom", l10nId: "history-remember-option-custom2" },
         ],
         controlAttrs: {
           "search-l10n-ids": `
@@ -4029,10 +4031,11 @@ SettingGroupManager.registerGroups({
   history2: {
     inProgress: true,
     l10nId: "history-section-header",
+    iconSrc: "chrome://browser/skin/controlcenter/3rdpartycookies.svg",
     items: [
       {
         id: "deleteOnCloseInfo",
-        l10nId: "sitedata-delete-on-close-private-browsing3",
+        l10nId: "sitedata-delete-on-close-private-browsing4",
         control: "moz-message-bar",
       },
       {
@@ -4043,10 +4046,10 @@ SettingGroupManager.registerGroups({
             value: "remember",
             l10nId: "history-remember-option-all",
           },
-          { value: "dontremember", l10nId: "history-remember-option-never" },
+          { value: "dontremember", l10nId: "history-remember-option-never2" },
           {
             value: "custom",
-            l10nId: "history-remember-option-custom",
+            l10nId: "history-remember-option-custom2",
             items: [
               {
                 id: "customHistoryButton",
