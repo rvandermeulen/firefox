@@ -257,9 +257,9 @@ pub {name}: *const ::libc::c_void"""
 
 method_impl_tmpl = """\
 #[inline]
-pub unsafe fn %(name)s(&self, %(params)s) -> %(ret_ty)s {
-    ((*self.vtable).%(name)s)(self, %(args)s)
-}
+pub unsafe fn {name}(&self, {params}) -> {ret_ty} {{
+    ((*self.vtable).{name})(self, {args})
+}}
 """
 
 
@@ -270,12 +270,12 @@ def methodAsWrapper(iface, m):
         params = [f"{name}: {ty}" for name, ty in param_list]
         args = [x[0] for x in param_list]
 
-        return method_impl_tmpl % {
-            "name": methodNativeName(m),
-            "params": ", ".join(params),
-            "ret_ty": methodReturnType(m),
-            "args": ", ".join(args),
-        }
+        return method_impl_tmpl.format(
+            name=name,
+            params=", ".join(params),
+            ret_ty=methodReturnType(m),
+            args=", ".join(args),
+        )
     except xpidl.RustNoncompat:
         # Dummy field for the doc comments to attach to.
         # Private so that it's not shown in rustdoc.
@@ -284,12 +284,12 @@ def methodAsWrapper(iface, m):
 
 infallible_impl_tmpl = """\
 #[inline]
-pub unsafe fn %(name)s(&self) -> %(realtype)s {
-    let mut result = <%(realtype)s as ::std::default::Default>::default();
-    let _rv = ((*self.vtable).%(name)s)(self, &mut result);
+pub unsafe fn {name}(&self) -> {realtype} {{
+    let mut result = <{realtype} as ::std::default::Default>::default();
+    let _rv = ((*self.vtable).{name})(self, &mut result);
     debug_assert!(_rv.succeeded());
     result
-}
+}}
 """
 
 
@@ -306,19 +306,19 @@ def attrAsWrapper(iface, m, getter):
 
         if getter and m.infallible and m.realtype.kind == "builtin":
             # NOTE: We don't support non-builtin infallible getters in Rust code.
-            return infallible_impl_tmpl % {
-                "name": name,
-                "realtype": m.realtype.rustType("in"),
-            }
+            return infallible_impl_tmpl.format(
+                name=name,
+                realtype=m.realtype.rustType("in"),
+            )
 
         param_list = attributeRawParamList(iface, m, getter)
         params = [f"{name}: {ty}" for name, ty in param_list]
-        return method_impl_tmpl % {
-            "name": name,
-            "params": ", ".join(params),
-            "ret_ty": attributeReturnType(m, getter),
-            "args": "" if getter and m.notxpcom else param_name,
-        }
+        return method_impl_tmpl.format(
+            name=name,
+            params=", ".join(params),
+            ret_ty=attributeReturnType(m, getter),
+            args="" if getter and m.notxpcom else param_name,
+        )
 
     except xpidl.RustNoncompat:
         # Dummy field for the doc comments to attach to.
@@ -328,7 +328,7 @@ def attrAsWrapper(iface, m, getter):
 
 header = """\
 //
-// DO NOT EDIT.  THIS FILE IS GENERATED FROM $SRCDIR/%(relpath)s
+// DO NOT EDIT.  THIS FILE IS GENERATED FROM $SRCDIR/{relpath}
 //
 
 """
@@ -342,7 +342,7 @@ def idl_basename(f):
 def print_rust_bindings(idl, fd, relpath):
     fd = AutoIndent(fd)
 
-    fd.write(header % {"relpath": relpath})
+    fd.write(header.format(relpath=relpath))
 
     # All of the idl files will be included into the same rust module, as we
     # can't do forward declarations. Because of this, we want to ignore all
@@ -373,20 +373,20 @@ def print_rust_bindings(idl, fd, relpath):
 base_vtable_tmpl = """
 /// We need to include the members from the base interface's vtable at the start
 /// of the VTable definition.
-pub __base: %sVTable,
+pub __base: {name}VTable,
 
 """
 
 
 vtable_tmpl = """\
 // This struct represents the interface's VTable. A pointer to a statically
-// allocated version of this struct is at the beginning of every %(name)s
+// allocated version of this struct is at the beginning of every {name}
 // object. It contains one pointer field for each method in the interface. In
 // the case where we can't generate a binding for a method, we include a void
 // pointer.
 #[doc(hidden)]
 #[repr(C)]
-pub struct %(name)sVTable {%(base)s%(entries)s}
+pub struct {name}VTable {{{base}{entries}}}
 
 """
 
@@ -397,24 +397,24 @@ deref_tmpl = """\
 // causes methods on the base interfaces to be directly avaliable on the
 // object. For example, you can call `.AddRef` or `.QueryInterface` directly
 // on any interface which inherits from `nsISupports`.
-impl ::std::ops::Deref for %(name)s {
-    type Target = %(base)s;
+impl ::std::ops::Deref for {name} {{
+    type Target = {base};
     #[inline]
-    fn deref(&self) -> &%(base)s {
-        unsafe {
+    fn deref(&self) -> &{base} {{
+        unsafe {{
             ::std::mem::transmute(self)
-        }
-    }
-}
+        }}
+    }}
+}}
 
 // Ensure we can use .coerce() to cast to our base types as well. Any type which
 // our base interface can coerce from should be coercable from us as well.
-impl<T: %(base)sCoerce> %(name)sCoerce for T {
+impl<T: {base}Coerce> {name}Coerce for T {{
     #[inline]
-    fn coerce_from(v: &%(name)s) -> &Self {
+    fn coerce_from(v: &{name}) -> &Self {{
         T::coerce_from(v)
-    }
-}
+    }}
+}}
 """
 
 
@@ -424,8 +424,8 @@ struct_tmpl = """\
 // this type around by value, always pass it behind a reference.
 
 #[repr(C)]
-pub struct %(name)s {
-    vtable: &'static %(name)sVTable,
+pub struct {name} {{
+    vtable: &'static {name}VTable,
 
     /// This field is a phantomdata to ensure that the VTable type and any
     /// struct containing it is not safe to send across threads by default, as
@@ -449,53 +449,53 @@ pub struct %(name)s {
     // in places that don't cause UB. But again, those optimizations weren't
     // available before.
     __maybe_interior_mutability: ::std::cell::UnsafeCell<[u8; 0]>,
-}
+}}
 
 // Implementing XpCom for an interface exposes its IID, which allows for easy
 // use of the `.query_interface<T>` helper method. This also defines that
-// method for %(name)s.
-unsafe impl XpCom for %(name)s {
-    const IID: nsIID = nsID(0x%(m0)s, 0x%(m1)s, 0x%(m2)s,
-                            [%(m3joined)s]);
-}
+// method for {name}.
+unsafe impl XpCom for {name} {{
+    const IID: nsIID = nsID(0x{m0}, 0x{m1}, 0x{m2},
+                            [{m3joined}]);
+}}
 
 // We need to implement the RefCounted trait so we can be used with `RefPtr`.
 // This trait teaches `RefPtr` how to manage our memory.
-unsafe impl RefCounted for %(name)s {
+unsafe impl RefCounted for {name} {{
     #[inline]
-    unsafe fn addref(&self) {
+    unsafe fn addref(&self) {{
         self.AddRef();
-    }
+    }}
     #[inline]
-    unsafe fn release(&self) {
+    unsafe fn release(&self) {{
         self.Release();
-    }
-}
+    }}
+}}
 
-// This trait is implemented on all types which can be coerced to from %(name)s.
+// This trait is implemented on all types which can be coerced to from {name}.
 // It is used in the implementation of `fn coerce<T>`. We hide it from the
 // documentation, because it clutters it up a lot.
 #[doc(hidden)]
-pub trait %(name)sCoerce {
-    /// Cheaply cast a value of this type from a `%(name)s`.
-    fn coerce_from(v: &%(name)s) -> &Self;
-}
+pub trait {name}Coerce {{
+    /// Cheaply cast a value of this type from a `{name}`.
+    fn coerce_from(v: &{name}) -> &Self;
+}}
 
 // The trivial implementation: We can obviously coerce ourselves to ourselves.
-impl %(name)sCoerce for %(name)s {
+impl {name}Coerce for {name} {{
     #[inline]
-    fn coerce_from(v: &%(name)s) -> &Self {
+    fn coerce_from(v: &{name}) -> &Self {{
         v
-    }
-}
+    }}
+}}
 
-impl %(name)s {
-    /// Cast this `%(name)s` to one of its base interfaces.
+impl {name} {{
+    /// Cast this `{name}` to one of its base interfaces.
     #[inline]
-    pub fn coerce<T: %(name)sCoerce>(&self) -> &T {
+    pub fn coerce<T: {name}Coerce>(&self) -> &T {{
         T::coerce_from(self)
-    }
-}
+    }}
+}}
 """
 
 
@@ -503,37 +503,37 @@ sendsync_tmpl = """\
 // This interface is marked as [rust_sync], meaning it is safe to be transferred
 // and used from multiple threads silmultaneously.  These override the default
 // from the __nosync marker type allowng the type to be sent between threads.
-unsafe impl Send for %(name)s {}
-unsafe impl Sync for %(name)s {}
+unsafe impl Send for {name} {{}}
+unsafe impl Sync for {name} {{}}
 """
 
 
 wrapper_tmpl = """\
 // The implementations of the function wrappers which are exposed to rust code.
 // Call these methods rather than manually calling through the VTable struct.
-impl %(name)s {
-%(consts)s
-%(methods)s
-}
+impl {name} {{
+{consts}
+{methods}
+}}
 
 """
 
 vtable_entry_tmpl = """\
-/* %(idl)s */
-%(entry)s,
+/* {idl} */
+{entry},
 """
 
 
 const_wrapper_tmpl = """\
-%(docs)s
-pub const %(name)s: %(type)s = %(val)s;
+{docs}
+pub const {name}: {type} = {val};
 """
 
 
 method_wrapper_tmpl = """\
-%(docs)s
-/// `%(idl)s`
-%(wrapper)s
+{docs}
+/// `{idl}`
+{wrapper}
 """
 
 
@@ -565,55 +565,52 @@ def write_interface(iface, fd):
         else:
             fd.write(f"/// `interface {iface.name}`\n///\n")
     printComments(fd, iface.doccomments, "")
-    fd.write(struct_tmpl % names)
+    fd.write(struct_tmpl.format(**names))
 
     if iface.attributes.rust_sync:
-        fd.write(sendsync_tmpl % {"name": iface.name})
+        fd.write(sendsync_tmpl.format(name=iface.name))
 
     if iface.base is not None:
         fd.write(
-            deref_tmpl
-            % {
-                "name": iface.name,
-                "base": iface.base,
-            }
+            deref_tmpl.format(
+                name=iface.name,
+                base=iface.base,
+            )
         )
 
     entries = []
     for member in iface.members:
         if type(member) is xpidl.Attribute:
             entries.append(
-                vtable_entry_tmpl
-                % {
-                    "idl": member.toIDL(),
-                    "entry": attrAsVTableEntry(iface, member, True),
-                }
+                vtable_entry_tmpl.format(
+                    idl=member.toIDL(),
+                    entry=attrAsVTableEntry(iface, member, True),
+                )
             )
             if not member.readonly:
                 entries.append(
-                    vtable_entry_tmpl
-                    % {
-                        "idl": member.toIDL(),
-                        "entry": attrAsVTableEntry(iface, member, False),
-                    }
+                    vtable_entry_tmpl.format(
+                        idl=member.toIDL(),
+                        entry=attrAsVTableEntry(iface, member, False),
+                    )
                 )
 
         elif type(member) is xpidl.Method:
             entries.append(
-                vtable_entry_tmpl
-                % {
-                    "idl": member.toIDL(),
-                    "entry": methodAsVTableEntry(iface, member),
-                }
+                vtable_entry_tmpl.format(
+                    idl=member.toIDL(),
+                    entry=methodAsVTableEntry(iface, member),
+                )
             )
 
     fd.write(
-        vtable_tmpl
-        % {
-            "name": iface.name,
-            "base": base_vtable_tmpl % iface.base if iface.base is not None else "",
-            "entries": "\n".join(entries),
-        }
+        vtable_tmpl.format(
+            name=iface.name,
+            base=base_vtable_tmpl.format(name=iface.base)
+            if iface.base is not None
+            else "",
+            entries="\n".join(entries),
+        )
     )
 
     # Get all of the constants
@@ -621,62 +618,56 @@ def write_interface(iface, fd):
     for member in iface.members:
         if type(member) is xpidl.ConstMember:
             consts.append(
-                const_wrapper_tmpl
-                % {
-                    "docs": doccomments(member.doccomments),
-                    "type": member.realtype.rustType("in"),
-                    "name": member.name,
-                    "val": member.getValue(),
-                }
+                const_wrapper_tmpl.format(
+                    docs=doccomments(member.doccomments),
+                    type=member.realtype.rustType("in"),
+                    name=member.name,
+                    val=member.getValue(),
+                )
             )
         if type(member) is xpidl.CEnum:
             for var in member.variants:
                 consts.append(
-                    const_wrapper_tmpl
-                    % {
-                        "docs": "",
-                        "type": member.rustType("in"),
-                        "name": var.name,
-                        "val": var.getValue(),
-                    }
+                    const_wrapper_tmpl.format(
+                        docs="",
+                        type=member.rustType("in"),
+                        name=var.name,
+                        val=var.getValue(),
+                    )
                 )
 
     methods = []
     for member in iface.members:
         if type(member) is xpidl.Attribute:
             methods.append(
-                method_wrapper_tmpl
-                % {
-                    "docs": doccomments(member.doccomments),
-                    "idl": member.toIDL(),
-                    "wrapper": attrAsWrapper(iface, member, True),
-                }
+                method_wrapper_tmpl.format(
+                    docs=doccomments(member.doccomments),
+                    idl=member.toIDL(),
+                    wrapper=attrAsWrapper(iface, member, True),
+                )
             )
             if not member.readonly:
                 methods.append(
-                    method_wrapper_tmpl
-                    % {
-                        "docs": doccomments(member.doccomments),
-                        "idl": member.toIDL(),
-                        "wrapper": attrAsWrapper(iface, member, False),
-                    }
+                    method_wrapper_tmpl.format(
+                        docs=doccomments(member.doccomments),
+                        idl=member.toIDL(),
+                        wrapper=attrAsWrapper(iface, member, False),
+                    )
                 )
 
         elif type(member) is xpidl.Method:
             methods.append(
-                method_wrapper_tmpl
-                % {
-                    "docs": doccomments(member.doccomments),
-                    "idl": member.toIDL(),
-                    "wrapper": methodAsWrapper(iface, member),
-                }
+                method_wrapper_tmpl.format(
+                    docs=doccomments(member.doccomments),
+                    idl=member.toIDL(),
+                    wrapper=methodAsWrapper(iface, member),
+                )
             )
 
     fd.write(
-        wrapper_tmpl
-        % {
-            "name": iface.name,
-            "consts": "\n".join(consts),
-            "methods": "\n".join(methods),
-        }
+        wrapper_tmpl.format(
+            name=iface.name,
+            consts="\n".join(consts),
+            methods="\n".join(methods),
+        )
     )
