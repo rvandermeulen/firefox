@@ -136,27 +136,34 @@ add_task(async function test_IPPExceptionsManager_setExclusion() {
     "Site should not exist in ipp-vpn with shouldExclude=false"
   );
 
-  const baseDomain = "https://example.com";
-  const contentPrincipalBaseDomain =
-    Services.scriptSecurityManager.createContentPrincipalFromOrigin(baseDomain);
+  // Test that example.com and www.example.com are treated as separate exclusions
+  const siteWithoutWWW = "https://example.com";
+  const contentPrincipalWithoutWWW =
+    Services.scriptSecurityManager.createContentPrincipalFromOrigin(
+      siteWithoutWWW
+    );
 
-  // Add exclusion with shouldExclude=true
+  // Add exclusion for example.com with shouldExclude=true
   setTrueExChangePromise = waitForEvent(
     IPPExceptionsManager,
     EXCLUSION_CHANGED_EVENT
   );
 
-  IPPExceptionsManager.setExclusion(contentPrincipalBaseDomain, true);
+  IPPExceptionsManager.setExclusion(contentPrincipalWithoutWWW, true);
 
   await setTrueExChangePromise;
 
   Assert.ok(
     true,
-    `${EXCLUSION_CHANGED_EVENT} event was dispatched after calling setExclusion with shouldExclude=true on the base domain`
+    `${EXCLUSION_CHANGED_EVENT} event was dispatched after calling setExclusion with shouldExclude=true on example.com`
   );
   Assert.ok(
-    IPPExceptionsManager.hasExclusion(contentPrincipal),
-    "Site should exist in ipp-vpn with shouldExclude=true"
+    IPPExceptionsManager.hasExclusion(contentPrincipalWithoutWWW),
+    "example.com should exist in ipp-vpn with shouldExclude=true"
+  );
+  Assert.ok(
+    !IPPExceptionsManager.hasExclusion(contentPrincipal),
+    "www.example.com should not be excluded when only example.com is added"
   );
 
   Services.prefs.clearUserPref(ONBOARDING_MESSAGE_MASK_PREF);

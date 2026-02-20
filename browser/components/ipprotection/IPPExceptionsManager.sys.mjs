@@ -77,6 +77,15 @@ class ExceptionsManager extends EventTarget {
   /**
    * Get the permission object for a site exception if it exists in ipp-vpn.
    *
+   * Use exactHost=true to only match the specific origin, not the base domain.
+   * This ensures that subdomains aren't implicitly excluded when entering
+   * a site in the about:preferences dialog. It also avoids an issue where we
+   * try to remove a subdomain as an exclusion when the site doesn't exist in ipp-vpn
+   * (see Bug 2016676).
+   *
+   * Eg. if we enter "example.com" in the dialog, "www.example.com" and
+   * "subdomain.example.com" won't be considered exclusions.
+   *
    * @param {nsIPrincipal} principal
    *  The principal that we want to check is saved in ipp-vpn.
    *
@@ -87,7 +96,7 @@ class ExceptionsManager extends EventTarget {
     let permissionObject = Services.perms.getPermissionObject(
       principal,
       PERM_NAME,
-      false /* exactHost */
+      true /* exactHost */
     );
     return permissionObject;
   }
