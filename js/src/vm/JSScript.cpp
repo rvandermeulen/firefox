@@ -175,14 +175,26 @@ js::Scope* js::BaseScript::releaseEnclosingScope() {
 
 void js::BaseScript::swapData(MutableHandleBuffer<PrivateScriptData> other) {
   PrivateScriptData* old = data_;
-  data_.set(zone(), other);  // GCStructPtr performs write barrier here.
+
+  // Write barrier for the buffer allocation.
+  if (data_ && zone()->needsMarkingBarrier()) {
+    JSTracer* trc = zone()->barrierTracer();
+    TraceBufferEdge(trc, this, &data_, "BaseScript::swapData barrier");
+  }
+
+  // GCStructPtr performs write barrier for the data.
+  data_.set(zone(), other);
+
   other.set(old);
 }
 
-PrivateScriptData* js::BaseScript::releaseData() {
+void js::BaseScript::freeData() {
   PrivateScriptData* old = data_;
-  data_.set(zone(), nullptr);  // GCStructPtr performs write barrier here.
-  return old;
+
+  // GCStructPtr performs write barrier for the data.
+  data_.set(zone(), nullptr);
+
+  gc::FreeBuffer(zone(), old);
 }
 
 js::Scope* js::BaseScript::enclosingScope() const {
@@ -2350,7 +2362,7 @@ void JSScript::relazify(JSRuntime* rt) {
   // NOTE: This clears the PrivateScriptData to nullptr. This is fine because we
   // only allowed relazification (via AllowRelazify) if the original lazy script
   // we compiled from had a nullptr PrivateScriptData.
-  gc::FreeBuffer(zone(), releaseData());
+  freeData();
 
   freeSharedData();
 
