@@ -1139,32 +1139,17 @@ export class FormAutofillChild extends JSWindowActorChild {
     const isInputAutofilled =
       input.autofillState == lazy.FormAutofillUtils.FIELD_STATES.AUTO_FILLED;
 
-    let AutocompleteResult;
-
-    // TODO: This should be calculated in the parent
-    // The field categories will be filled if the corresponding profile is
-    // used for autofill. We don't display this information for credit
-    // cards, so this is only calculated for address fields.
-    let fillCategories;
-    if (lazy.FormAutofillUtils.isAddressField(fieldDetail.fieldName)) {
-      AutocompleteResult = lazy.AddressResult;
-      fillCategories = adaptedRecords.map(profile => {
-        const fields = Object.keys(profile).filter(fieldName => {
-          const detail = handler.getFieldDetailByName(fieldName);
-          return detail ? handler.isFieldAutofillable(detail, profile) : false;
-        });
-        return lazy.FormAutofillUtils.getCategoriesFromFieldNames(fields);
-      });
-    } else {
-      AutocompleteResult = lazy.CreditCardResult;
-    }
+    const AutocompleteResult = lazy.FormAutofillUtils.isAddressField(
+      fieldDetail.fieldName
+    )
+      ? lazy.AddressResult
+      : lazy.CreditCardResult;
 
     const acResult = new AutocompleteResult(
       searchString,
       fieldDetail,
       records.allFieldNames,
       adaptedRecords,
-      fillCategories,
       { isSecure, isInputAutofilled }
     );
 

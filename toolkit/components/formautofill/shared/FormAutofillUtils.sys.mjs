@@ -309,17 +309,6 @@ FormAutofillUtils = {
     return this._fieldNameInfo[fieldName];
   },
 
-  getCategoriesFromFieldNames(fieldNames) {
-    let categories = new Set();
-    for (let fieldName of fieldNames) {
-      let info = this.getCategoryFromFieldName(fieldName);
-      if (info) {
-        categories.add(info);
-      }
-    }
-    return Array.from(categories);
-  },
-
   getCollectionNameFromFieldName(fieldName) {
     return this.isCreditCardField(fieldName)
       ? CREDITCARDS_COLLECTION_NAME

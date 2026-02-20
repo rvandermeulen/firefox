@@ -434,7 +434,6 @@
           const UNREUSEABLE_STYLES = [
             "autofill",
             "action",
-            "status",
             "generatedPassword",
             "generic",
             "importableLearnMore",
@@ -462,9 +461,6 @@
               break;
             case "action":
               options = { is: "autocomplete-action-richlistitem" };
-              break;
-            case "status":
-              options = { is: "autocomplete-status-richlistitem" };
               break;
             case "generic":
               options = { is: "autocomplete-two-line-richlistitem" };
