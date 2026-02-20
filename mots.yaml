@@ -8,7 +8,7 @@
 # documentation and how to modify this file.
 repo: mozilla-central
 created_at: '2021-10-14T12:50:40.073465'
-updated_at: '2026-02-11T17:34:29.613108+00:00'
+updated_at: '2026-02-19T16:52:21.341701+00:00'
 export:
   path: ./docs/mots/index.rst
   format: rst
@@ -3934,6 +3934,8 @@ modules:
             - Firefox::Site Permissions
         owners:
           - *emz
+        peers:
+          - *timhuang
         machine_name: security_and_privacy_ui
 
       - name: Session Restore
@@ -4721,5 +4723,5 @@ modules:
         - Ryan Tilder
       group: dev-platform
 hashes:
-  config: 36a009ed334704bab5135624fdbbbaa301e3dd9e
-  export: 0414324b5b32471f3d1547a2c3efc6e5af58c00b
+  config: 646c8326f315b7fe2474f195e552e5336cd8e6a2
+  export: a558bad93dcd116f12d934fb441ba2238f40d648
