@@ -51,6 +51,8 @@
     /** @type {boolean} */
     #wasCreatedByAdoption = false;
 
+    #observerRemoved = false;
+
     constructor() {
       super();
 
@@ -96,12 +98,7 @@
         this.resetDefaultGroupName,
         "intl:app-locales-changed"
       );
-      window.addEventListener("unload", () => {
-        Services.obs.removeObserver(
-          this.resetDefaultGroupName,
-          "intl:app-locales-changed"
-        );
-      });
+      this.ownerGlobal.addEventListener("unload", this.#removeObserver);
 
       this.addEventListener("click", this);
 
@@ -151,10 +148,23 @@
       this.#updateTooltip();
     };
 
+    #removeObserver = () => {
+      if (this.#observerRemoved) {
+        return;
+      }
+      this.#observerRemoved = true;
+      Services.obs.removeObserver(
+        this.resetDefaultGroupName,
+        "intl:app-locales-changed"
+      );
+    };
+
     disconnectedCallback() {
       this.ownerGlobal.removeEventListener("TabSelect", this);
+      this.ownerGlobal.removeEventListener("unload", this.#removeObserver);
       this.removeEventListener("SplitViewTabChange", this);
       this.#tabChangeObserver?.disconnect();
+      this.#removeObserver();
     }
 
     appendChild(node) {

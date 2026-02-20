@@ -1447,3 +1447,25 @@ add_task(
     BrowserTestUtils.removeTab(standaloneTab2);
   }
 );
+
+/**
+ * bug 2017651 - ensure tab-group elements can be garbage collected after removal.
+ */
+add_task(async function test_tabGroupGarbageCollection() {
+  let tabGroup = document.createXULElement("tab-group");
+  let weakRef = Cu.getWeakReference(tabGroup);
+
+  document.body.appendChild(tabGroup);
+  tabGroup.remove();
+  tabGroup = null;
+
+  // Perform multiple GC's to avoid intermittent delayed collection.
+  await new Promise(resolve => SpecialPowers.exactGC(resolve));
+  await new Promise(resolve => SpecialPowers.exactGC(resolve));
+  await new Promise(resolve => SpecialPowers.exactGC(resolve));
+
+  Assert.ok(
+    !weakRef.get(),
+    "tab-group element should be garbage collected after removal from DOM"
+  );
+});
