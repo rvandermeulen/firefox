@@ -278,7 +278,6 @@ export class AIChatContent extends MozLitElement {
     };
 
     this.requestUpdate();
-    this.#scrollToBottom();
   }
 
   #scrollToBottom() {

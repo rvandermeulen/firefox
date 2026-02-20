@@ -631,7 +631,7 @@ export class AIWindow extends MozLitElement {
    * @private
    */
   #handleSmartbarCommit = event => {
-    const { value, action } = event.detail;
+    const { value, action, contextMentions } = event.detail;
     if (action === "chat") {
       // Disable suggestions after the first chat message.
       // We only want to show suggestions for the initial query,
@@ -640,16 +640,16 @@ export class AIWindow extends MozLitElement {
         this.#smartbar.suppressStartQuery({ permanent: true });
       }
 
-      this.submitFollowUp(value);
+      this.submitFollowUp(value, contextMentions);
     }
   };
 
-  submitFollowUp(text) {
+  submitFollowUp(text, contextMentions) {
     const trimmed = String(text ?? "").trim();
     if (!trimmed) {
       return;
     }
-    this.#fetchAIResponse(trimmed, this.#createUserRoleOpts());
+    this.#fetchAIResponse(trimmed, this.#createUserRoleOpts(contextMentions));
   }
 
   #handleMemoriesToggle = event => {
@@ -671,16 +671,18 @@ export class AIWindow extends MozLitElement {
   /**
    * Creates a UserRoleOpts object with current memories settings.
    *
+   * @param {ContextWebsite[]} [contextMentions]
    * @returns {UserRoleOpts} Options object with memories configuration
    * @private
    */
-  #createUserRoleOpts() {
+  #createUserRoleOpts(contextMentions) {
     return new lazy.UserRoleOpts({
       memoriesEnabled: this.#memoriesToggled ?? this.memoriesPref,
       memoriesFlagSource:
         this.#memoriesToggled == null
           ? lazy.MEMORIES_FLAG_SOURCE.GLOBAL
           : lazy.MEMORIES_FLAG_SOURCE.CONVERSATION,
+      contextMentions,
     });
   }
 

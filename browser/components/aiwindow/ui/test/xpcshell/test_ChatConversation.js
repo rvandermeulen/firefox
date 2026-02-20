@@ -745,10 +745,9 @@ add_task(async function test_returnsContent_ChatConversation_getRealTimeInfo() {
   };
 
   const conversation = new ChatConversation({});
-  const realTimeInfo = await conversation.getRealTimeInfo(
-    mockEngineInstance,
-    mockGetRealTimeMapping
-  );
+  const realTimeInfo = await conversation.getRealTimeInfo(mockEngineInstance, {
+    getRealTimeMapping: mockGetRealTimeMapping,
+  });
 
   Assert.withSoftAssertions(function (soft) {
     soft.ok(
@@ -774,7 +773,9 @@ add_task(
     const conversation = new ChatConversation({});
     const realTimeInfo = await conversation.getRealTimeInfo(
       mockEngineInstance,
-      mockGetRealTimeMapping
+      {
+        getRealTimeMapping: mockGetRealTimeMapping,
+      }
     );
 
     Assert.equal(

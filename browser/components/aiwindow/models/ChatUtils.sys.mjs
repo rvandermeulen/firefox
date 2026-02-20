@@ -70,7 +70,7 @@ export async function getCurrentTabMetadata(depsOverride) {
  * messages list.
  *
  * @param {object} [depsOverride]
- * @returns {Promise<{role: string, content: string}>}
+ * @returns {Promise<{url, title, description, locale, timezone, isoTimestamp, todayDate, hasTabInfo}>}
  */
 export async function constructRealTimeInfoInjectionMessage(depsOverride) {
   const { url, title, description } = await getCurrentTabMetadata(depsOverride);

@@ -189,6 +189,10 @@ export class ChatConversation {
       userContext,
     };
 
+    if (userOpts.contextMentions?.length) {
+      content.contextMentions = userOpts.contextMentions;
+    }
+
     let currentTurn = this.currentTurnIndex();
     const newTurnIndex =
       this.#messages.length === 1 ? currentTurn : currentTurn + 1;
@@ -280,7 +284,9 @@ export class ChatConversation {
     }
 
     let userContext = {};
-    const realTimeContext = await this.getRealTimeInfo(engineInstance);
+    const realTimeContext = await this.getRealTimeInfo(engineInstance, {
+      contextMentions: userOpts?.contextMentions,
+    });
     if (realTimeContext) {
       userContext[realTimeContext] = realTimeContext;
     }
@@ -376,13 +382,19 @@ export class ChatConversation {
    * } RealTimeApiFunction
    *
    * @param {openAIEngine} engineInstance - The initialized engine instance
-   * @param {RealTimeApiFunction} [getRealTimeMapping=constructRealTimeInfoInjectionMessage]
+   * @param {object} [options]
+   * @param {RealTimeApiFunction} [options.getRealTimeMapping=constructRealTimeInfoInjectionMessage]
+   * @param {ContextWebsite[]} [options.contextMentions]
+   *   URLs provided by the user as additional context
    *
    * @returns {Promise<string|null>} - Promise that resolves with real time info or null
    */
   async getRealTimeInfo(
     engineInstance,
-    getRealTimeMapping = constructRealTimeInfoInjectionMessage
+    {
+      getRealTimeMapping = constructRealTimeInfoInjectionMessage,
+      contextMentions,
+    } = {}
   ) {
     const realTimeInfoMapping = await getRealTimeMapping();
     if (realTimeInfoMapping) {
@@ -400,6 +412,17 @@ export class ChatConversation {
         delete realTimeInfoMapping.description;
       }
       delete realTimeInfoMapping.hasTabInfo;
+
+      if (contextMentions?.length) {
+        const contextUrls = contextMentions
+          .map(mention => `- ${mention.label} (${mention.url})`)
+          .join("\n");
+        realTimeInfoMapping.contextUrls = contextUrls;
+        const contextMentionsPrompt = await engineInstance.loadPrompt(
+          MODEL_FEATURES.REAL_TIME_CONTEXT_MENTIONS
+        );
+        realTimePromptRaw += contextMentionsPrompt;
+      }
 
       const realTimePrompt = renderPrompt(
         realTimePromptRaw,

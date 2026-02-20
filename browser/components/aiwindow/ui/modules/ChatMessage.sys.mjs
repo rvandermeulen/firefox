@@ -181,6 +181,7 @@ export class UserRoleOpts {
   revisionRootMessageId;
   memoriesEnabled;
   memoriesFlagSource;
+  contextMentions;
 
   /**
    * @param {string|object} [opts]
@@ -189,12 +190,14 @@ export class UserRoleOpts {
     revisionRootMessageId = null,
     memoriesEnabled = null,
     memoriesFlagSource = null,
+    contextMentions = null,
   } = {}) {
     if (revisionRootMessageId) {
       this.revisionRootMessageId = revisionRootMessageId;
     }
     this.memoriesEnabled = memoriesEnabled;
     this.memoriesFlagSource = memoriesFlagSource;
+    this.contextMentions = contextMentions;
   }
 }
 

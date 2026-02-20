@@ -85,6 +85,7 @@ export const MODEL_FEATURES = Object.freeze({
   // real time context
   REAL_TIME_CONTEXT_DATE: "real-time-context-date",
   REAL_TIME_CONTEXT_TAB: "real-time-context-tab",
+  REAL_TIME_CONTEXT_MENTIONS: "real-time-context-mentions",
   MEMORIES_RELEVANT_CONTEXT: "memories-relevant-context",
 });
 
@@ -639,6 +640,11 @@ export class openAIEngine {
           await import("moz-src:///browser/components/aiwindow/models/prompts/ContextPrompts.sys.mjs");
         return realTimeContextTabPrompt;
       }
+      case MODEL_FEATURES.REAL_TIME_CONTEXT_MENTIONS: {
+        const { realTimeContextMentionsPrompt } =
+          await import("moz-src:///browser/components/aiwindow/models/prompts/ContextPrompts.sys.mjs");
+        return realTimeContextMentionsPrompt;
+      }
 
       default:
         throw new Error(`No local prompt found for feature: ${feature}`);
@@ -910,7 +916,7 @@ export function renderPrompt(rawPromptContent, stringsToReplace = {}) {
 
   for (const [orig, repl] of Object.entries(stringsToReplace)) {
     const regex = new RegExp(`{${orig}}`, "g");
-    finalPromptContent = finalPromptContent.replace(regex, repl);
+    finalPromptContent = finalPromptContent.replace(regex, () => repl);
   }
 
   return finalPromptContent;
