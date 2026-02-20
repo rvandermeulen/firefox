@@ -2986,6 +2986,8 @@ uint32_t Console::WebIDLLogLevelToInteger(ConsoleLogLevel aLevel) const {
   switch (aLevel) {
     case ConsoleLogLevel::All:
       return 0;
+    case ConsoleLogLevel::Trace:
+      return 1;
     case ConsoleLogLevel::Debug:
       return 2;
     case ConsoleLogLevel::Log:
@@ -2993,8 +2995,6 @@ uint32_t Console::WebIDLLogLevelToInteger(ConsoleLogLevel aLevel) const {
     case ConsoleLogLevel::Info:
       return 3;
     case ConsoleLogLevel::Clear:
-      return 3;
-    case ConsoleLogLevel::Trace:
       return 3;
     case ConsoleLogLevel::TimeLog:
       return 3;
@@ -3044,7 +3044,7 @@ uint32_t Console::InternalLogLevelToInteger(MethodName aName) const {
     case MethodTable:
       return 3;
     case MethodTrace:
-      return 3;
+      return 1;
     case MethodDir:
       return 3;
     case MethodDirxml:

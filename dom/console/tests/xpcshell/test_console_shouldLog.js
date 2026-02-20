@@ -70,14 +70,14 @@ add_task(async function test_shouldLog_env() {
     {
       mozLogLevel: 3,
       maxLogLevel: "Off",
-      shouldLog: ["Error", "Warn", "Info", "Trace"],
-      shouldNotLog: ["Debug"],
+      shouldLog: ["Error", "Warn", "Info"],
+      shouldNotLog: ["Debug", "Trace"],
     },
     {
       mozLogLevel: 4,
       maxLogLevel: "Off",
-      shouldLog: ["Error", "Warn", "Info", "Debug", "Trace"],
-      shouldNotLog: [],
+      shouldLog: ["Error", "Warn", "Info", "Debug"],
+      shouldNotLog: ["Trace"],
     },
     {
       mozLogLevel: 5,
