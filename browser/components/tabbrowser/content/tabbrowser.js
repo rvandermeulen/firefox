@@ -1649,7 +1649,7 @@
         });
         newTab.dispatchEvent(event);
 
-        // Check if switched between tabs 3 times in last minute
+        // Check if switched repeatedly between tabs in the last minute
         this._checkIfShouldTriggerTabSelectMessage(oldTab, newTab);
 
         this._tabAttrModified(oldTab, ["selected"]);
@@ -1703,6 +1703,13 @@
       }
     }
 
+    /**
+     * Tracks tab switching behavior and triggers a message when a user
+     * repeatedly switches between the same two tabs.
+     *
+     * @param {object} oldTab - The tab being switched away from.
+     * @param {object} newTab - The tab being switched to.
+     */
     async _checkIfShouldTriggerTabSelectMessage(oldTab, newTab) {
       const ONE_MINUTE_MS = 60000;
       const LIMIT_FOR_TRIGGER = 2;
@@ -1738,6 +1745,9 @@
           this.ASRouter.sendTriggerMessage({
             browser: newTab.linkedBrowser,
             id: "tabSwitch",
+            context: {
+              currentTabsOpen: gBrowser.visibleTabs.length,
+            },
           });
           this._tabSelectTimestamps = this._tabSelectTimestamps.filter(
             entry => entry !== existingEntry

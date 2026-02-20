@@ -470,12 +470,13 @@ Fires to keep multi-profile feature users informed of changes to data collection
 
 ### `tabSwitch`
 
-Happens when the user switches between two tabs 2 times within one minute
+Fires when the user switches between two tabs 2 times within one minute.
+A currentTabsOpen context variable is included to be used in the targeting
 
 ```js
 {
   trigger: { id: "tabSwitch" },
-  targeting: `!'browser.tab.splitview.hasUsed'|preferenceValue`
+  targeting: `!'browser.tab.splitview.hasUsed'|preferenceValue && currentTabsOpen >=5`
 }
 ```
 

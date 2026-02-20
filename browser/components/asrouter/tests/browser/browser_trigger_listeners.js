@@ -763,9 +763,9 @@ add_task(async function test_tabSwitch() {
   });
 
   const receivedTrigger = new Promise(resolve => {
-    sandbox.stub(ASRouter, "sendTriggerMessage").callsFake(({ id }) => {
-      if (id === "tabSwitch") {
-        resolve(true);
+    sandbox.stub(ASRouter, "sendTriggerMessage").callsFake(triggerData => {
+      if (triggerData.id === "tabSwitch") {
+        resolve(triggerData);
       }
     });
   });
@@ -783,11 +783,17 @@ add_task(async function test_tabSwitch() {
   await BrowserTestUtils.switchTab(gBrowser, tab2);
   await BrowserTestUtils.switchTab(gBrowser, tab1);
 
-  await receivedTrigger;
+  const triggerData = await receivedTrigger;
   Assert.ok(
     ASRouter.sendTriggerMessage.calledWith(sinon.match({ id: "tabSwitch" })),
-    "tabSwitch trigger sent after switching between tabs 3 times"
+    "tabSwitch trigger sent after switching between tabs 2 times"
   );
+  Assert.ok(
+    triggerData.context &&
+      typeof triggerData.context.currentTabsOpen === "number",
+    "tabSwitch trigger includes currentTabsOpen in context"
+  );
+  Assert.equal(triggerData.context.currentTabsOpen, 3, "currentTabsOpen is 3");
 
   ASRouter.sendTriggerMessage.resetHistory();
 
