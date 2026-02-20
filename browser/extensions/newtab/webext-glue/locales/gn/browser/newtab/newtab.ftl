@@ -23,6 +23,9 @@ newtab-personalize-dialog-label =
     .aria-label = Ñemomba’e
 newtab-logo-and-wordmark =
     .aria-label = { -brand-full-name }
+newtab-card-dismiss-button =
+    .title = Mboyke
+    .aria-label = Mboyke
 
 ## Search box component.
 
@@ -335,6 +338,11 @@ newtab-custom-widget-lists-toggle =
 newtab-custom-widget-timer-toggle =
     .label = Aravojere
 newtab-custom-widget-section-title = Widgets
+newtab-custom-widget-section-toggle =
+    .label = Widgets
+newtab-widget-manage-title = Widgets
+newtab-widget-manage-widget-button =
+    .label = Eñangareko widgets
 # Tooltip for close button
 newtab-custom-close-menu-button =
     .title = Mboty
@@ -462,6 +470,8 @@ newtab-weather-change-location-search-input-placeholder =
     .placeholder = Eheka tendatee
     .aria-label = Eheka tendatee
 newtab-weather-menu-weather-display = Ára jehechaha
+newtab-weather-todays-forecast = Arareko ko árape g̃uarã
+newtab-weather-see-full-forecast = Ehechapaite arareko
 # Display options are:
 # - Simple: Displays a current weather condition icon and the current temperature
 # - Detailed: Include simple information plus a short text summary: e.g. "Mostly cloudy"
@@ -474,6 +484,7 @@ newtab-weather-menu-temperature-option-fahrenheit = Fahrenheit
 newtab-weather-menu-temperature-option-celsius = Celsius
 newtab-weather-menu-change-temperature-units-fahrenheit = Eva Fahrenheit ndive
 newtab-weather-menu-change-temperature-units-celsius = Eva Celsius ndive
+newtab-weather-menu-hide-weather-v2 = Eñomi arapytu
 newtab-weather-menu-hide-weather = Eñomi arareko Tendayke Pyahúpe
 newtab-weather-menu-learn-more = Eikuaave
 newtab-weather-menu-detect-my-location = Ehecha che rendaite
@@ -486,6 +497,11 @@ newtab-weather-opt-in-yes =
     .label = Héẽ
 # We'll be showing static (fake) weather data if the user has not opted in to using their location
 newtab-weather-static-city = Táva Nueva York
+# Variables:
+#   $provider (string) - Service provider for weather data
+newtab-weather-see-forecast-description =
+    .title = Ehecha ára rehegua { $provider }-pe
+    .aria-description = { $provider } ∙ Oykekóva
 
 ## Topic Labels
 
@@ -687,6 +703,12 @@ newtab-widget-timer-menu-notifications = Eipe’a ñemomarandu
 newtab-widget-timer-menu-notifications-on = Emyandy marandu’i
 newtab-widget-timer-menu-hide = Eñomi aravopapaha
 newtab-widget-timer-menu-learn-more = Kuaave
+# The title displays above a set of top news headlines.
+newtab-daily-briefing-card-title = Marandu mba’eguasuvéva
+newtab-daily-briefing-card-menu-dismiss = Mokañy
+# Variables:
+#   $minutes (number) - Time since the feed has been refreshed
+newtab-daily-briefing-card-timestamp = Hekopyahu ojapo { $minutes }m
 newtab-widget-message-title = Epyta umi tysýi ndive ha aravopapaha reheve
 # to-dos stands for "things to do".
 newtab-widget-message-copy = Mandu’arã guive tembiaporã peve, ñamindu’u ha jepytu’u jehetetirarã, ema’ẽ ne rembiapo ha aravo rehe.
@@ -696,3 +718,24 @@ newtab-promo-card-cta = Eikuaave
 newtab-promo-card-dismiss-button =
     .title = Mboyke
     .aria-label = Mboyke
+
+## Strings for activation window message variants. In certain experiment configurations,
+## the strings from these variants may be displayed in a message below the search input
+## for the first 48 hours of a new profile's lifetime. Some messages include buttons with
+## labels, but not all.
+
+newtab-activation-window-message-dismiss-button =
+    .title = Mosẽ
+    .aria-label = Mosẽ
+# "This space" refers to about:newtab. The call to action here ("make it your own")
+# is to customize newtab with a background image or colour, or by tweaking the
+# existing widgetry that appears on it.
+newtab-activation-window-message-customization-focus-header = Eñemomba’e ko pa’ũre
+newtab-activation-window-message-customization-focus-message = Eiporavo mba’erechaha rugua pyahu, embojuaju jeike pya’eha tendaita ehayhuvévape ha eikuaameme tembiasakue erohorýva
+newtab-activation-window-message-customization-focus-primary-button =
+    .label = Eñepyrũ emboava
+# "This space" refers to about:newtab. The sentiment of "plays by your rules" is
+# meant to evoke the idea that newtab is malleable and customizable. The call to
+# action is to customize newtab with a background image or colour, or by tweaking
+# the existing widgetry that appears on it.
+newtab-activation-window-message-values-focus-header = Ko pa’ũ ohuga ambue tekoguatarãme

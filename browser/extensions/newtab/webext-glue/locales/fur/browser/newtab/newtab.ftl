@@ -337,6 +337,9 @@ newtab-custom-widget-lists-toggle =
 newtab-custom-widget-timer-toggle =
     .label = Temporizadôr
 newtab-custom-widget-section-title = Widgets
+newtab-custom-widget-section-toggle =
+    .label = Widgets
+newtab-widget-manage-title = Widgets
 # Tooltip for close button
 newtab-custom-close-menu-button =
     .title = Siere
@@ -488,6 +491,11 @@ newtab-weather-opt-in-yes =
     .label = Sì
 # We'll be showing static (fake) weather data if the user has not opted in to using their location
 newtab-weather-static-city = New York
+# Variables:
+#   $provider (string) - Service provider for weather data
+newtab-weather-see-forecast-description =
+    .title = Viôt lis previsions in { $provider }
+    .aria-description = { $provider } ∙ Sponsorizât
 
 ## Topic Labels
 

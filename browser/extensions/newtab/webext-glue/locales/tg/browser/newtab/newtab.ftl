@@ -23,6 +23,9 @@ newtab-personalize-dialog-label =
     .aria-label = Танзимоти шахсӣ
 newtab-logo-and-wordmark =
     .aria-label = { -brand-full-name }
+newtab-card-dismiss-button =
+    .title = Нодида гузарондан
+    .aria-label = Нодида гузарондан
 
 ## Search box component.
 
@@ -334,6 +337,11 @@ newtab-custom-widget-lists-toggle =
 newtab-custom-widget-timer-toggle =
     .label = Вақтсанҷ
 newtab-custom-widget-section-title = Виҷетҳо
+newtab-custom-widget-section-toggle =
+    .label = Виҷетҳо
+newtab-widget-manage-title = Виҷетҳо
+newtab-widget-manage-widget-button =
+    .label = Идоракунии виҷетҳо
 # Tooltip for close button
 newtab-custom-close-menu-button =
     .title = Пӯшидан
@@ -461,6 +469,8 @@ newtab-weather-change-location-search-input-placeholder =
     .placeholder = Ҷустуҷӯи макон
     .aria-label = Ҷустуҷӯи макон
 newtab-weather-menu-weather-display = Намоиши обу ҳаво
+newtab-weather-todays-forecast = Пешгӯии имрӯза
+newtab-weather-see-full-forecast = Дидани пешгӯии пурра
 # Display options are:
 # - Simple: Displays a current weather condition icon and the current temperature
 # - Detailed: Include simple information plus a short text summary: e.g. "Mostly cloudy"
@@ -473,6 +483,7 @@ newtab-weather-menu-temperature-option-fahrenheit = Фаренгейт
 newtab-weather-menu-temperature-option-celsius = Селсий
 newtab-weather-menu-change-temperature-units-fahrenheit = Гузариш ба Фаренгейт
 newtab-weather-menu-change-temperature-units-celsius = Гузариш ба Селсий
+newtab-weather-menu-hide-weather-v2 = Пинҳон кардани маълумоти обу ҳаво
 newtab-weather-menu-hide-weather = Нинҳон кардани обу ҳаво дар варақаи нав
 newtab-weather-menu-learn-more = Маълумоти бештар
 newtab-weather-menu-detect-my-location = Ҷойгиршавии маро муайян кунед
@@ -485,6 +496,11 @@ newtab-weather-opt-in-yes =
     .label = Ҳа
 # We'll be showing static (fake) weather data if the user has not opted in to using their location
 newtab-weather-static-city = Шаҳри Ню-Йорк
+# Variables:
+#   $provider (string) - Service provider for weather data
+newtab-weather-see-forecast-description =
+    .title = Дидани обу ҳаво дар { $provider }
+    .aria-description = { $provider } ∙ Реклама
 
 ## Topic Labels
 
@@ -686,6 +702,12 @@ newtab-widget-timer-menu-notifications = Хомӯш кардани огоҳно�
 newtab-widget-timer-menu-notifications-on = Фаъол кардани огоҳномаҳо
 newtab-widget-timer-menu-hide = Пинҳон кардани вақтсанҷ
 newtab-widget-timer-menu-learn-more = Маълумоти бештар
+# The title displays above a set of top news headlines.
+newtab-daily-briefing-card-title = Сарлавҳаҳои хабарҳои асосӣ
+newtab-daily-briefing-card-menu-dismiss = Нодида гузарондан
+# Variables:
+#   $minutes (number) - Time since the feed has been refreshed
+newtab-daily-briefing-card-timestamp = { $minutes } дақиқа пеш навсозӣ карда шуд
 newtab-widget-message-title = Бо истифода аз рӯйхатҳо ва вақтсанҷи дарунсохт диққати худро нигоҳ доред
 # to-dos stands for "things to do".
 newtab-widget-message-copy = Аз ёдовариҳои фаврӣ то вазифаҳои ҳаррӯза ва аз ҷаласаҳои бодиққат то танаффусҳои бардавом — ҳар гуна вазифаҳоро дар сари вақт иҷро намоед.
@@ -695,3 +717,24 @@ newtab-promo-card-cta = Маълумоти бештар
 newtab-promo-card-dismiss-button =
     .title = Нодида гузарондан
     .aria-label = Нодида гузарондан
+
+## Strings for activation window message variants. In certain experiment configurations,
+## the strings from these variants may be displayed in a message below the search input
+## for the first 48 hours of a new profile's lifetime. Some messages include buttons with
+## labels, but not all.
+
+newtab-activation-window-message-dismiss-button =
+    .title = Нодида гузарондан
+    .aria-label = Нодида гузарондан
+# "This space" refers to about:newtab. The call to action here ("make it your own")
+# is to customize newtab with a background image or colour, or by tweaking the
+# existing widgetry that appears on it.
+newtab-activation-window-message-customization-focus-header = Ин фазоро аз они худ созед
+newtab-activation-window-message-customization-focus-message = Тасвири заминаи наверо интихоб кунед, миёнбурҳоро ба сомонаҳои дӯстдоштаи худ илова намоед ва дар бораи ҳикояҳое, ки ба шумо ҷолибанд, бохабар бошед.
+newtab-activation-window-message-customization-focus-primary-button =
+    .label = Танзими шахсиро оғоз кунед
+# "This space" refers to about:newtab. The sentiment of "plays by your rules" is
+# meant to evoke the idea that newtab is malleable and customizable. The call to
+# action is to customize newtab with a background image or colour, or by tweaking
+# the existing widgetry that appears on it.
+newtab-activation-window-message-values-focus-header = Ин фазо тибқи қоидаҳои шумо рафтор мекунад

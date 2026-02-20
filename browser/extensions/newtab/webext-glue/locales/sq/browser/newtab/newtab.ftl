@@ -332,6 +332,9 @@ newtab-custom-widget-lists-toggle =
 newtab-custom-widget-timer-toggle =
     .label = Kohëmatës
 newtab-custom-widget-section-title = Widget-e
+newtab-custom-widget-section-toggle =
+    .label = Widget-e
+newtab-widget-manage-title = Widget-e
 # Tooltip for close button
 newtab-custom-close-menu-button =
     .title = Mbylle
@@ -483,6 +486,11 @@ newtab-weather-opt-in-yes =
     .label = Po
 # We'll be showing static (fake) weather data if the user has not opted in to using their location
 newtab-weather-static-city = Nju Jork Siti
+# Variables:
+#   $provider (string) - Service provider for weather data
+newtab-weather-see-forecast-description =
+    .title = Shihni parashikimin në { $provider }
+    .aria-description = { $provider } ∙ E sponsorizuar
 
 ## Topic Labels
 

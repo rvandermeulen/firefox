@@ -23,6 +23,9 @@ newtab-personalize-dialog-label =
     .aria-label = Personalizować
 newtab-logo-and-wordmark =
     .aria-label = { -brand-full-name }
+newtab-card-dismiss-button =
+    .title = Zaćisnyć
+    .aria-label = Zaćisnyć
 
 ## Search box component.
 
@@ -338,6 +341,11 @@ newtab-custom-widget-lists-toggle =
 newtab-custom-widget-timer-toggle =
     .label = Časoměr
 newtab-custom-widget-section-title = Asistenty
+newtab-custom-widget-section-toggle =
+    .label = Asistenty
+newtab-widget-manage-title = Asistenty
+newtab-widget-manage-widget-button =
+    .label = Asistenty rjadować
 # Tooltip for close button
 newtab-custom-close-menu-button =
     .title = Začinić
@@ -465,6 +473,8 @@ newtab-weather-change-location-search-input-placeholder =
     .placeholder = Městno pytać
     .aria-label = Městno pytać
 newtab-weather-menu-weather-display = Wjedrowe pokazanje
+newtab-weather-todays-forecast = Dźensniša předpowědź
+newtab-weather-see-full-forecast = Dospołnu předpowědź wobhladać
 # Display options are:
 # - Simple: Displays a current weather condition icon and the current temperature
 # - Detailed: Include simple information plus a short text summary: e.g. "Mostly cloudy"
@@ -477,6 +487,7 @@ newtab-weather-menu-temperature-option-fahrenheit = Fahrenheit
 newtab-weather-menu-temperature-option-celsius = Celsius
 newtab-weather-menu-change-temperature-units-fahrenheit = Fahrenheit wužiwać
 newtab-weather-menu-change-temperature-units-celsius = Celsius wužiwać
+newtab-weather-menu-hide-weather-v2 = Wjedro schować
 newtab-weather-menu-hide-weather = Wjedro na nowym rajtarku schować
 newtab-weather-menu-learn-more = Dalše informacije
 newtab-weather-menu-detect-my-location = Moje stejnišćo namakać
@@ -489,6 +500,11 @@ newtab-weather-opt-in-yes =
     .label = Haj
 # We'll be showing static (fake) weather data if the user has not opted in to using their location
 newtab-weather-static-city = New York City
+# Variables:
+#   $provider (string) - Service provider for weather data
+newtab-weather-see-forecast-description =
+    .title = Wjedrowu předpowědź w { $provider } pokazać
+    .aria-description = { $provider } ∙ sponsorowany
 
 ## Topic Labels
 
@@ -690,6 +706,12 @@ newtab-widget-timer-menu-notifications = Zdźělenja znjemóžnić
 newtab-widget-timer-menu-notifications-on = Zdźělenja zmóžnić
 newtab-widget-timer-menu-hide = Časoměr schować
 newtab-widget-timer-menu-learn-more = Dalše informacije
+# The title displays above a set of top news headlines.
+newtab-daily-briefing-card-title = Wažne hłowne nadpisma
+newtab-daily-briefing-card-menu-dismiss = Zaćisnyć
+# Variables:
+#   $minutes (number) - Time since the feed has been refreshed
+newtab-daily-briefing-card-timestamp = Před { $minutes } m zaktualizowany
 newtab-widget-message-title = Wostańće koncentrowany z lisćinami a zatwarjenym časoměrom
 # to-dos stands for "things to do".
 newtab-widget-message-copy = Wot spěšnych dopomnjećow do wšědnych nadawkowych lisćinow, koncentrujće so na posedźenja, zo byšće přestawki podlěšił – njepopušćejće a budźće zdypkom.
@@ -699,3 +721,25 @@ newtab-promo-card-cta = Dalše informacije
 newtab-promo-card-dismiss-button =
     .title = Zaćisnyć
     .aria-label = Zaćisnyć
+
+## Strings for activation window message variants. In certain experiment configurations,
+## the strings from these variants may be displayed in a message below the search input
+## for the first 48 hours of a new profile's lifetime. Some messages include buttons with
+## labels, but not all.
+
+newtab-activation-window-message-dismiss-button =
+    .title = Zaćisnyć
+    .aria-label = Zaćisnyć
+# "This space" refers to about:newtab. The call to action here ("make it your own")
+# is to customize newtab with a background image or colour, or by tweaking the
+# existing widgetry that appears on it.
+newtab-activation-window-message-customization-focus-header = Přiswojće sej tutón rum
+newtab-activation-window-message-customization-focus-message = Wubjerće nowy pozadkowy wobraz, přidajće swojim najlubšim sydłam zwjazanja a wostańće na běžnym wo stawizničkach, kotrež was zajimuja.
+newtab-activation-window-message-customization-focus-primary-button =
+    .label = Započńće přiměrjeć
+# "This space" refers to about:newtab. The sentiment of "plays by your rules" is
+# meant to evoke the idea that newtab is malleable and customizable. The call to
+# action is to customize newtab with a background image or colour, or by tweaking
+# the existing widgetry that appears on it.
+newtab-activation-window-message-values-focus-header = Tute městno po wašich prawidłach hraje
+newtab-activation-window-message-values-focus-message = { -brand-product-name } wam zmóžnja, na wašnje přehladować, kotrež wam so spodoba, z bóle wosobinskej móžnosću, dźeń online započeć. Přiswojće sej { -brand-product-name }.

@@ -335,6 +335,11 @@ newtab-custom-widget-lists-toggle =
 newtab-custom-widget-timer-toggle =
     .label = ตัวจับเวลา
 newtab-custom-widget-section-title = วิดเจ็ต
+newtab-custom-widget-section-toggle =
+    .label = วิดเจ็ต
+newtab-widget-manage-title = วิดเจ็ต
+newtab-widget-manage-widget-button =
+    .label = จัดการวิดเจ็ต
 # Tooltip for close button
 newtab-custom-close-menu-button =
     .title = ปิด
@@ -462,6 +467,8 @@ newtab-weather-change-location-search-input-placeholder =
     .placeholder = ค้นหาตำแหน่งที่ตั้ง
     .aria-label = ค้นหาตำแหน่งที่ตั้ง
 newtab-weather-menu-weather-display = การแสดงผลพยากรณ์อากาศ
+newtab-weather-todays-forecast = พยากรณ์วันนี้
+newtab-weather-see-full-forecast = ดูพยากรณ์ฉบับเต็ม
 # Display options are:
 # - Simple: Displays a current weather condition icon and the current temperature
 # - Detailed: Include simple information plus a short text summary: e.g. "Mostly cloudy"
@@ -474,6 +481,7 @@ newtab-weather-menu-temperature-option-fahrenheit = ฟาเรนไฮต์
 newtab-weather-menu-temperature-option-celsius = เซลเซียส
 newtab-weather-menu-change-temperature-units-fahrenheit = เปลี่ยนเป็นฟาเรนไฮต์
 newtab-weather-menu-change-temperature-units-celsius = เปลี่ยนเป็นเซลเซียส
+newtab-weather-menu-hide-weather-v2 = ซ่อนสภาพอากาศ
 newtab-weather-menu-hide-weather = ซ่อนพยากรณ์อากาศในแท็บใหม่
 newtab-weather-menu-learn-more = เรียนรู้เพิ่มเติม
 newtab-weather-menu-detect-my-location = ตรวจจับตำแหน่งที่ตั้งของฉัน
@@ -486,6 +494,11 @@ newtab-weather-opt-in-yes =
     .label = ใช่
 # We'll be showing static (fake) weather data if the user has not opted in to using their location
 newtab-weather-static-city = นครนิวยอร์ก
+# Variables:
+#   $provider (string) - Service provider for weather data
+newtab-weather-see-forecast-description =
+    .title = ดูพยากรณ์ใน { $provider }
+    .aria-description = สนับสนุนโดย { $provider }
 
 ## Topic Labels
 
@@ -687,6 +700,12 @@ newtab-widget-timer-menu-notifications = ปิดการแจ้งเตื
 newtab-widget-timer-menu-notifications-on = เปิดการแจ้งเตือน
 newtab-widget-timer-menu-hide = ซ่อนตัวจับเวลา
 newtab-widget-timer-menu-learn-more = เรียนรู้เพิ่มเติม
+# The title displays above a set of top news headlines.
+newtab-daily-briefing-card-title = ข่าวเด่น
+newtab-daily-briefing-card-menu-dismiss = ยกเลิก
+# Variables:
+#   $minutes (number) - Time since the feed has been refreshed
+newtab-daily-briefing-card-timestamp = อัปเดตเมื่อ { $minutes } นาทีที่แล้ว
 newtab-widget-message-title = มีสมาธิด้วยรายการสิ่งที่ต้องทำและตัวจับเวลาในตัว
 # to-dos stands for "things to do".
 newtab-widget-message-copy = ตั้งแต่เตือนความจำด่วน ๆ ไปจนถึงสิ่งที่ต้องทำในแต่ละวัน ช่วงเวลาโฟกัสไปจนถึงช่วงเวลาพัก ให้คุณอยู่กับงานและตรงเวลาเสมอ
@@ -696,3 +715,25 @@ newtab-promo-card-cta = เรียนรู้เพิ่มเติม
 newtab-promo-card-dismiss-button =
     .title = ปิด
     .aria-label = ปิด
+
+## Strings for activation window message variants. In certain experiment configurations,
+## the strings from these variants may be displayed in a message below the search input
+## for the first 48 hours of a new profile's lifetime. Some messages include buttons with
+## labels, but not all.
+
+newtab-activation-window-message-dismiss-button =
+    .title = ปิด
+    .aria-label = ปิด
+# "This space" refers to about:newtab. The call to action here ("make it your own")
+# is to customize newtab with a background image or colour, or by tweaking the
+# existing widgetry that appears on it.
+newtab-activation-window-message-customization-focus-header = ตกแต่งพื้นที่นี้ให้เป็นของคุณเอง
+newtab-activation-window-message-customization-focus-message = เลือกภาพพื้นหลังใหม่ๆ เพิ่มทางลัดไปยังไซต์โปรดของคุณ และติดตามข่าวสารที่น่าสนใจอยู่เสมอ
+newtab-activation-window-message-customization-focus-primary-button =
+    .label = เริ่มปรับแต่ง
+# "This space" refers to about:newtab. The sentiment of "plays by your rules" is
+# meant to evoke the idea that newtab is malleable and customizable. The call to
+# action is to customize newtab with a background image or colour, or by tweaking
+# the existing widgetry that appears on it.
+newtab-activation-window-message-values-focus-header = พื้นที่แห่งนี้เล่นตามกฎของคุณ
+newtab-activation-window-message-values-focus-message = { -brand-product-name } ช่วยให้คุณเลือกดูสินค้าได้ตามใจชอบ พร้อมวิธีเริ่มต้นวันใหม่บนโลกออนไลน์ในแบบที่เป็นส่วนตัวยิ่งขึ้น ปรับแต่ง { -brand-product-name } ให้เป็นของคุณเอง

@@ -23,6 +23,9 @@ newtab-personalize-dialog-label =
     .aria-label = Personcecigi
 newtab-logo-and-wordmark =
     .aria-label = { -brand-full-name }
+newtab-card-dismiss-button =
+    .title = Ignori
+    .aria-label = Ignori
 
 ## Search box component.
 
@@ -332,6 +335,11 @@ newtab-custom-widget-lists-toggle =
 newtab-custom-widget-timer-toggle =
     .label = Tempumilo
 newtab-custom-widget-section-title = Komponantoj
+newtab-custom-widget-section-toggle =
+    .label = Komponantoj
+newtab-widget-manage-title = Komponantoj
+newtab-widget-manage-widget-button =
+    .label = Administri komponantojn
 # Tooltip for close button
 newtab-custom-close-menu-button =
     .title = Fermi
@@ -459,6 +467,8 @@ newtab-weather-change-location-search-input-placeholder =
     .placeholder = Serĉi lokon
     .aria-label = Serĉi lokon
 newtab-weather-menu-weather-display = Montro de vetero
+newtab-weather-todays-forecast = Hodiaŭa veterprognozo
+newtab-weather-see-full-forecast = Vidi kompletan prognozon
 # Display options are:
 # - Simple: Displays a current weather condition icon and the current temperature
 # - Detailed: Include simple information plus a short text summary: e.g. "Mostly cloudy"
@@ -471,6 +481,7 @@ newtab-weather-menu-temperature-option-fahrenheit = Fahrenheit
 newtab-weather-menu-temperature-option-celsius = Celsius
 newtab-weather-menu-change-temperature-units-fahrenheit = Ŝanĝi al Fahrenheit
 newtab-weather-menu-change-temperature-units-celsius = Ŝanĝi al Celsius
+newtab-weather-menu-hide-weather-v2 = Kaŝi veterprognozon
 newtab-weather-menu-hide-weather = Kaŝi veteron en nova langeto
 newtab-weather-menu-learn-more = Pli da informo
 newtab-weather-menu-detect-my-location = Trovi mian pozicion
@@ -483,6 +494,11 @@ newtab-weather-opt-in-yes =
     .label = Jes
 # We'll be showing static (fake) weather data if the user has not opted in to using their location
 newtab-weather-static-city = Novjorko
+# Variables:
+#   $provider (string) - Service provider for weather data
+newtab-weather-see-forecast-description =
+    .title = Vidi veterprognozon en { $provider }
+    .aria-description = { $provider } ∙ Patronita
 
 ## Topic Labels
 
@@ -684,6 +700,16 @@ newtab-widget-timer-menu-notifications = Malŝalti sciigojn
 newtab-widget-timer-menu-notifications-on = Ŝalti sciigojn
 newtab-widget-timer-menu-hide = Kaŝi tempumilon
 newtab-widget-timer-menu-learn-more = Pli da informo
+# The title displays above a set of top news headlines.
+newtab-daily-briefing-card-title = Ĉefaj titoloj
+newtab-daily-briefing-card-menu-dismiss = Ignori
+# Variables:
+#   $minutes (number) - Time since the feed has been refreshed
+newtab-daily-briefing-card-timestamp =
+    { $minutes ->
+        [one] Ĝisdatigita antaŭ minuto
+       *[other] Ĝisdatigita antaŭ { $minutes } minutoj
+    }
 newtab-widget-message-title = Resti koncentrita danke al listoj kaj integrita tempumilo
 # to-dos stands for "things to do".
 newtab-widget-message-copy = Rapidaj memorigaĵoj, ĉiutagaj farendaĵoj, koncentriĝaj seancoj kaj ripozaj paŭzoj — akurate plenumu taskojn.
@@ -693,3 +719,25 @@ newtab-promo-card-cta = Pli da informo
 newtab-promo-card-dismiss-button =
     .title = Ignori
     .aria-label = Ignori
+
+## Strings for activation window message variants. In certain experiment configurations,
+## the strings from these variants may be displayed in a message below the search input
+## for the first 48 hours of a new profile's lifetime. Some messages include buttons with
+## labels, but not all.
+
+newtab-activation-window-message-dismiss-button =
+    .title = Ignori
+    .aria-label = Ignori
+# "This space" refers to about:newtab. The call to action here ("make it your own")
+# is to customize newtab with a background image or colour, or by tweaking the
+# existing widgetry that appears on it.
+newtab-activation-window-message-customization-focus-header = Personecigu tiun ĉi lokon
+newtab-activation-window-message-customization-focus-message = Elektu novan ekranfonon, aldoni ŝparvojojn al viaj plej ŝatataj retejoj kaj restu informita pri la temoj, kiuj interesas vin.
+newtab-activation-window-message-customization-focus-primary-button =
+    .label = Komenci personecigi
+# "This space" refers to about:newtab. The sentiment of "plays by your rules" is
+# meant to evoke the idea that newtab is malleable and customizable. The call to
+# action is to customize newtab with a background image or colour, or by tweaking
+# the existing widgetry that appears on it.
+newtab-activation-window-message-values-focus-header = Tiu ĉi loko sekvas viajn regulojn
+newtab-activation-window-message-values-focus-message = { -brand-product-name } permesas al vi retumi kiel vi ŝatas, per pli persona maniero komenci vian tagan retumon. Personecigu { -brand-product-name }.

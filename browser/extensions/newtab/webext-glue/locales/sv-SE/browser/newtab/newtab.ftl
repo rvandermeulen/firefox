@@ -23,6 +23,9 @@ newtab-personalize-dialog-label =
     .aria-label = Anpassa
 newtab-logo-and-wordmark =
     .aria-label = { -brand-full-name }
+newtab-card-dismiss-button =
+    .title = Ignorera
+    .aria-label = Ignorera
 
 ## Search box component.
 
@@ -336,6 +339,11 @@ newtab-custom-widget-lists-toggle =
 newtab-custom-widget-timer-toggle =
     .label = Timer
 newtab-custom-widget-section-title = Widgetar
+newtab-custom-widget-section-toggle =
+    .label = Widgetar
+newtab-widget-manage-title = Widgetar
+newtab-widget-manage-widget-button =
+    .label = Hantera widgetar
 # Tooltip for close button
 newtab-custom-close-menu-button =
     .title = Stäng
@@ -463,6 +471,8 @@ newtab-weather-change-location-search-input-placeholder =
     .placeholder = Sök plats
     .aria-label = Sök plats
 newtab-weather-menu-weather-display = Vädervisning
+newtab-weather-todays-forecast = Dagens prognos
+newtab-weather-see-full-forecast = Se fullständig prognos
 # Display options are:
 # - Simple: Displays a current weather condition icon and the current temperature
 # - Detailed: Include simple information plus a short text summary: e.g. "Mostly cloudy"
@@ -475,6 +485,7 @@ newtab-weather-menu-temperature-option-fahrenheit = Fahrenheit
 newtab-weather-menu-temperature-option-celsius = Celsius
 newtab-weather-menu-change-temperature-units-fahrenheit = Byt till Fahrenheit
 newtab-weather-menu-change-temperature-units-celsius = Byt till Celsius
+newtab-weather-menu-hide-weather-v2 = Dölj väder
 newtab-weather-menu-hide-weather = Dölj väder på ny flik
 newtab-weather-menu-learn-more = Läs mer
 newtab-weather-menu-detect-my-location = Identifiera min plats
@@ -487,6 +498,11 @@ newtab-weather-opt-in-yes =
     .label = Ja
 # We'll be showing static (fake) weather data if the user has not opted in to using their location
 newtab-weather-static-city = New York
+# Variables:
+#   $provider (string) - Service provider for weather data
+newtab-weather-see-forecast-description =
+    .title = Se prognos i { $provider }
+    .aria-description = { $provider } ∙ Sponsrad
 
 ## Topic Labels
 
@@ -688,6 +704,12 @@ newtab-widget-timer-menu-notifications = Stäng av aviseringar
 newtab-widget-timer-menu-notifications-on = Slå på aviseringar
 newtab-widget-timer-menu-hide = Dölj timer
 newtab-widget-timer-menu-learn-more = Läs mer
+# The title displays above a set of top news headlines.
+newtab-daily-briefing-card-title = Topprubriker
+newtab-daily-briefing-card-menu-dismiss = Ignorera
+# Variables:
+#   $minutes (number) - Time since the feed has been refreshed
+newtab-daily-briefing-card-timestamp = Uppdaterad för { $minutes } minuter sedan
 newtab-widget-message-title = Håll fokus med listor och en inbyggd timer
 # to-dos stands for "things to do".
 newtab-widget-message-copy = Från snabba påminnelser till dagliga att-göra-uppgifter, fokussessioner till stretchpauser — håll dig fokuserad och i tid.
@@ -697,3 +719,25 @@ newtab-promo-card-cta = Läs mer
 newtab-promo-card-dismiss-button =
     .title = Ignorera
     .aria-label = Ignorera
+
+## Strings for activation window message variants. In certain experiment configurations,
+## the strings from these variants may be displayed in a message below the search input
+## for the first 48 hours of a new profile's lifetime. Some messages include buttons with
+## labels, but not all.
+
+newtab-activation-window-message-dismiss-button =
+    .title = Ignorera
+    .aria-label = Ignorera
+# "This space" refers to about:newtab. The call to action here ("make it your own")
+# is to customize newtab with a background image or colour, or by tweaking the
+# existing widgetry that appears on it.
+newtab-activation-window-message-customization-focus-header = Gör detta utrymme till ditt
+newtab-activation-window-message-customization-focus-message = Välj en ny bakgrundsbild, lägg till genvägar till dina favoritsajter och håll dig uppdaterad om berättelser som intresserar dig.
+newtab-activation-window-message-customization-focus-primary-button =
+    .label = Börja anpassa
+# "This space" refers to about:newtab. The sentiment of "plays by your rules" is
+# meant to evoke the idea that newtab is malleable and customizable. The call to
+# action is to customize newtab with a background image or colour, or by tweaking
+# the existing widgetry that appears on it.
+newtab-activation-window-message-values-focus-header = Det här utrymmet följer dina regler
+newtab-activation-window-message-values-focus-message = Med { -brand-product-name } kan du surfa precis som du vill, med ett mer personligt sätt att börja dagen online. Gör { -brand-product-name } till din egen.

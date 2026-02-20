@@ -335,6 +335,9 @@ newtab-custom-widget-lists-toggle =
 newtab-custom-widget-timer-toggle =
     .label = წამმზომი
 newtab-custom-widget-section-title = ჩანამატები
+newtab-custom-widget-section-toggle =
+    .label = ჩანამატები
+newtab-widget-manage-title = ჩანამატები
 # Tooltip for close button
 newtab-custom-close-menu-button =
     .title = დახურვა
@@ -486,6 +489,11 @@ newtab-weather-opt-in-yes =
     .label = დიახ
 # We'll be showing static (fake) weather data if the user has not opted in to using their location
 newtab-weather-static-city = ნიუ-იორკი
+# Variables:
+#   $provider (string) - Service provider for weather data
+newtab-weather-see-forecast-description =
+    .title = ამინდს გთავაზობთ { $provider }
+    .aria-description = { $provider } ∙ დაკვეთილი
 
 ## Topic Labels
 

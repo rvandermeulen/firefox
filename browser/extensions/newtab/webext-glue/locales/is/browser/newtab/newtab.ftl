@@ -336,6 +336,9 @@ newtab-custom-widget-lists-toggle =
 newtab-custom-widget-timer-toggle =
     .label = Tímamælir
 newtab-custom-widget-section-title = Viðmótshlutar
+newtab-custom-widget-section-toggle =
+    .label = Viðmótshlutar
+newtab-widget-manage-title = Viðmótshlutar
 # Tooltip for close button
 newtab-custom-close-menu-button =
     .title = Loka
@@ -487,6 +490,11 @@ newtab-weather-opt-in-yes =
     .label = Já
 # We'll be showing static (fake) weather data if the user has not opted in to using their location
 newtab-weather-static-city = New York borg
+# Variables:
+#   $provider (string) - Service provider for weather data
+newtab-weather-see-forecast-description =
+    .title = Sjá veðurspá í { $provider }
+    .aria-description = { $provider } ∙ Kostað
 
 ## Topic Labels
 

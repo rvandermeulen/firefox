@@ -335,6 +335,11 @@ newtab-custom-widget-lists-toggle =
 newtab-custom-widget-timer-toggle =
     .label = Tenporizadorea
 newtab-custom-widget-section-title = Widgetak
+newtab-custom-widget-section-toggle =
+    .label = Widgetak
+newtab-widget-manage-title = Widgetak
+newtab-widget-manage-widget-button =
+    .label = Kudeatu widgetak
 # Tooltip for close button
 newtab-custom-close-menu-button =
     .title = Itxi
@@ -462,6 +467,8 @@ newtab-weather-change-location-search-input-placeholder =
     .placeholder = Bilatu kokapena
     .aria-label = Bilatu kokapena
 newtab-weather-menu-weather-display = Eguraldia bistaratzea
+newtab-weather-todays-forecast = Gaurko iragarpena
+newtab-weather-see-full-forecast = Ikusi iragarpen osoa
 # Display options are:
 # - Simple: Displays a current weather condition icon and the current temperature
 # - Detailed: Include simple information plus a short text summary: e.g. "Mostly cloudy"
@@ -474,6 +481,7 @@ newtab-weather-menu-temperature-option-fahrenheit = Fahrenheit
 newtab-weather-menu-temperature-option-celsius = Celsius
 newtab-weather-menu-change-temperature-units-fahrenheit = Aldatu Fahrenheit-era
 newtab-weather-menu-change-temperature-units-celsius = Aldatu Celsius-era
+newtab-weather-menu-hide-weather-v2 = Ezkutatu eguraldia
 newtab-weather-menu-hide-weather = Ezkutatu eguraldia fitxa berrian
 newtab-weather-menu-learn-more = Argibide gehiago
 newtab-weather-menu-detect-my-location = Hauteman nire kokalekua
@@ -486,6 +494,11 @@ newtab-weather-opt-in-yes =
     .label = Bai
 # We'll be showing static (fake) weather data if the user has not opted in to using their location
 newtab-weather-static-city = New York
+# Variables:
+#   $provider (string) - Service provider for weather data
+newtab-weather-see-forecast-description =
+    .title = Ikusi iragarpena { $provider } hornitzailean
+    .aria-description = { $provider } ∙ Babeslea
 
 ## Topic Labels
 
@@ -687,6 +700,12 @@ newtab-widget-timer-menu-notifications = Desaktibatu jakinarazpenak
 newtab-widget-timer-menu-notifications-on = Aktibatu jakinarazpenak
 newtab-widget-timer-menu-hide = Ezkutatu tenporizadorea
 newtab-widget-timer-menu-learn-more = Argibide gehiago
+# The title displays above a set of top news headlines.
+newtab-daily-briefing-card-title = Lerroburu garrantzitsuenak
+newtab-daily-briefing-card-menu-dismiss = Baztertu
+# Variables:
+#   $minutes (number) - Time since the feed has been refreshed
+newtab-daily-briefing-card-timestamp = Duela { $minutes }m eguneratuta
 newtab-widget-message-title = Mantendu kontzentratuta zerrendekin eta tenporizadorearekin
 # to-dos stands for "things to do".
 newtab-widget-message-copy = Abisu azkarretatik egunaren egitekoetara, saio zentratuetatik luzatzeko hutsuneetara — izan zereginen gainean eta garaiz.
@@ -696,3 +715,25 @@ newtab-promo-card-cta = Argibide gehiago
 newtab-promo-card-dismiss-button =
     .title = Baztertu
     .aria-label = Baztertu
+
+## Strings for activation window message variants. In certain experiment configurations,
+## the strings from these variants may be displayed in a message below the search input
+## for the first 48 hours of a new profile's lifetime. Some messages include buttons with
+## labels, but not all.
+
+newtab-activation-window-message-dismiss-button =
+    .title = Baztertu
+    .aria-label = Baztertu
+# "This space" refers to about:newtab. The call to action here ("make it your own")
+# is to customize newtab with a background image or colour, or by tweaking the
+# existing widgetry that appears on it.
+newtab-activation-window-message-customization-focus-header = Molda ezazu txoko hau zure erara
+newtab-activation-window-message-customization-focus-message = Aukeratu horma-paper berri bat, gehitu zure gogoko guneetarako lasterbideak eta mantendu egunean zure interesekoak diren gaietan.
+newtab-activation-window-message-customization-focus-primary-button =
+    .label = Hasi pertsonalizatzen
+# "This space" refers to about:newtab. The sentiment of "plays by your rules" is
+# meant to evoke the idea that newtab is malleable and customizable. The call to
+# action is to customize newtab with a background image or colour, or by tweaking
+# the existing widgetry that appears on it.
+newtab-activation-window-message-values-focus-header = Zuk agintzen duzu txoko honetan
+newtab-activation-window-message-values-focus-message = Nahi duzun erara nabigatzen uzten dizu { -brand-product-name }(e)k, zure online eguna hasteko modu pertsonalago batekin. Moldatu { -brand-product-name } zure erara.

@@ -335,6 +335,9 @@ newtab-custom-widget-lists-toggle =
 newtab-custom-widget-timer-toggle =
     .label = Temporizador
 newtab-custom-widget-section-title = Widgets
+newtab-custom-widget-section-toggle =
+    .label = Widgets
+newtab-widget-manage-title = Widgets
 newtab-custom-close-button = Pechar
 newtab-custom-settings = Xestionar máis axustes
 
@@ -469,6 +472,11 @@ newtab-weather-menu-hide-weather = Ocultar o tempo na nova pestana
 newtab-weather-menu-learn-more = Máis información
 # This message is shown if user is working offline
 newtab-weather-error-not-available = Os datos meteorolóxicos non están dispoñibles neste momento.
+# Variables:
+#   $provider (string) - Service provider for weather data
+newtab-weather-see-forecast-description =
+    .title = Ver a previsión en { $provider }
+    .aria-description = { $provider } ∙ Patrocinado
 
 ## Topic Labels
 

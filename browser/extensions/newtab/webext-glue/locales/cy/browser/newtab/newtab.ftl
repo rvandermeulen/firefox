@@ -23,6 +23,9 @@ newtab-personalize-dialog-label =
     .aria-label = Personoli
 newtab-logo-and-wordmark =
     .aria-label = { -brand-full-name }
+newtab-card-dismiss-button =
+    .title = Cau
+    .aria-label = Cau
 
 ## Search box component.
 
@@ -341,6 +344,11 @@ newtab-custom-widget-lists-toggle =
 newtab-custom-widget-timer-toggle =
     .label = Amserydd
 newtab-custom-widget-section-title = Teclynnau
+newtab-custom-widget-section-toggle =
+    .label = Teclynnau
+newtab-widget-manage-title = Teclynnau
+newtab-widget-manage-widget-button =
+    .label = Rheoli teclynnau
 # Tooltip for close button
 newtab-custom-close-menu-button =
     .title = Cau
@@ -468,6 +476,8 @@ newtab-weather-change-location-search-input-placeholder =
     .placeholder = Chwilio am leoliad
     .aria-label = Chwilio am leoliad
 newtab-weather-menu-weather-display = Dangos y tywydd
+newtab-weather-todays-forecast = Rhagolwg heddiw
+newtab-weather-see-full-forecast = Gweld y rhagolwg llawn
 # Display options are:
 # - Simple: Displays a current weather condition icon and the current temperature
 # - Detailed: Include simple information plus a short text summary: e.g. "Mostly cloudy"
@@ -480,6 +490,7 @@ newtab-weather-menu-temperature-option-fahrenheit = Fahrenheit
 newtab-weather-menu-temperature-option-celsius = Celsius
 newtab-weather-menu-change-temperature-units-fahrenheit = Newid i Fahrenheit
 newtab-weather-menu-change-temperature-units-celsius = Newid i Celsius
+newtab-weather-menu-hide-weather-v2 = Cuddio'r tywydd
 newtab-weather-menu-hide-weather = Cuddio'r tywydd ar Dab Newydd
 newtab-weather-menu-learn-more = Rhagor
 newtab-weather-menu-detect-my-location = Canfod fy lleoliad
@@ -492,6 +503,11 @@ newtab-weather-opt-in-yes =
     .label = Iawn
 # We'll be showing static (fake) weather data if the user has not opted in to using their location
 newtab-weather-static-city = Dinas Efrog Newydd
+# Variables:
+#   $provider (string) - Service provider for weather data
+newtab-weather-see-forecast-description =
+    .title = Gweld y rhagolygon yn { $provider }
+    .aria-description = { $provider } ∙ Wedi'i noddi
 
 ## Topic Labels
 
@@ -599,7 +615,7 @@ newtab-shortcuts-highlight-subtitle = Ychwanegwch lwybr byr i gadw'ch hoff wefan
 ## Strings for reporting issues with ads and content
 
 newtab-report-content-why-reporting-this =
-    .label = Pam ydych chi'n adrodd ar hyn?
+    .label = Pam ydych chi'n adrodd am hyn?
 newtab-report-ads-reason-not-interested =
     .label = Does gen i ddim diddordeb
 newtab-report-ads-reason-inappropriate =
@@ -620,7 +636,7 @@ newtab-report-content-requires-payment-subscription-learn-more = Darllen rhagor
 newtab-report-cancel = Diddymu
 newtab-report-submit = Cyflwyno
 newtab-toast-thanks-for-reporting =
-    .message = Diolch am adrodd ar hwn.
+    .message = Diolch am adrodd am hyn.
 
 ## Strings for task / to-do list productivity widget
 
@@ -693,12 +709,40 @@ newtab-widget-timer-menu-notifications = Diffodd hysbysiadau
 newtab-widget-timer-menu-notifications-on = Troi hysbysiadau ymlaen
 newtab-widget-timer-menu-hide = Cuddio'r amserydd
 newtab-widget-timer-menu-learn-more = Dysgu rhagor
+# The title displays above a set of top news headlines.
+newtab-daily-briefing-card-title = Prif Benawdau
+newtab-daily-briefing-card-menu-dismiss = Cau
+# Variables:
+#   $minutes (number) - Time since the feed has been refreshed
+newtab-daily-briefing-card-timestamp = Diweddarwyd { $minutes }m yn ôl
 newtab-widget-message-title = Canolbwyntio gyda rhestrau a'r amserydd mewnol
 # to-dos stands for "things to do".
 newtab-widget-message-copy = O negeseuon atgoffa cyflym i dasgau bob dydd, sesiynau canolbwyntio i egwyliau ymarfer corff — cadwch i'r dasg ac amser.
-newtab-promo-card-title = Cefnogwch { -brand-product-name }
+newtab-promo-card-title = Cefnogi { -brand-product-name }
 newtab-promo-card-body = Mae ein noddwyr yn cefnogi ein cenhadaeth i adeiladu gwe well
 newtab-promo-card-cta = Dysgu rhagor
 newtab-promo-card-dismiss-button =
     .title = Cau
     .aria-label = Cau
+
+## Strings for activation window message variants. In certain experiment configurations,
+## the strings from these variants may be displayed in a message below the search input
+## for the first 48 hours of a new profile's lifetime. Some messages include buttons with
+## labels, but not all.
+
+newtab-activation-window-message-dismiss-button =
+    .title = Cau
+    .aria-label = Cau
+# "This space" refers to about:newtab. The call to action here ("make it your own")
+# is to customize newtab with a background image or colour, or by tweaking the
+# existing widgetry that appears on it.
+newtab-activation-window-message-customization-focus-header = Gwnewch y gofod hwn eich un chi
+newtab-activation-window-message-customization-focus-message = Dewiswch bapur wal newydd, ychwanegu llwybrau byr i'ch hoff wefannau, a chadw'r wybodaeth ddiweddaraf am straeon diddorol.
+newtab-activation-window-message-customization-focus-primary-button =
+    .label = Cychwyn cyfaddasu
+# "This space" refers to about:newtab. The sentiment of "plays by your rules" is
+# meant to evoke the idea that newtab is malleable and customizable. The call to
+# action is to customize newtab with a background image or colour, or by tweaking
+# the existing widgetry that appears on it.
+newtab-activation-window-message-values-focus-header = Mae'r gofod hwn yn chwarae yn ôl eich rheolau chi
+newtab-activation-window-message-values-focus-message = Mae { -brand-product-name } yn gadael i chi bori'r ffordd fyddwch chi'n ei hoffi, gyda dull mwy personol i ddechrau'ch diwrnod ar-lein. Gwnewch { -brand-product-name } yn ddefnyddiol i chi.

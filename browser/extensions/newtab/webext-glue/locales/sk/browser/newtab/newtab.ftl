@@ -23,6 +23,9 @@ newtab-personalize-dialog-label =
     .aria-label = Prispôsobiť
 newtab-logo-and-wordmark =
     .aria-label = { -brand-full-name }
+newtab-card-dismiss-button =
+    .title = Zavrieť
+    .aria-label = Zavrieť
 
 ## Search box component.
 
@@ -333,6 +336,11 @@ newtab-custom-widget-lists-toggle =
 newtab-custom-widget-timer-toggle =
     .label = Časovač
 newtab-custom-widget-section-title = Miniaplikácie
+newtab-custom-widget-section-toggle =
+    .label = Miniaplikácie
+newtab-widget-manage-title = Miniaplikácie
+newtab-widget-manage-widget-button =
+    .label = Spravovať miniaplikácie
 # Tooltip for close button
 newtab-custom-close-menu-button =
     .title = Zavrieť
@@ -348,7 +356,7 @@ newtab-wallpaper-upload-image = Nahrať obrázok
 newtab-wallpaper-custom-color = Zvoľte farbu
 # Variables
 #   $file_size (number) - The number of the maximum image file size (in MB) that may be uploaded
-newtab-wallpaper-error-max-file-size = Obrázok prekročil limit veľkosti súboru { $file_size } MB. Skúste nahrať menší súbor.
+newtab-wallpaper-error-max-file-size = Obrázok prekročil limit veľkosti súboru { $file_size } MB. Skúste nahrať menší súbor.
 newtab-wallpaper-error-upload-file-type = Nepodarilo sa nám nahrať váš súbor. Skúste to znova so súborom obrázka.
 newtab-wallpaper-error-file-type = Nepodarilo sa nám nahrať váš súbor. Skúste to znova s iným typom súboru.
 newtab-wallpaper-light-red-panda = Červená panda
@@ -460,6 +468,8 @@ newtab-weather-change-location-search-input-placeholder =
     .placeholder = Hľadať oblasť
     .aria-label = Hľadať oblasť
 newtab-weather-menu-weather-display = Zobrazenie počasia
+newtab-weather-todays-forecast = Dnešná predpoveď
+newtab-weather-see-full-forecast = Zobraziť celú predpoveď
 # Display options are:
 # - Simple: Displays a current weather condition icon and the current temperature
 # - Detailed: Include simple information plus a short text summary: e.g. "Mostly cloudy"
@@ -472,6 +482,7 @@ newtab-weather-menu-temperature-option-fahrenheit = Fahrenheit
 newtab-weather-menu-temperature-option-celsius = Celzius
 newtab-weather-menu-change-temperature-units-fahrenheit = Prepnúť na stupne Fahrenheita
 newtab-weather-menu-change-temperature-units-celsius = Prepnite na stupne Celzia
+newtab-weather-menu-hide-weather-v2 = Skryť počasie
 newtab-weather-menu-hide-weather = Skryť počasie na novej karte
 newtab-weather-menu-learn-more = Ďalšie informácie
 newtab-weather-menu-detect-my-location = Zistiť moju polohu
@@ -484,6 +495,11 @@ newtab-weather-opt-in-yes =
     .label = Áno
 # We'll be showing static (fake) weather data if the user has not opted in to using their location
 newtab-weather-static-city = New York City
+# Variables:
+#   $provider (string) - Service provider for weather data
+newtab-weather-see-forecast-description =
+    .title = Pozrite si predpoveď od { $provider }
+    .aria-description = { $provider } ∙ Sponzorované
 
 ## Topic Labels
 
@@ -685,6 +701,12 @@ newtab-widget-timer-menu-notifications = Vypnúť upozornenia
 newtab-widget-timer-menu-notifications-on = Zapnúť upozornenia
 newtab-widget-timer-menu-hide = Skryť časovač
 newtab-widget-timer-menu-learn-more = Ďalšie informácie
+# The title displays above a set of top news headlines.
+newtab-daily-briefing-card-title = Najlepšie titulky
+newtab-daily-briefing-card-menu-dismiss = Zavrieť
+# Variables:
+#   $minutes (number) - Time since the feed has been refreshed
+newtab-daily-briefing-card-timestamp = Aktualizované pred { $minutes } min.
 newtab-widget-message-title = Zostaňte sústredení vďaka zoznamom a vstavanému časovaču
 # to-dos stands for "things to do".
 newtab-widget-message-copy = Od rýchlych pripomienok až po denné úlohy, od sústredených stretnutí až po prestávky – sústreďte sa na úlohy a dodržujte čas.
@@ -694,3 +716,25 @@ newtab-promo-card-cta = Ďalšie informácie
 newtab-promo-card-dismiss-button =
     .title = Zavrieť
     .aria-label = Zavrieť
+
+## Strings for activation window message variants. In certain experiment configurations,
+## the strings from these variants may be displayed in a message below the search input
+## for the first 48 hours of a new profile's lifetime. Some messages include buttons with
+## labels, but not all.
+
+newtab-activation-window-message-dismiss-button =
+    .title = Zavrieť
+    .aria-label = Zavrieť
+# "This space" refers to about:newtab. The call to action here ("make it your own")
+# is to customize newtab with a background image or colour, or by tweaking the
+# existing widgetry that appears on it.
+newtab-activation-window-message-customization-focus-header = Prispôsobte si tento priestor
+newtab-activation-window-message-customization-focus-message = Vyberte si novú tapetu, pridajte odkazy na svoje obľúbené stránky a zostaňte v obraze o príbehoch, ktoré vás zaujímajú.
+newtab-activation-window-message-customization-focus-primary-button =
+    .label = Začať prispôsobovať
+# "This space" refers to about:newtab. The sentiment of "plays by your rules" is
+# meant to evoke the idea that newtab is malleable and customizable. The call to
+# action is to customize newtab with a background image or colour, or by tweaking
+# the existing widgetry that appears on it.
+newtab-activation-window-message-values-focus-header = Tento priestor sa riadi vašimi pravidlami
+newtab-activation-window-message-values-focus-message = { -brand-product-name } vám umožňuje prehliadať internet tak, ako sa vám páči, s osobnejším spôsobom, ako začať svoj online deň. Prispôsobte si { -brand-product-name(case: "acc") }.

@@ -23,6 +23,9 @@ newtab-personalize-dialog-label =
     .aria-label = Personalizează
 newtab-logo-and-wordmark =
     .aria-label = { -brand-full-name }
+newtab-card-dismiss-button =
+    .title = Închide
+    .aria-label = Închide
 
 ## Search box component.
 
@@ -333,6 +336,11 @@ newtab-custom-widget-lists-toggle =
 newtab-custom-widget-timer-toggle =
     .label = Cronometru
 newtab-custom-widget-section-title = Widgeturi
+newtab-custom-widget-section-toggle =
+    .label = Widgeturi
+newtab-widget-manage-title = Widgeturi
+newtab-widget-manage-widget-button =
+    .label = Gestionează widgeturile
 # Tooltip for close button
 newtab-custom-close-menu-button =
     .title = Închide
@@ -460,6 +468,8 @@ newtab-weather-change-location-search-input-placeholder =
     .placeholder = Caută locație
     .aria-label = Caută locație
 newtab-weather-menu-weather-display = Afișaj meteo
+newtab-weather-todays-forecast = Prognoza de astăzi
+newtab-weather-see-full-forecast = Vezi prognoza completă
 # Display options are:
 # - Simple: Displays a current weather condition icon and the current temperature
 # - Detailed: Include simple information plus a short text summary: e.g. "Mostly cloudy"
@@ -472,6 +482,7 @@ newtab-weather-menu-temperature-option-fahrenheit = Fahrenheit
 newtab-weather-menu-temperature-option-celsius = Celsius
 newtab-weather-menu-change-temperature-units-fahrenheit = Treci pe Fahrenheit
 newtab-weather-menu-change-temperature-units-celsius = Treci pe Celsius
+newtab-weather-menu-hide-weather-v2 = Ascunde vremea
 newtab-weather-menu-hide-weather = Ascunde vremea în fila nouă
 newtab-weather-menu-learn-more = Află mai multe
 newtab-weather-menu-detect-my-location = Detectează-mi locația
@@ -484,6 +495,11 @@ newtab-weather-opt-in-yes =
     .label = Da
 # We'll be showing static (fake) weather data if the user has not opted in to using their location
 newtab-weather-static-city = New York City
+# Variables:
+#   $provider (string) - Service provider for weather data
+newtab-weather-see-forecast-description =
+    .title = Vezi prognoza meteo în { $provider }
+    .aria-description = { $provider } ∙ Sponsorizat
 
 ## Topic Labels
 
@@ -685,6 +701,12 @@ newtab-widget-timer-menu-notifications = Oprește notificările
 newtab-widget-timer-menu-notifications-on = Activează notificările
 newtab-widget-timer-menu-hide = Ascunde cronometrul
 newtab-widget-timer-menu-learn-more = Află mai multe
+# The title displays above a set of top news headlines.
+newtab-daily-briefing-card-title = Titluri principale
+newtab-daily-briefing-card-menu-dismiss = Elimină
+# Variables:
+#   $minutes (number) - Time since the feed has been refreshed
+newtab-daily-briefing-card-timestamp = Actualizat acum { $minutes } min
 newtab-widget-message-title = Stai concentrat(ă) cu liste și un cronometru încorporat
 # to-dos stands for "things to do".
 newtab-widget-message-copy = De la mementouri rapide la liste zilnice de sarcini, sesiuni de concentrare până la pauze de întindere — stai concentrat(ă) pe sarcină și o termini la timp.
@@ -694,3 +716,25 @@ newtab-promo-card-cta = Află mai multe
 newtab-promo-card-dismiss-button =
     .title = Respinge
     .aria-label = Respinge
+
+## Strings for activation window message variants. In certain experiment configurations,
+## the strings from these variants may be displayed in a message below the search input
+## for the first 48 hours of a new profile's lifetime. Some messages include buttons with
+## labels, but not all.
+
+newtab-activation-window-message-dismiss-button =
+    .title = Închide
+    .aria-label = Închide
+# "This space" refers to about:newtab. The call to action here ("make it your own")
+# is to customize newtab with a background image or colour, or by tweaking the
+# existing widgetry that appears on it.
+newtab-activation-window-message-customization-focus-header = Personalizează-ți acest spațiu
+newtab-activation-window-message-customization-focus-message = Alege o imagine de fundal nouă, adaugă scurtături către site-urile preferate și fii la curent cu știrile care te interesează.
+newtab-activation-window-message-customization-focus-primary-button =
+    .label = Începe personalizarea
+# "This space" refers to about:newtab. The sentiment of "plays by your rules" is
+# meant to evoke the idea that newtab is malleable and customizable. The call to
+# action is to customize newtab with a background image or colour, or by tweaking
+# the existing widgetry that appears on it.
+newtab-activation-window-message-values-focus-header = Acest spațiu funcționează după regulile tale
+newtab-activation-window-message-values-focus-message = { -brand-product-name } îți permite să navighezi cum dorești, cu un mod mai personal de a-ți începe ziua online. Personalizează { -brand-product-name }.

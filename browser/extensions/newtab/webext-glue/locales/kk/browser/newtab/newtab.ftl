@@ -23,6 +23,9 @@ newtab-personalize-dialog-label =
     .aria-label = Жекелендіру
 newtab-logo-and-wordmark =
     .aria-label = { -brand-full-name }
+newtab-card-dismiss-button =
+    .title = Елемеу
+    .aria-label = Елемеу
 
 ## Search box component.
 
@@ -335,6 +338,11 @@ newtab-custom-widget-lists-toggle =
 newtab-custom-widget-timer-toggle =
     .label = Таймер
 newtab-custom-widget-section-title = Виджеттер
+newtab-custom-widget-section-toggle =
+    .label = Виджеттер
+newtab-widget-manage-title = Виджеттер
+newtab-widget-manage-widget-button =
+    .label = Виджеттерді басқару
 # Tooltip for close button
 newtab-custom-close-menu-button =
     .title = Жабу
@@ -462,6 +470,8 @@ newtab-weather-change-location-search-input-placeholder =
     .placeholder = Орналасуды іздеу
     .aria-label = Орналасуды іздеу
 newtab-weather-menu-weather-display = Ауа райын көрсету
+newtab-weather-todays-forecast = Бүгінгі ауа райы болжамы
+newtab-weather-see-full-forecast = Толық ауа райы болжамын қарау
 # Display options are:
 # - Simple: Displays a current weather condition icon and the current temperature
 # - Detailed: Include simple information plus a short text summary: e.g. "Mostly cloudy"
@@ -474,6 +484,7 @@ newtab-weather-menu-temperature-option-fahrenheit = Фаренгейт
 newtab-weather-menu-temperature-option-celsius = Цельсий
 newtab-weather-menu-change-temperature-units-fahrenheit = Фаренгейтке ауысу
 newtab-weather-menu-change-temperature-units-celsius = Цельсийге ауысу
+newtab-weather-menu-hide-weather-v2 = Ауа райын жасыру
 newtab-weather-menu-hide-weather = Жаңа бетте ауа райын жасыру
 newtab-weather-menu-learn-more = Көбірек білу
 newtab-weather-menu-detect-my-location = Менің орналасуымды анықтау
@@ -486,6 +497,11 @@ newtab-weather-opt-in-yes =
     .label = Иә
 # We'll be showing static (fake) weather data if the user has not opted in to using their location
 newtab-weather-static-city = Нью-Йорк
+# Variables:
+#   $provider (string) - Service provider for weather data
+newtab-weather-see-forecast-description =
+    .title = { $provider } ішінде болжамды қарау
+    .aria-description = { $provider } ∙ Демеушілік
 
 ## Topic Labels
 
@@ -687,6 +703,12 @@ newtab-widget-timer-menu-notifications = Хабарламаларды сөнді
 newtab-widget-timer-menu-notifications-on = Хабарламаларды іске қосу
 newtab-widget-timer-menu-hide = Таймерді жасыру
 newtab-widget-timer-menu-learn-more = Көбірек білу
+# The title displays above a set of top news headlines.
+newtab-daily-briefing-card-title = Басты жаңалықтар
+newtab-daily-briefing-card-menu-dismiss = Елемеу
+# Variables:
+#   $minutes (number) - Time since the feed has been refreshed
+newtab-daily-briefing-card-timestamp = { $minutes } минут бұрын жаңартылды
 newtab-widget-message-title = Тізімдер мен кірістірілген таймер арқылы назарыңызды сақтаңыз
 # to-dos stands for "things to do".
 newtab-widget-message-copy = Жылдам еске салғыштардан күнделікті істер тізіміне дейін, зейін қою сессияларынан бой жазу үзілістеріне дейін — жұмыстан ауытқымай, уақытыңызды тиімді пайдаланыңыз.
@@ -696,3 +718,25 @@ newtab-promo-card-cta = Көбірек білу
 newtab-promo-card-dismiss-button =
     .title = Елемеу
     .aria-label = Елемеу
+
+## Strings for activation window message variants. In certain experiment configurations,
+## the strings from these variants may be displayed in a message below the search input
+## for the first 48 hours of a new profile's lifetime. Some messages include buttons with
+## labels, but not all.
+
+newtab-activation-window-message-dismiss-button =
+    .title = Елемеу
+    .aria-label = Елемеу
+# "This space" refers to about:newtab. The call to action here ("make it your own")
+# is to customize newtab with a background image or colour, or by tweaking the
+# existing widgetry that appears on it.
+newtab-activation-window-message-customization-focus-header = Бұл кеңістікті өзіңіздікі етіңіз
+newtab-activation-window-message-customization-focus-message = Жаңа тұсқағаз таңдаңыз, таңдамалы сайттарыңызға сілтемелер қосыңыз және сізді қызықтыратын оқиғалардан хабардар болып отырыңыз.
+newtab-activation-window-message-customization-focus-primary-button =
+    .label = Баптауды бастау
+# "This space" refers to about:newtab. The sentiment of "plays by your rules" is
+# meant to evoke the idea that newtab is malleable and customizable. The call to
+# action is to customize newtab with a background image or colour, or by tweaking
+# the existing widgetry that appears on it.
+newtab-activation-window-message-values-focus-header = Бұл кеңістік сіздің ережелеріңіз бойынша ойнайды
+newtab-activation-window-message-values-focus-message = { -brand-product-name } көмегімен интернеттегі жұмысыңызды өзіңізге ыңғайлы стильде бастаңыз. { -brand-product-name } интерфейсін өзіңізге бейімдеп, оны бірегей етіңіз.

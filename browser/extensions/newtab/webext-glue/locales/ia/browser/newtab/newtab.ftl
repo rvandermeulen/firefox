@@ -23,6 +23,9 @@ newtab-personalize-dialog-label =
     .aria-label = Personalisar
 newtab-logo-and-wordmark =
     .aria-label = { -brand-full-name }
+newtab-card-dismiss-button =
+    .title = Ignorar
+    .aria-label = Ignorar
 
 ## Search box component.
 
@@ -55,10 +58,10 @@ newtab-topsites-add-search-engine-header = Adder un motor de recerca
 newtab-topsites-add-shortcut-header = Nove accesso directe
 newtab-topsites-edit-topsites-header = Modificar le sito preferite
 newtab-topsites-edit-shortcut-header = Modificar accesso directe
-newtab-topsites-add-shortcut-label = Adder via-breve
+newtab-topsites-add-shortcut-label = Adder accesso directe
 newtab-topsites-add-shortcut-title =
-    .title = Adder via-breve
-    .aria-label = Adder via-breve
+    .title = Adder accesso directe
+    .aria-label = Adder accesso directe
 newtab-topsites-title-label = Titulo
 newtab-topsites-title-input =
     .placeholder = Scriber un titulo
@@ -332,6 +335,11 @@ newtab-custom-widget-lists-toggle =
 newtab-custom-widget-timer-toggle =
     .label = Temporisator
 newtab-custom-widget-section-title = Widgets
+newtab-custom-widget-section-toggle =
+    .label = Widgets
+newtab-widget-manage-title = Widgets
+newtab-widget-manage-widget-button =
+    .label = Gerer widgets
 # Tooltip for close button
 newtab-custom-close-menu-button =
     .title = Clauder
@@ -459,6 +467,8 @@ newtab-weather-change-location-search-input-placeholder =
     .placeholder = Cercar loco
     .aria-label = Cercar loco
 newtab-weather-menu-weather-display = Visualisation meteo
+newtab-weather-todays-forecast = Prevision hodierne
+newtab-weather-see-full-forecast = Vider prevision complete
 # Display options are:
 # - Simple: Displays a current weather condition icon and the current temperature
 # - Detailed: Include simple information plus a short text summary: e.g. "Mostly cloudy"
@@ -471,6 +481,7 @@ newtab-weather-menu-temperature-option-fahrenheit = Fahrenheit
 newtab-weather-menu-temperature-option-celsius = Celsius
 newtab-weather-menu-change-temperature-units-fahrenheit = Passar a Fahrenheit
 newtab-weather-menu-change-temperature-units-celsius = Passar a Celsius
+newtab-weather-menu-hide-weather-v2 = Celar meteo
 newtab-weather-menu-hide-weather = Celar meteo sur Nove scheda
 newtab-weather-menu-learn-more = Pro saper plus
 newtab-weather-menu-detect-my-location = Deteger mi position
@@ -483,6 +494,11 @@ newtab-weather-opt-in-yes =
     .label = Si
 # We'll be showing static (fake) weather data if the user has not opted in to using their location
 newtab-weather-static-city = Citate de Nove York
+# Variables:
+#   $provider (string) - Service provider for weather data
+newtab-weather-see-forecast-description =
+    .title = Vider prevision in { $provider }
+    .aria-description = { $provider } ∙ Sponsorisate
 
 ## Topic Labels
 
@@ -585,7 +601,7 @@ newtab-download-mobile-highlight-image =
 ## Strings for shortcuts highlight
 
 newtab-shortcuts-highlight-title = Tu preferentias a tu punctas de digitos
-newtab-shortcuts-highlight-subtitle = Adde un via-breve pro mantener tu sitos favorite a portata de clic.
+newtab-shortcuts-highlight-subtitle = Adde un accesso directe pro mantener tu sitos favorite a portata de clic.
 
 ## Strings for reporting issues with ads and content
 
@@ -684,6 +700,12 @@ newtab-widget-timer-menu-notifications = Disactivar notificationes
 newtab-widget-timer-menu-notifications-on = Activar notificationes
 newtab-widget-timer-menu-hide = Celar temporisator
 newtab-widget-timer-menu-learn-more = Pro saper plus
+# The title displays above a set of top news headlines.
+newtab-daily-briefing-card-title = Titulos principal
+newtab-daily-briefing-card-menu-dismiss = Ignorar
+# Variables:
+#   $minutes (number) - Time since the feed has been refreshed
+newtab-daily-briefing-card-timestamp = Actualisate desde { $minutes } min
 newtab-widget-message-title = Remane concentrate con le listas e un temporisator integrate
 # to-dos stands for "things to do".
 newtab-widget-message-copy = De rememorationes a travalios, de concentration a relaxation – resta attente e a tempore.
@@ -693,3 +715,25 @@ newtab-promo-card-cta = Pro saper plus
 newtab-promo-card-dismiss-button =
     .title = Clauder
     .aria-label = Clauder
+
+## Strings for activation window message variants. In certain experiment configurations,
+## the strings from these variants may be displayed in a message below the search input
+## for the first 48 hours of a new profile's lifetime. Some messages include buttons with
+## labels, but not all.
+
+newtab-activation-window-message-dismiss-button =
+    .title = Ignorar
+    .aria-label = Ignorar
+# "This space" refers to about:newtab. The call to action here ("make it your own")
+# is to customize newtab with a background image or colour, or by tweaking the
+# existing widgetry that appears on it.
+newtab-activation-window-message-customization-focus-header = Rende iste spatio tu proprie
+newtab-activation-window-message-customization-focus-message = Elige un nove fundo, adde vias breve a tu sitos favorite, e resta actualisate sur le historias que te interessa.
+newtab-activation-window-message-customization-focus-primary-button =
+    .label = Initiar le personalisation
+# "This space" refers to about:newtab. The sentiment of "plays by your rules" is
+# meant to evoke the idea that newtab is malleable and customizable. The call to
+# action is to customize newtab with a background image or colour, or by tweaking
+# the existing widgetry that appears on it.
+newtab-activation-window-message-values-focus-header = Iste spatio seque tu regulas
+newtab-activation-window-message-values-focus-message = { -brand-product-name } te permitte de navigar per le maniera que te place, con un maniera plus personal de initiar tu die online. Rende tu proprie { -brand-product-name }.

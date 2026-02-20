@@ -329,6 +329,9 @@ newtab-custom-widget-weather-toggle =
 newtab-custom-widget-lists-toggle =
     .label = Daftar
 newtab-custom-widget-section-title = Widget
+newtab-custom-widget-section-toggle =
+    .label = Widget
+newtab-widget-manage-title = Widget
 # Tooltip for close button
 newtab-custom-close-menu-button =
     .title = Tutup
@@ -468,6 +471,11 @@ newtab-weather-menu-hide-weather = Sembunyikan cuaca di Tab Baru
 newtab-weather-menu-learn-more = Pelajari lebih lanjut
 # This message is shown if user is working offline
 newtab-weather-error-not-available = Data cuaca tidak tersedia saat ini.
+# Variables:
+#   $provider (string) - Service provider for weather data
+newtab-weather-see-forecast-description =
+    .title = Lihat prakiraan di { $provider }
+    .aria-description = { $provider } ∙ Bersponsor
 
 ## Topic Labels
 

@@ -337,6 +337,11 @@ newtab-custom-widget-lists-toggle =
 newtab-custom-widget-timer-toggle =
     .label = Timer
 newtab-custom-widget-section-title = Widgets
+newtab-custom-widget-section-toggle =
+    .label = Widgets
+newtab-widget-manage-title = Widgets
+newtab-widget-manage-widget-button =
+    .label = Håndter widgets
 # Tooltip for close button
 newtab-custom-close-menu-button =
     .title = Luk
@@ -464,6 +469,8 @@ newtab-weather-change-location-search-input-placeholder =
     .placeholder = Søg efter sted
     .aria-label = Søg efter sted
 newtab-weather-menu-weather-display = Visning af vejr
+newtab-weather-todays-forecast = Dagens vejrudsigt
+newtab-weather-see-full-forecast = Se hele vejrudsigten
 # Display options are:
 # - Simple: Displays a current weather condition icon and the current temperature
 # - Detailed: Include simple information plus a short text summary: e.g. "Mostly cloudy"
@@ -476,6 +483,7 @@ newtab-weather-menu-temperature-option-fahrenheit = Fahrenheit
 newtab-weather-menu-temperature-option-celsius = Celsius
 newtab-weather-menu-change-temperature-units-fahrenheit = Skift til Fahrenheit
 newtab-weather-menu-change-temperature-units-celsius = Skift til Celsius
+newtab-weather-menu-hide-weather-v2 = Skjul vejr
 newtab-weather-menu-hide-weather = Skjul vejr på Nyt faneblad
 newtab-weather-menu-learn-more = Læs mere
 newtab-weather-menu-detect-my-location = Registrer min placering
@@ -488,6 +496,11 @@ newtab-weather-opt-in-yes =
     .label = Ja
 # We'll be showing static (fake) weather data if the user has not opted in to using their location
 newtab-weather-static-city = New York City
+# Variables:
+#   $provider (string) - Service provider for weather data
+newtab-weather-see-forecast-description =
+    .title = Se vejrudsigter på { $provider }
+    .aria-description = { $provider } ∙ Sponsoreret
 
 ## Topic Labels
 
@@ -689,6 +702,9 @@ newtab-widget-timer-menu-notifications = Slå notifikationer fra
 newtab-widget-timer-menu-notifications-on = Slå notifikationer til
 newtab-widget-timer-menu-hide = Skjul timer
 newtab-widget-timer-menu-learn-more = Læs mere
+# The title displays above a set of top news headlines.
+newtab-daily-briefing-card-title = Topoverskrifter
+newtab-daily-briefing-card-menu-dismiss = Afvis
 newtab-widget-message-title = Hold fokus med lister og den indbyggede timer
 # to-dos stands for "things to do".
 newtab-widget-message-copy = Fra hurtige påmindelser til daglige opgaver — funktionen Fokus hjælper dig med at have styr på tingene og din tid.
@@ -698,3 +714,17 @@ newtab-promo-card-cta = Lær mere
 newtab-promo-card-dismiss-button =
     .title = Afvis
     .aria-label = Afvis
+
+## Strings for activation window message variants. In certain experiment configurations,
+## the strings from these variants may be displayed in a message below the search input
+## for the first 48 hours of a new profile's lifetime. Some messages include buttons with
+## labels, but not all.
+
+newtab-activation-window-message-dismiss-button =
+    .title = Afvis
+    .aria-label = Afvis
+# "This space" refers to about:newtab. The call to action here ("make it your own")
+# is to customize newtab with a background image or colour, or by tweaking the
+# existing widgetry that appears on it.
+newtab-activation-window-message-customization-focus-header = Gør denne plads til din egen
+newtab-activation-window-message-customization-focus-message = Vælg en ny baggrund, tilføj genveje til dine foretrukne websteder, og hold dig opdateret med artikler, som interesserer dig.

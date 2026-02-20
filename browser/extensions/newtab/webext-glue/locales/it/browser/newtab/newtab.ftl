@@ -23,6 +23,9 @@ newtab-personalize-dialog-label =
     .aria-label = Personalizza
 newtab-logo-and-wordmark =
     .aria-label = { -brand-full-name }
+newtab-card-dismiss-button =
+    .title = Chiudi
+    .aria-label = Chiudi
 
 ## Search box component.
 
@@ -484,6 +487,7 @@ newtab-weather-menu-temperature-option-fahrenheit = Fahrenheit
 newtab-weather-menu-temperature-option-celsius = Celsius
 newtab-weather-menu-change-temperature-units-fahrenheit = Passa a Fahrenheit
 newtab-weather-menu-change-temperature-units-celsius = Passa a Celsius
+newtab-weather-menu-hide-weather-v2 = Nascondi meteo
 newtab-weather-menu-hide-weather = Nascondi meteo in Nuova scheda
 newtab-weather-menu-learn-more = Ulteriori informazioni
 newtab-weather-menu-detect-my-location = Rileva la mia posizione
@@ -496,6 +500,11 @@ newtab-weather-opt-in-yes =
     .label = Sì
 # We'll be showing static (fake) weather data if the user has not opted in to using their location
 newtab-weather-static-city = New York City
+# Variables:
+#   $provider (string) - Service provider for weather data
+newtab-weather-see-forecast-description =
+    .title = Mostre le previsioni meteo in { $provider }
+    .aria-description = { $provider } ∙ Sponsorizzato
 
 ## Topic Labels
 
@@ -697,6 +706,12 @@ newtab-widget-timer-menu-notifications = Disattiva notifiche
 newtab-widget-timer-menu-notifications-on = Attiva le notifiche
 newtab-widget-timer-menu-hide = Nascondi timer
 newtab-widget-timer-menu-learn-more = Ulteriori informazioni
+# The title displays above a set of top news headlines.
+newtab-daily-briefing-card-title = Notizie in primo piano
+newtab-daily-briefing-card-menu-dismiss = Chiudi
+# Variables:
+#   $minutes (number) - Time since the feed has been refreshed
+newtab-daily-briefing-card-timestamp = Aggiornato { $minutes }m fa
 newtab-widget-message-title = Mantieni la concentrazione utilizzando le liste e il timer integrato
 # to-dos stands for "things to do".
 newtab-widget-message-copy = Da promemoria veloci a liste di attività quotidiane, da sessioni di concentrazione a pause per rilassarsi: mantieni l’attenzione e rispetta i tempi.
@@ -706,3 +721,25 @@ newtab-promo-card-cta = Ulteriori informazioni
 newtab-promo-card-dismiss-button =
     .title = Chiudi
     .aria-label = Chiudi
+
+## Strings for activation window message variants. In certain experiment configurations,
+## the strings from these variants may be displayed in a message below the search input
+## for the first 48 hours of a new profile's lifetime. Some messages include buttons with
+## labels, but not all.
+
+newtab-activation-window-message-dismiss-button =
+    .title = Chiudi
+    .aria-label = Chiudi
+# "This space" refers to about:newtab. The call to action here ("make it your own")
+# is to customize newtab with a background image or colour, or by tweaking the
+# existing widgetry that appears on it.
+newtab-activation-window-message-customization-focus-header = Rendi questo spazio davvero tuo
+newtab-activation-window-message-customization-focus-message = Scegli un nuovo sfondo, aggiungi scorciatoie ai tuoi siti preferiti e resta sempre aggiornato sulle storie che ti interessano.
+newtab-activation-window-message-customization-focus-primary-button =
+    .label = Inizia a personalizzare
+# "This space" refers to about:newtab. The sentiment of "plays by your rules" is
+# meant to evoke the idea that newtab is malleable and customizable. The call to
+# action is to customize newtab with a background image or colour, or by tweaking
+# the existing widgetry that appears on it.
+newtab-activation-window-message-values-focus-header = Questo spazio segue le tue regole
+newtab-activation-window-message-values-focus-message = { -brand-product-name } ti consente di navigare come preferisci, offrendoti un modo più personale per iniziare la tua giornata online. Rendi { -brand-product-name } davvero tuo.

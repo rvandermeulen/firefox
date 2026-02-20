@@ -316,6 +316,9 @@ newtab-custom-widget-lists-toggle =
 newtab-custom-widget-timer-toggle =
     .label = Amakud
 newtab-custom-widget-section-title = Iwiǧiten
+newtab-custom-widget-section-toggle =
+    .label = Iwiǧiten
+newtab-widget-manage-title = Iwiǧiten
 # Tooltip for close button
 newtab-custom-close-menu-button =
     .title = Mdel

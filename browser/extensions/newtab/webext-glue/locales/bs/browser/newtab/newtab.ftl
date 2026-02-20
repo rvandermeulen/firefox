@@ -453,6 +453,11 @@ newtab-weather-menu-hide-weather = Sakrij vrijeme na novom tabu
 newtab-weather-menu-learn-more = Saznajte više
 # This message is shown if user is working offline
 newtab-weather-error-not-available = Vremenski podaci trenutno nisu dostupni.
+# Variables:
+#   $provider (string) - Service provider for weather data
+newtab-weather-see-forecast-description =
+    .title = Pogledajte prognozu na { $provider }
+    .aria-description = { $provider } ∙ Sponzorisano
 
 ## Topic Labels
 

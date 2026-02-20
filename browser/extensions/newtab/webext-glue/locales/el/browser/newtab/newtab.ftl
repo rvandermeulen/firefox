@@ -23,6 +23,9 @@ newtab-personalize-dialog-label =
     .aria-label = Εξατομίκευση
 newtab-logo-and-wordmark =
     .aria-label = { -brand-full-name }
+newtab-card-dismiss-button =
+    .title = Απόρριψη
+    .aria-label = Απόρριψη
 
 ## Search box component.
 
@@ -336,6 +339,11 @@ newtab-custom-widget-lists-toggle =
 newtab-custom-widget-timer-toggle =
     .label = Αντίστροφη μέτρηση
 newtab-custom-widget-section-title = Γραφικά στοιχεία
+newtab-custom-widget-section-toggle =
+    .label = Γραφικά στοιχεία
+newtab-widget-manage-title = Γραφικά στοιχεία
+newtab-widget-manage-widget-button =
+    .label = Διαχείριση γραφικών στοιχείων
 # Tooltip for close button
 newtab-custom-close-menu-button =
     .title = Κλείσιμο
@@ -463,6 +471,8 @@ newtab-weather-change-location-search-input-placeholder =
     .placeholder = Αναζήτηση τοποθεσίας
     .aria-label = Αναζήτηση τοποθεσίας
 newtab-weather-menu-weather-display = Προβολή καιρού
+newtab-weather-todays-forecast = Πρόγνωση ημέρας
+newtab-weather-see-full-forecast = Προβολή πλήρους πρόγνωσης
 # Display options are:
 # - Simple: Displays a current weather condition icon and the current temperature
 # - Detailed: Include simple information plus a short text summary: e.g. "Mostly cloudy"
@@ -475,6 +485,7 @@ newtab-weather-menu-temperature-option-fahrenheit = Φαρενάιτ
 newtab-weather-menu-temperature-option-celsius = Κελσίου
 newtab-weather-menu-change-temperature-units-fahrenheit = Εναλλαγή σε Φαρενάιτ
 newtab-weather-menu-change-temperature-units-celsius = Εναλλαγή σε Κελσίου
+newtab-weather-menu-hide-weather-v2 = Απόκρυψη καιρού
 newtab-weather-menu-hide-weather = Απόκρυψη καιρού στη νέα καρτέλα
 newtab-weather-menu-learn-more = Μάθετε περισσότερα
 newtab-weather-menu-detect-my-location = Εντοπισμός τοποθεσίας
@@ -487,6 +498,11 @@ newtab-weather-opt-in-yes =
     .label = Ναι
 # We'll be showing static (fake) weather data if the user has not opted in to using their location
 newtab-weather-static-city = Νέα Υόρκη
+# Variables:
+#   $provider (string) - Service provider for weather data
+newtab-weather-see-forecast-description =
+    .title = Προβολή πρόγνωσης στο { $provider }
+    .aria-description = { $provider } ∙ Χορηγία
 
 ## Topic Labels
 
@@ -688,6 +704,12 @@ newtab-widget-timer-menu-notifications = Απενεργοποίηση ειδοπ
 newtab-widget-timer-menu-notifications-on = Ενεργοποίηση ειδοποιήσεων
 newtab-widget-timer-menu-hide = Απόκρυψη αντίστροφης μέτρησης
 newtab-widget-timer-menu-learn-more = Μάθετε περισσότερα
+# The title displays above a set of top news headlines.
+newtab-daily-briefing-card-title = Κορυφαίες επικεφαλίδες
+newtab-daily-briefing-card-menu-dismiss = Απόρριψη
+# Variables:
+#   $minutes (number) - Time since the feed has been refreshed
+newtab-daily-briefing-card-timestamp = Ενημερώθηκε πριν από { $minutes }λ
 newtab-widget-message-title = Παραμείνετε συγκεντρωμένοι με τις λίστες και την ενσωματωμένη αντίστροφη μέτρηση
 # to-dos stands for "things to do".
 newtab-widget-message-copy = Από γρήγορες υπενθυμίσεις έως καθημερινές υποχρεώσεις, συνεδρίες συγκέντρωσης έως διαλείμματα: επικεντρωθείτε και ολοκληρώστε τις εργασίες σας εγκαίρως.
@@ -697,3 +719,25 @@ newtab-promo-card-cta = Μάθετε περισσότερα
 newtab-promo-card-dismiss-button =
     .title = Απόρριψη
     .aria-label = Απόρριψη
+
+## Strings for activation window message variants. In certain experiment configurations,
+## the strings from these variants may be displayed in a message below the search input
+## for the first 48 hours of a new profile's lifetime. Some messages include buttons with
+## labels, but not all.
+
+newtab-activation-window-message-dismiss-button =
+    .title = Απόρριψη
+    .aria-label = Απόρριψη
+# "This space" refers to about:newtab. The call to action here ("make it your own")
+# is to customize newtab with a background image or colour, or by tweaking the
+# existing widgetry that appears on it.
+newtab-activation-window-message-customization-focus-header = Κάντε αυτόν τον χώρο δικό σας
+newtab-activation-window-message-customization-focus-message = Επιλέξτε μια νέα ταπετσαρία, προσθέστε συντομεύσεις για αγαπημένους σας ιστοτόπους και ενημερωθείτε για άρθρα που σας ενδιαφέρουν.
+newtab-activation-window-message-customization-focus-primary-button =
+    .label = Έναρξη προσαρμογής
+# "This space" refers to about:newtab. The sentiment of "plays by your rules" is
+# meant to evoke the idea that newtab is malleable and customizable. The call to
+# action is to customize newtab with a background image or colour, or by tweaking
+# the existing widgetry that appears on it.
+newtab-activation-window-message-values-focus-header = Αυτός ο χώρος ακολουθεί τους δικούς σας κανόνες
+newtab-activation-window-message-values-focus-message = Το { -brand-product-name } σάς επιτρέπει να περιηγείστε όπως σας αρέσει, με έναν πιο προσωπικό τρόπο για να ξεκινήσετε τη μέρα σας στο διαδίκτυο. Κάντε το { -brand-product-name } δικό σας.

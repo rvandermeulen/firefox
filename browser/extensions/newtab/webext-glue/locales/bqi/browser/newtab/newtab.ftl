@@ -23,12 +23,12 @@ newtab-search-box-text = پیتینیڌن من وب
 ## Top Sites - General form dialog.
 
 newtab-topsites-add-search-engine-header = ٱووردن موتور پیتینیڌن
-newtab-topsites-add-shortcut-header = ر نهنگ نۊ
-newtab-topsites-edit-shortcut-header = آلشت ر نهنگ
-newtab-topsites-add-shortcut-label = ٱووردن ر نهنگ
+newtab-topsites-add-shortcut-header = ره نهنگ نۊ
+newtab-topsites-edit-shortcut-header = آلشت ره نهنگ
+newtab-topsites-add-shortcut-label = ٱووردن ره نهنگ
 newtab-topsites-add-shortcut-title =
-    .title = ٱووردن ر نهنگ
-    .aria-label = ٱووردن ر نهنگ
+    .title = ٱووردن ره نهنگ
+    .aria-label = ٱووردن ره نهنگ
 newtab-topsites-title-label = عونوان
 newtab-topsites-url-label = نشۊوی اینترنتی
 
@@ -120,6 +120,7 @@ newtab-menu-open-file = گۊشیڌن فایل
 ## context on how the element is related to the user, e.g. type indicates that
 ## the page is bookmarked, or is currently open on another device.
 
+newtab-label-visited = نیشته وابیڌه
 newtab-label-bookmarked = نشووک ناهاڌه وابیڌه
 newtab-label-removed-bookmark = نشووک پاک وابی
 newtab-label-saved = من { -pocket-brand-name } زفت وابیڌه
@@ -160,15 +161,23 @@ newtab-toast-dismiss-button =
 
 ## Customization Menu
 
-newtab-custom-shortcuts-title = ر نهنگا
-newtab-custom-sponsored-sites = ر نهنگا هؽزگرووݩ
+newtab-custom-shortcuts-title = ره نهنگا
+newtab-custom-sponsored-sites = ره نهنگا هؽزگرووݩ
 newtab-custom-stories-personalized-toggle =
     .label = داستانا
+newtab-custom-pocket-sponsored = وزعیتا هؽزگرووݩ
+newtab-custom-widget-weather-toggle =
+    .label = ٱو وو هوا
 newtab-custom-widget-lists-toggle =
     .label = نومگه یل
 newtab-custom-widget-timer-toggle =
     .label = زمووݩ سنج
 newtab-custom-widget-section-title = ویجتا
+newtab-custom-widget-section-toggle =
+    .label = ویجتا
+newtab-widget-manage-title = ویجتا
+newtab-widget-manage-widget-button =
+    .label = دؽوۉداری ویجتا
 # Tooltip for close button
 newtab-custom-close-menu-button =
     .title = بستن
@@ -190,8 +199,12 @@ newtab-wallpaper-light-purple = بناوش رۊشن
 newtab-wallpaper-light-green = ساوز رۊشن
 newtab-wallpaper-green = ساوز
 newtab-wallpaper-beige = بژ
+newtab-wallpaper-pink = آل
+newtab-wallpaper-light-pink = آل رۊشن
 newtab-wallpaper-red = سوئر
 newtab-wallpaper-dark-blue = کوۊ تاریک
+newtab-wallpaper-dark-purple = بناوش تاریک
+newtab-wallpaper-dark-green = ساوز تاریک
 
 ## Firefox
 
@@ -328,7 +341,7 @@ newtab-report-ads-reason-seen-it-too-many-times =
 newtab-report-content-wrong-category =
     .label = کتن بندی اشتوا
 newtab-report-content-spam-misleading =
-    .label = هرزنامه یا بلا کوننده
+    .label = هرزنومه یا بلا کوننده
 newtab-report-content-requires-payment-subscription =
     .label = وا پرداخت کۊنین یا اشتراک داشته بۊین
 newtab-report-content-requires-payment-subscription-learn-more = قلوه دووسته بۊین
@@ -389,6 +402,8 @@ newtab-widget-timer-mode-focus =
     .label = فوکۊس
 newtab-widget-timer-mode-break =
     .label = اشکستن
+newtab-widget-timer-label-play =
+    .label = پشک
 newtab-widget-timer-label-pause =
     .label = واڌاشتن
 newtab-widget-timer-reset =
