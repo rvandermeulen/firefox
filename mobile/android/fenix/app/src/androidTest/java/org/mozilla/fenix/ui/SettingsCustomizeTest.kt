@@ -6,7 +6,6 @@ package org.mozilla.fenix.ui
 
 import android.content.res.Configuration
 import androidx.compose.ui.test.junit4.AndroidComposeTestRule
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mozilla.fenix.customannotations.SkipLeaks
@@ -86,7 +85,6 @@ class SettingsCustomizeTest : TestSetup() {
     }
 
     // TestRail link: https://mozilla.testrail.io/index.php?/cases/view/1058682
-    @Ignore("Failing: https://bugzilla.mozilla.org/show_bug.cgi?id=2018007")
     @Test
     @SkipLeaks
     fun turnOffSwipeToSwitchTabsPreferenceTest() {
