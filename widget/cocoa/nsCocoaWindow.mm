@@ -4235,20 +4235,17 @@ nsresult nsCocoaWindow::GetSelectionAsPlaintext(nsAString& aResult) {
   }
 
   // Get the current chrome or content selection.
-  NSDictionary* pasteboardOutputDict = nullptr;
-  pasteboardOutputDict =
+  NSDictionary* pasteboardOutputDict =
       nsClipboard::PasteboardDictFromTransferable(nsClipboard::sSelectionCache);
-
   if (NS_WARN_IF(!pasteboardOutputDict)) {
     return NS_ERROR_FAILURE;
   }
 
-  // Declare the pasteboard types.
-  unsigned int typeCount = [pasteboardOutputDict count];
-  NSMutableArray* declaredTypes = [NSMutableArray arrayWithCapacity:typeCount];
-  [declaredTypes addObjectsFromArray:[pasteboardOutputDict allKeys]];
-  NSString* currentKey = [declaredTypes objectAtIndex:0];
-  NSString* currentValue = [pasteboardOutputDict valueForKey:currentKey];
+  NSString* currentValue = [pasteboardOutputDict
+      objectForKey:[UTIHelper stringFromPboardType:NSPasteboardTypeString]];
+  if (!currentValue) {
+    return NS_OK;
+  }
   const char* textSelection = [currentValue UTF8String];
   aResult = NS_ConvertUTF8toUTF16(textSelection);
 
