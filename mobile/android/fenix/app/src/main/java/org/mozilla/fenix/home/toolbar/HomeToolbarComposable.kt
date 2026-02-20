@@ -90,9 +90,7 @@ internal class HomeToolbarComposable(
 ) : FenixHomeToolbar {
     private val addressBarVisibility = mutableStateOf(true)
 
-    private val isEdgeToEdgeBackgroundEnabled =
-        settings.enableHomepageEdgeToEdgeBackgroundFeature &&
-                settings.currentWallpaperName == Wallpaper.EDGE_TO_EDGE
+    private val isEdgeToEdgeBackgroundEnabled = settings.currentWallpaperName == Wallpaper.EDGE_TO_EDGE
 
     init {
         // Reset the toolbar visibility & position whenever coming back to the home screen

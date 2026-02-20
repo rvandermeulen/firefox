@@ -134,26 +134,14 @@ class HomeFragmentTest {
     }
 
     @Test
-    fun `GIVEN edge to edge background is enabled and default wallpaper is set WHEN isEdgeToEdgeBackgroundEnabled is called THEN return false`() {
-        every { settings.enableHomepageEdgeToEdgeBackgroundFeature } returns true
+    fun `GIVEN default wallpaper is set WHEN isEdgeToEdgeBackgroundEnabled is called THEN return false`() {
         every { settings.currentWallpaperName } returns Wallpaper.DEFAULT
-
         assertFalse(homeFragment.isEdgeToEdgeBackgroundEnabled())
     }
 
     @Test
-    fun `GIVEN edge to edge background is enabled and wallpaper is EdgeToEdge WHEN isEdgeToEdgeBackgroundEnabled is called THEN return true`() {
-        every { settings.enableHomepageEdgeToEdgeBackgroundFeature } returns true
+    fun `GIVEN wallpaper is EdgeToEdge WHEN isEdgeToEdgeBackgroundEnabled is called THEN return true`() {
         every { settings.currentWallpaperName } returns Wallpaper.EDGE_TO_EDGE
-
         assertTrue(homeFragment.isEdgeToEdgeBackgroundEnabled())
-    }
-
-    @Test
-    fun `GIVEN edge to edge background is disabled and wallpaper is EdgeToEdge WHEN isEdgeToEdgeBackgroundEnabled is called THEN return false`() {
-        every { settings.enableHomepageEdgeToEdgeBackgroundFeature } returns false
-        every { settings.currentWallpaperName } returns Wallpaper.EDGE_TO_EDGE
-
-        assertFalse(homeFragment.isEdgeToEdgeBackgroundEnabled())
     }
 }

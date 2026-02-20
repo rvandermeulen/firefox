@@ -57,7 +57,6 @@ class WallpapersUseCasesTest {
         every { shouldMigrateLegacyWallpaper = any() } just Runs
         every { shouldMigrateLegacyWallpaperCardColors } returns false
         every { shouldMigrateLegacyWallpaperCardColors = any() } just Runs
-        every { enableHomepageEdgeToEdgeBackgroundFeature } returns false
     }
     private lateinit var mockMigrationHelper: LegacyWallpaperMigration
 
@@ -253,8 +252,10 @@ class WallpapersUseCasesTest {
             locale,
         ).invoke()
 
-        assertEquals(1, appStore.state.wallpaperState.availableWallpapers.size)
-        assertEquals(Wallpaper.Default, appStore.state.wallpaperState.availableWallpapers[0])
+        assertEquals(
+            listOf(Wallpaper.EdgeToEdge, Wallpaper.Default),
+            appStore.state.wallpaperState.availableWallpapers,
+        )
     }
 
     @Test
@@ -383,7 +384,7 @@ class WallpapersUseCasesTest {
             "en-US",
         ).invoke()
 
-        val expectedWallpapers = (listOf(Wallpaper.Default) + possibleWallpapers).map {
+        val expectedWallpapers = (listOf(Wallpaper.EdgeToEdge, Wallpaper.Default) + possibleWallpapers).map {
             it.copy(thumbnailFileState = Wallpaper.ImageFileState.Downloaded)
         }
         assertEquals(selectedWallpaper, appStore.state.wallpaperState.currentWallpaper)
