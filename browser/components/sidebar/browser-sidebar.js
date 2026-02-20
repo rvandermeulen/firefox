@@ -56,7 +56,8 @@ var SidebarController = {
     this._sidebars.set(commandID, sidebar);
 
     let switcherMenuitem;
-    const updateMenus = visible => {
+    sidebar._updateMenus = () => {
+      const { visible } = sidebar;
       // Hide the sidebar if it is open and should not be visible,
       // and unset the current command and lastOpenedId so they do not
       // re-open the next time the sidebar does.
@@ -90,12 +91,17 @@ var SidebarController = {
     // Detect pref changes and handle initial state.
     XPCOMUtils.defineLazyPreferenceGetter(
       sidebar,
-      "visible",
+      "_prefVisible",
       pref,
       false,
-      (_pref, _prev, val) => updateMenus(val)
+      () => sidebar._updateMenus?.()
     );
-    this.promiseInitialized.then(() => updateMenus(sidebar.visible));
+    Object.defineProperty(sidebar, "visible", {
+      get: () =>
+        sidebar._prefVisible && !(config.hideInAIWindow && this.isAIWindow()),
+      configurable: true,
+    });
+    this.promiseInitialized.then(() => sidebar._updateMenus?.());
   },
 
   isAIWindow() {
@@ -172,26 +178,25 @@ var SidebarController = {
       ],
     ]);
 
-    if (!this.isAIWindow()) {
-      this.registerPrefSidebar(
-        "browser.ml.chat.enabled",
-        "viewGenaiChatSidebar",
-        {
-          name: "aichat",
-          elementId: "sidebar-switcher-genai-chat",
-          url: "chrome://browser/content/genai/chat.html",
-          keyId: "viewGenaiChatSidebarKb",
-          menuId: "menu_genaiChatSidebar",
-          menuL10nId: "menu-view-genai-chat",
-          // Bug 1900915 to expose as conditional tool
-          revampL10nId: "sidebar-menu-genai-chat-label",
-          iconUrl: "chrome://global/skin/icons/highlights.svg",
-          gleanClickEvent: Glean.sidebar.chatbotIconClick,
-          toolContextMenuId: "aichat",
-          permissions: true,
-        }
-      );
-    }
+    this.registerPrefSidebar(
+      "browser.ml.chat.enabled",
+      "viewGenaiChatSidebar",
+      {
+        name: "aichat",
+        elementId: "sidebar-switcher-genai-chat",
+        url: "chrome://browser/content/genai/chat.html",
+        keyId: "viewGenaiChatSidebarKb",
+        menuId: "menu_genaiChatSidebar",
+        menuL10nId: "menu-view-genai-chat",
+        // Bug 1900915 to expose as conditional tool
+        revampL10nId: "sidebar-menu-genai-chat-label",
+        iconUrl: "chrome://global/skin/icons/highlights.svg",
+        gleanClickEvent: Glean.sidebar.chatbotIconClick,
+        toolContextMenuId: "aichat",
+        permissions: true,
+        hideInAIWindow: true,
+      }
+    );
 
     this.registerPrefSidebar(
       "browser.ml.pageAssist.enabled",
@@ -230,7 +235,6 @@ var SidebarController = {
         revampL10nId: "sidebar-menu-customize-label",
         iconUrl: "chrome://global/skin/icons/settings.svg",
         gleanEvent: Glean.sidebarCustomize.panelToggle,
-        visible: false,
       });
     }
 
@@ -295,6 +299,7 @@ var SidebarController = {
   _verticalNewTabListenerAdded: false,
   _localesObserverAdded: false,
   _mainResizeObserverAdded: false,
+  _aiWindowObserverAdded: false,
   _mainResizeObserver: null,
   _ongoingAnimations: [],
 
@@ -508,6 +513,10 @@ var SidebarController = {
       Services.obs.addObserver(this, "tabstrip-orientation-change");
       this._tabstripOrientationObserverAdded = true;
     }
+    if (!this._aiWindowObserverAdded) {
+      Services.obs.addObserver(this, "ai-window-state-changed");
+      this._aiWindowObserverAdded = true;
+    }
 
     requestIdleCallback(() => {
       const windowPrivacyMatches =
@@ -545,7 +554,9 @@ var SidebarController = {
 
     Services.obs.removeObserver(this, "intl:app-locales-changed");
     Services.obs.removeObserver(this, "tabstrip-orientation-change");
+    Services.obs.removeObserver(this, "ai-window-state-changed");
     delete this._tabstripOrientationObserverAdded;
+    delete this._aiWindowObserverAdded;
 
     CustomizableUI.removeListener(this);
 
@@ -648,7 +659,7 @@ var SidebarController = {
   /**
    * The handler for Services.obs.addObserver.
    */
-  observe(_subject, topic, _data) {
+  observe(subject, topic, _data) {
     switch (topic) {
       case "intl:app-locales-changed": {
         if (this.isOpen) {
@@ -666,6 +677,15 @@ var SidebarController = {
       }
       case "tabstrip-orientation-change": {
         this.promiseInitialized.then(() => this.toggleTabstrip());
+        break;
+      }
+      case "ai-window-state-changed": {
+        if (subject == window) {
+          // Update menus and hide sidebars that depend on the type of window
+          for (const sidebar of this.sidebars.values()) {
+            sidebar._updateMenus?.();
+          }
+        }
         break;
       }
     }
@@ -1855,6 +1875,19 @@ var SidebarController = {
   },
 
   /**
+   * Check whether a sidebar panel can be shown in the current window.
+   *
+   * @param {string} commandID
+   * @returns {boolean}
+   */
+  _canShow(commandID) {
+    // Extensions without private window access wont be in the sidebars map.
+    // Some sidebars can be conditionally visible depending on the window.
+    const sidebar = this.sidebars.get(commandID);
+    return !!sidebar && (sidebar.visible ?? true);
+  },
+
+  /**
    * Show the sidebar.
    *
    * This wraps the internal method, including a ping to telemetry.
@@ -1875,9 +1908,7 @@ var SidebarController = {
     }
     this._recordPanelToggle(commandID, true);
 
-    // Extensions without private window access wont be in the
-    // sidebars map.
-    if (!this.sidebars.has(commandID)) {
+    if (!this._canShow(commandID)) {
       return false;
     }
     return this._show(commandID).then(() => {
@@ -1908,9 +1939,7 @@ var SidebarController = {
     }
     this._recordPanelToggle(commandID, true);
 
-    // Extensions without private window access wont be in the
-    // sidebars map.
-    if (!this.sidebars.has(commandID)) {
+    if (!this._canShow(commandID)) {
       return false;
     }
     return this._show(commandID).then(() => {
