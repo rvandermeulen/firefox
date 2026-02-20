@@ -1531,6 +1531,12 @@ void nsHttpTransaction::Close(nsresult reason) {
           if (psm::IsNSSErrorCode(-1 * NS_ERROR_GET_CODE(aStatus))) {
             return TRANSACTION_RESTART_HTTPS_RR_SEC_ERROR;
           }
+          if (aStatus == NS_ERROR_NOT_CONNECTED ||
+              aStatus == NS_ERROR_SOCKET_ADDRESS_IN_USE ||
+              aStatus == NS_ERROR_FILE_ALREADY_EXISTS ||
+              aStatus == NS_ERROR_NET_INTERRUPT) {
+            return TRANSACTION_RESTART_OTHERS;
+          }
           MOZ_ASSERT_UNREACHABLE("Unexpected reason");
           return TRANSACTION_RESTART_OTHERS;
         };
