@@ -3438,7 +3438,7 @@ SettingGroupManager.registerGroups({
     ],
   },
   certificates: {
-    l10nId: "certs-description2",
+    l10nId: "certs-description3",
     supportPage: "secure-website-certificate",
     headingLevel: 2,
     items: [
@@ -3453,7 +3453,7 @@ SettingGroupManager.registerGroups({
         items: [
           {
             id: "viewCertificatesButton",
-            l10nId: "certs-view",
+            l10nId: "certs-view2",
             control: "moz-box-button",
             controlAttrs: {
               "search-l10n-ids":
@@ -3462,7 +3462,7 @@ SettingGroupManager.registerGroups({
           },
           {
             id: "viewSecurityDevicesButton",
-            l10nId: "certs-devices",
+            l10nId: "certs-devices2",
             control: "moz-box-button",
             controlAttrs: {
               "search-l10n-ids":
@@ -3474,7 +3474,7 @@ SettingGroupManager.registerGroups({
     ],
   },
   browsingProtection: {
-    l10nId: "browsing-protection-group",
+    l10nId: "browsing-protection-group2",
     headingLevel: 2,
     items: [
       {
@@ -3834,14 +3834,15 @@ SettingGroupManager.registerGroups({
     ],
   },
   networkProxy: {
-    l10nId: "network-proxy-group",
+    l10nId: "network-proxy-group2",
+    iconSrc: "chrome://devtools/skin/images/globe.svg",
     headingLevel: 1,
     supportPage: "prefs-connection-settings",
     subcategory: "netsettings",
     items: [
       {
         id: "connectionSettings",
-        l10nId: "network-proxy-connection-settings",
+        l10nId: "network-proxy-connection-settings2",
         control: "moz-box-button",
         controlAttrs: {
           "search-l10n-ids":

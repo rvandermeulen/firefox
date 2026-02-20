@@ -845,13 +845,14 @@ browsing-cfr-features =
 
 ## General Section - Proxy
 
-network-proxy-group =
-  .label = Network Settings
+network-proxy-group2 =
+  .label = Proxy settings
   .description = Configure how { -brand-short-name } connects to the internet.
 
-network-proxy-connection-settings =
-    .label = Settings…
-    .accesskey = e
+network-proxy-connection-settings2 =
+    .label = Configure proxy
+    .description = Changing these settings may cause connections issues
+    .accesskey = p
 
 ## Home Section
 
@@ -2078,8 +2079,9 @@ privacy-segmentation-radio-on =
 
 security-header = Security
 
-browsing-protection-group =
-    .label = Deceptive Content and Dangerous Software Protection
+browsing-protection-group2 =
+    .label = Deceptive content and dangerous software protection
+    .description = Dangerous sites and downloads can put your data and device at risk. { -brand-short-name } automatically blocks them, and warns you about risky or unwanted software.
 
 security-enable-safe-browsing =
     .label = Block dangerous and deceptive content
@@ -2096,16 +2098,16 @@ security-block-uncommon-software =
 
 ## Privacy Section - Certificates
 
-certs-description2 =
+certs-description3 =
     .label = Certificates
-    .description = Configure the certificates that { -brand-short-name } uses for authentication.
+    .description = Configure the certificates that { -brand-short-name } uses to verify secure connections.
 
-certs-view =
-    .label = View Certificates…
+certs-view2 =
+    .label = Manage certificates
     .accesskey = C
 
-certs-devices =
-    .label = Security Devices…
+certs-devices2 =
+    .label = Manage security devices
     .accesskey = D
 
 certs-thirdparty-toggle =
