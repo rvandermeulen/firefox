@@ -1899,7 +1899,6 @@ void ScriptLoader::CancelAndClearScriptLoadRequests() {
     loader->CancelAndClearDynamicImports();
   }
 
-
   for (size_t i = 0; i < mPreloads.Length(); i++) {
     mPreloads[i].mRequest->Cancel();
   }

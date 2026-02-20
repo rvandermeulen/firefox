@@ -257,7 +257,6 @@ class ScriptLoader final : public JS::loader::ScriptLoaderInterface {
 
   void RegisterContentScriptModuleLoader(ModuleLoader* aLoader);
 
-
   /**
    *  Check whether to speculatively OMT parse scripts as soon as
    *  they are fetched, even if not a parser blocking request.

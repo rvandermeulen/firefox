@@ -4987,7 +4987,6 @@ JS_PUBLIC_API void JS::SetOutOfMemoryCallback(JSContext* cx,
   cx->runtime()->oomCallbackData = data;
 }
 
-
 JS_PUBLIC_API bool JS::SetLoggingInterface(LoggingInterface& iface) {
   return js::LogModule::initializeAll(iface);
 }
