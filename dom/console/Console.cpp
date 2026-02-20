@@ -2830,7 +2830,7 @@ void Console::LogToMozLog(JSContext* aCx, MethodName aMethodName,
   nsString message = GetDumpMessage(aCx, aMethodName, aMethodString, aData,
                                     aStack, aMonotonicTimer, true);
 
-  MOZ_LOG(mLogModule, InternalLogLevelToMozLog(aMethodName),
+  MOZ_LOG(mLogModule, ConsoleMethodNameToMozLog(aMethodName),
           ("%s", NS_ConvertUTF16toUTF8(message).get()));
 }
 
@@ -2970,7 +2970,7 @@ void Console::ExecuteDumpFunction(const nsAString& aMessage) {
 }
 
 bool Console::ShouldLogToMozLog(MethodName aName) const {
-  return mLogModule->ShouldLog(InternalLogLevelToMozLog(aName));
+  return mLogModule->ShouldLog(ConsoleMethodNameToMozLog(aName));
 }
 
 bool Console::ShouldLogToMozLog(ConsoleLogLevel aLevel) const {
@@ -2979,8 +2979,15 @@ bool Console::ShouldLogToMozLog(ConsoleLogLevel aLevel) const {
 }
 
 bool Console::ShouldProceed(MethodName aName) const {
-  return mCurrentLogLevel <= InternalLogLevelToInteger(aName);
+  return mCurrentLogLevel <= ConsoleMethodNameToInteger(aName);
 }
+
+// Maps between log level systems:
+// - WebIDLLogLevel (ConsoleInstance.webidl): defines levels for most (not all)
+//   console method names, plus "All" and "Off"
+// - Console integer level: 1 (verbose) to 5 (critical), used internally
+// - MOZ_LOG levels: LogLevel::Verbose (5) to LogLevel::Error (1), reverse order
+// Some duplication exists across mapping methods for performance on hot paths.
 
 uint32_t Console::WebIDLLogLevelToInteger(ConsoleLogLevel aLevel) const {
   switch (aLevel) {
@@ -2990,29 +2997,18 @@ uint32_t Console::WebIDLLogLevelToInteger(ConsoleLogLevel aLevel) const {
       return 1;
     case ConsoleLogLevel::Debug:
       return 2;
-    case ConsoleLogLevel::Log:
-      return 3;
-    case ConsoleLogLevel::Info:
-      return 3;
     case ConsoleLogLevel::Clear:
-      return 3;
-    case ConsoleLogLevel::TimeLog:
-      return 3;
-    case ConsoleLogLevel::TimeEnd:
-      return 3;
-    case ConsoleLogLevel::Time:
-      return 3;
-    case ConsoleLogLevel::Group:
-      return 3;
-    case ConsoleLogLevel::GroupEnd:
-      return 3;
-    case ConsoleLogLevel::Profile:
-      return 3;
-    case ConsoleLogLevel::ProfileEnd:
-      return 3;
     case ConsoleLogLevel::Dir:
-      return 3;
     case ConsoleLogLevel::Dirxml:
+    case ConsoleLogLevel::Group:
+    case ConsoleLogLevel::GroupEnd:
+    case ConsoleLogLevel::Info:
+    case ConsoleLogLevel::Log:
+    case ConsoleLogLevel::Profile:
+    case ConsoleLogLevel::ProfileEnd:
+    case ConsoleLogLevel::Time:
+    case ConsoleLogLevel::TimeEnd:
+    case ConsoleLogLevel::TimeLog:
       return 3;
     case ConsoleLogLevel::Warn:
       return 4;
@@ -3027,108 +3023,72 @@ uint32_t Console::WebIDLLogLevelToInteger(ConsoleLogLevel aLevel) const {
   }
 }
 
-uint32_t Console::InternalLogLevelToInteger(MethodName aName) const {
+uint32_t Console::ConsoleMethodNameToInteger(MethodName aName) const {
   switch (aName) {
-    case MethodLog:
-      return 3;
+    case MethodTrace:
+      return 1;
+    case MethodDebug:
+      return 2;
+    case MethodAssert:
+    case MethodClear:
+    case MethodCount:
+    case MethodCountReset:
+    case MethodDir:
+    case MethodDirxml:
+    case MethodGroup:
+    case MethodGroupCollapsed:
+    case MethodGroupEnd:
     case MethodInfo:
+    case MethodLog:
+    case MethodProfile:
+    case MethodProfileEnd:
+    case MethodTable:
+    case MethodTime:
+    case MethodTimeEnd:
+    case MethodTimeLog:
+    case MethodTimeStamp:
       return 3;
     case MethodWarn:
       return 4;
     case MethodError:
-      return 5;
     case MethodException:
       return 5;
-    case MethodDebug:
-      return 2;
-    case MethodTable:
-      return 3;
-    case MethodTrace:
-      return 1;
-    case MethodDir:
-      return 3;
-    case MethodDirxml:
-      return 3;
-    case MethodGroup:
-      return 3;
-    case MethodGroupCollapsed:
-      return 3;
-    case MethodGroupEnd:
-      return 3;
-    case MethodTime:
-      return 3;
-    case MethodTimeLog:
-      return 3;
-    case MethodTimeEnd:
-      return 3;
-    case MethodTimeStamp:
-      return 3;
-    case MethodAssert:
-      return 3;
-    case MethodCount:
-      return 3;
-    case MethodCountReset:
-      return 3;
-    case MethodClear:
-      return 3;
-    case MethodProfile:
-      return 3;
-    case MethodProfileEnd:
-      return 3;
     default:
       MOZ_CRASH("MethodName is out of sync with the Console implementation!");
       return 0;
   }
 }
 
-LogLevel Console::InternalLogLevelToMozLog(MethodName aName) const {
+LogLevel Console::ConsoleMethodNameToMozLog(MethodName aName) const {
   switch (aName) {
-    case MethodLog:
-      return LogLevel::Info;
+    case MethodTrace:
+      return LogLevel::Verbose;
+    case MethodDebug:
+      return LogLevel::Debug;
+    case MethodClear:
+    case MethodCount:
+    case MethodCountReset:
+    case MethodDir:
+    case MethodDirxml:
+    case MethodGroup:
+    case MethodGroupCollapsed:
+    case MethodGroupEnd:
     case MethodInfo:
+    case MethodLog:
+    case MethodProfile:
+    case MethodProfileEnd:
+    case MethodTable:
+    case MethodTime:
+    case MethodTimeEnd:
+    case MethodTimeLog:
+    case MethodTimeStamp:
       return LogLevel::Info;
     case MethodWarn:
       return LogLevel::Warning;
+    case MethodAssert:
     case MethodError:
-      return LogLevel::Error;
     case MethodException:
       return LogLevel::Error;
-    case MethodDebug:
-      return LogLevel::Debug;
-    case MethodTable:
-      return LogLevel::Info;
-    case MethodTrace:
-      return LogLevel::Info;
-    case MethodDir:
-      return LogLevel::Info;
-    case MethodDirxml:
-      return LogLevel::Info;
-    case MethodGroup:
-      return LogLevel::Info;
-    case MethodGroupCollapsed:
-      return LogLevel::Info;
-    case MethodGroupEnd:
-      return LogLevel::Info;
-    case MethodTime:
-      return LogLevel::Info;
-    case MethodTimeLog:
-      return LogLevel::Info;
-    case MethodTimeEnd:
-      return LogLevel::Info;
-    case MethodTimeStamp:
-      return LogLevel::Info;
-    case MethodAssert:
-      return LogLevel::Error;
-    case MethodCount:
-      return LogLevel::Info;
-    case MethodCountReset:
-      return LogLevel::Info;
-    case MethodClear:
-      return LogLevel::Info;
-    case MethodProfile:
-      return LogLevel::Info;
-    case MethodProfileEnd:
-      return LogLevel::Info;
     default:
       MOZ_CRASH("MethodName is out of sync with the Console implementation!");
       return LogLevel::Disabled;

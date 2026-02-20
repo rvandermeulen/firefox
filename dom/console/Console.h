@@ -389,9 +389,9 @@ class Console final : public nsIObserver, public nsSupportsWeakReference {
   bool ShouldLogToMozLog(ConsoleLogLevel aLevel) const;
 
   uint32_t WebIDLLogLevelToInteger(ConsoleLogLevel aLevel) const;
-  uint32_t InternalLogLevelToInteger(MethodName aName) const;
+  uint32_t ConsoleMethodNameToInteger(MethodName aName) const;
 
-  LogLevel InternalLogLevelToMozLog(MethodName aName) const;
+  LogLevel ConsoleMethodNameToMozLog(MethodName aName) const;
   LogLevel ConsoleLevelIntegerToMozLog(uint32_t aLevel) const;
 
   class ArgumentData {
