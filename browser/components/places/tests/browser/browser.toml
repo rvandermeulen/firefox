@@ -253,6 +253,8 @@ https_first_disabled = true
 
 ["browser_toolbar_drop_bookmarklet.js"]
 
+["browser_toolbar_drop_indicator_empty.js"]
+
 ["browser_toolbar_drop_multiple_flavors.js"]
 
 ["browser_toolbar_drop_multiple_with_bookmarklet.js"]
