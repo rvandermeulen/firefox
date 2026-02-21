@@ -38,7 +38,6 @@ struct ToastArgs {
   std::wstring profile;
   std::wstring windowsTag;
   std::wstring action;
-  bool skipNotificationServer;
 };
 
 class NotificationCallback final
