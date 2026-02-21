@@ -163,13 +163,8 @@ var gBrowserInit = {
         window.document.documentElement.id = "taskbartab-" + taskbarTabId;
       }
 
-      if (!extraOptions.hasKey("ai-window")) {
-        return;
-      }
-
-      document.documentElement.setAttribute("ai-window", true);
-      if (extraOptions.hasKey("aiwindow-immersive-view")) {
-        document.documentElement.setAttribute("aiwindow-immersive-view", true);
+      if (extraOptions.hasKey("ai-window")) {
+        document.documentElement.setAttribute("ai-window", true);
       }
     }
 

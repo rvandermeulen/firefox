@@ -7240,18 +7240,11 @@ var SessionStoreInternal = {
     if (winState.isPrivate) {
       features.push("private");
     } else if (winState.isAIWindow) {
-      let tab = winState.tabs[winState.selected - 1];
-      let restoreSessionURL = "";
-      if (tab.entries.length) {
-        // tab.index is 1-based in the session store format (0/falsy means unset).
-        let activeIndex = (tab.index || tab.entries.length) - 1;
-        restoreSessionURL = tab.entries[activeIndex].url;
-      }
       argString = lazy.AIWindow.handleAIWindowOptions({
         openerWindow: null,
         args: argString,
         aiWindow: winState.isAIWindow,
-        restoreSessionURL,
+        restoreSession: true,
       });
     }
 

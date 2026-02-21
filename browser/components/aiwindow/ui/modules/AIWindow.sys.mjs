@@ -232,7 +232,7 @@ export const AIWindow = {
    * @param {object} options.args Array of arguments to pass to new window
    * @param {boolean} [options.aiWindow] Should new window be AI Window (true), Classic Window (false), or inherited from opener (undefined, default)
    * @param {boolean} [options.private] Should new window be Private Window
-   * @param {string} [options.restoreSessionURL] URL of the selected tab being restored
+   * @param {boolean} [options.restoreSession] Should previous AI Window session be restored
    *
    * @returns {object} Modified arguments appended to the options object
    */
@@ -241,7 +241,7 @@ export const AIWindow = {
     args,
     aiWindow = undefined,
     private: isPrivate = false,
-    restoreSessionURL = "",
+    restoreSession = false,
   } = {}) {
     // Indicates whether the new window should inherit AI Window state from opener window
     const canInheritAIWindow =
@@ -258,12 +258,12 @@ export const AIWindow = {
 
     args ??= Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
 
-    let initialURL = "";
     if (!args.length) {
       const aiWindowURI = Cc["@mozilla.org/supports-string;1"].createInstance(
         Ci.nsISupportsString
       );
-      if (!restoreSessionURL) {
+      let initialURL = "";
+      if (!restoreSession) {
         initialURL = lazy.hasFirstrunCompleted ? AIWINDOW_URL : FIRSTRUN_URL;
       }
       aiWindowURI.data = initialURL;
@@ -288,14 +288,7 @@ export const AIWindow = {
       );
       args.appendElement(propBag);
     }
-
     propBag.setPropertyAsBool("ai-window", true);
-    const willOpenImmersive = this.immersiveViewURIs.some(
-      uri => uri.spec == (initialURL || restoreSessionURL)
-    );
-    if (willOpenImmersive) {
-      propBag.setPropertyAsBool("aiwindow-immersive-view", true);
-    }
 
     return args;
   },
