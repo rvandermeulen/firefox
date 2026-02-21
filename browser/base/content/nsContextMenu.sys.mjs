@@ -567,9 +567,6 @@ export class nsContextMenu {
     let showContainers =
       Services.prefs.getBoolPref("privacy.userContext.enabled") &&
       lazy.ContextualIdentityService.getPublicIdentities().length;
-    let showSplitViews = Services.prefs.getBoolPref(
-      "browser.tabs.splitView.enabled"
-    );
     this.showItem("context-openlink", shouldShow && !isWindowPrivate);
     this.showItem(
       "context-openlinkprivate",
@@ -586,7 +583,6 @@ export class nsContextMenu {
       "context-previewlink",
       lazy.LinkPreview.shouldShowContextMenu(this)
     );
-    this.showItem("context-openlinkinsplitview", shouldShow && showSplitViews);
   }
 
   initNavigationItems() {
@@ -1560,30 +1556,6 @@ export class nsContextMenu {
       "tab",
       this._openLinkInParameters(params)
     );
-  }
-
-  // Open linked-to URL in a new split view
-  openLinkInSplitView() {
-    let win = this.window;
-    let currentTab = win.gBrowser.getTabForBrowser(this.browser);
-    let userContextId = currentTab ? currentTab.userContextId : 0;
-    let params = {
-      userContextId,
-      ...this._getGlobalHistoryOptions(),
-      inBackground: false,
-      resolveOnNewTabCreated: browser => {
-        let linkTab = win.gBrowser.getTabForBrowser(browser);
-        if (linkTab) {
-          let openTabsTab = win.gBrowser.addTrustedTab("about:opentabs", {
-            userContextId,
-          });
-          win.gBrowser.addTabSplitView([linkTab, openTabsTab]);
-          win.gBrowser.selectedTab = openTabsTab;
-        }
-      },
-    };
-
-    win.openLinkIn(this.linkURL, "tab", this._openLinkInParameters(params));
   }
 
   // open URL in current tab

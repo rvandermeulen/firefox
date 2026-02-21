@@ -83,12 +83,6 @@
                 data-l10n-id="main-context-menu-open-link-new-tab"
                 data-usercontextid="0"
                 />
-      <menuitem id="context-openlinkinsplitview"
-                class="context-menu-open-link"
-                data-l10n-id="main-context-menu-open-link-split-view"
-                data-usercontextid="0"
-                hidden="true"
-                />
 
       <menu id="context-openlinkinusercontext-menu"
             class="context-menu-open-link"

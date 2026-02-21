@@ -141,10 +141,6 @@ main-context-menu-open-link-new-tab =
     .label = Open Link in New Tab
     .accesskey = T
 
-main-context-menu-open-link-split-view =
-    .label = Open Link in Split View
-    .accesskey = V
-
 main-context-menu-open-link-container-tab =
     .label = Open Link in New Container Tab
     .accesskey = w
