@@ -32,6 +32,13 @@ internal class MediaServiceBinder(delegate: MediaSessionDelegate) : Binder() {
 /**
  * A foreground service that will keep the process alive while we are playing media (with the app possibly in the
  * background) and shows an ongoing notification indicating the current media playing status.
+ *
+ * This intentionally extends plain [Service] rather than Media3's `MediaSessionService`: the service is started via
+ * `MediaSessionFeature`'s direct `bindService(...)` with `BIND_AUTO_CREATE`, and downstream apps (Fenix, Focus,
+ * sample-browser) register it in their manifest without a `MediaSessionService` intent-filter. Adopting
+ * `MediaSessionService` would let Media3 own foreground-lifecycle, notification generation, action-button wiring, and
+ * MediaBrowser discovery (Android Auto / Wear / media-resumption); tracked as a follow-up, not in scope for the Media3
+ * framework migration.
  */
 abstract class AbstractMediaSessionService : Service() {
     protected abstract val store: BrowserStore
