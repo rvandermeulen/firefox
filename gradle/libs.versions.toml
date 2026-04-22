@@ -35,7 +35,6 @@ emoji2 = "1.6.0"
 exifinterface = "1.4.2"
 fragment = "1.9.0"
 lifecycle = "2.11.0"
-media = "1.7.1"
 media3 = "1.11.0"
 navigation = "2.9.8"
 navigation3 = "1.1.6"
@@ -176,7 +175,6 @@ androidx-lifecycle-runtime-testing = { module = "androidx.lifecycle:lifecycle-ru
 androidx-lifecycle-service = { module = "androidx.lifecycle:lifecycle-service", version.ref = "lifecycle" }
 androidx-lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel", version.ref = "lifecycle" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
-androidx-media = { module = "androidx.media:media", version.ref = "media" }
 androidx-media3-common = { module = "androidx.media3:media3-common", version.ref = "media3" }
 androidx-media3-datasource = { module = "androidx.media3:media3-datasource", version.ref = "media3" }
 androidx-media3-decoder = { module = "androidx.media3:media3-decoder", version.ref = "media3" }
