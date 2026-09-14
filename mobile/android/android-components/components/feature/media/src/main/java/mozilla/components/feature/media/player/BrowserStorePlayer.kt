@@ -8,8 +8,10 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.os.Looper
 import androidx.annotation.VisibleForTesting
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.SimpleBasePlayer
 import androidx.media3.common.util.UnstableApi
@@ -23,6 +25,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import mozilla.components.browser.state.state.MediaSessionState
 import mozilla.components.browser.state.state.SessionState
 import mozilla.components.browser.state.store.BrowserStore
 import mozilla.components.concept.engine.mediasession.MediaSession as MozMediaSession
@@ -61,6 +64,14 @@ internal class BrowserStorePlayer(
 
     private var lastArtworkKey: Pair<String, MozMediaSession.Metadata?>? = null
 
+    // On a track change the page often keeps reporting the previous track's positionState for a
+    // short while before pushing a fresh one. While that stale value persists we report position 0
+    // instead of the outgoing track's position. A tab's first update is always let through, where a
+    // non-zero start position is legitimate.
+    private var lastTabId: String? = null
+    private var lastTitle: String? = null
+    private var stalePositionState: MozMediaSession.PositionState? = null
+
     // `scope` starts the store-observing coroutine as part of its initializer; the looper
     // check must run first. Keep this `init` block above the declaration of `scope`.
     init {
@@ -73,7 +84,9 @@ internal class BrowserStorePlayer(
     internal val scope: CoroutineScope =
         store.flowScoped(dispatcher = mainDispatcher) { flow ->
             flow.collect { state ->
-                refreshArtwork(state.findActiveMediaTab())
+                val tab = state.findActiveMediaTab()
+                refreshArtwork(tab)
+                trackStalePosition(tab)
                 invalidateState()
             }
         }
@@ -93,10 +106,11 @@ internal class BrowserStorePlayer(
                 else -> Player.STATE_IDLE
             }
         val playWhenReady = playbackState == MozMediaSession.PlaybackState.PLAYING
+        val positionState = tab?.mediaSessionState?.positionState
 
         val builder =
             State.Builder()
-                .setAvailableCommands(BASE_COMMANDS)
+                .setAvailableCommands(commandsFor(tab))
                 .setPlaybackState(media3PlaybackState)
                 .setPlayWhenReady(
                     playWhenReady,
@@ -104,7 +118,17 @@ internal class BrowserStorePlayer(
                 )
 
         if (tab != null) {
-            builder.setPlaylist(listOf(buildMediaItemData(tab)))
+            val speed = positionState?.playbackRate?.toFloat()?.takeIf { it > 0f } ?: 1f
+            val positionMs =
+                if (stalePositionState != null) {
+                    0L
+                } else {
+                    ((positionState?.position ?: 0.0) * C.MILLIS_PER_SECOND).toLong()
+                }
+            builder
+                .setPlaylist(listOf(buildMediaItemData(tab)))
+                .setContentPositionMs(positionMs)
+                .setPlaybackParameters(PlaybackParameters(speed))
         }
         return builder.build()
     }
@@ -120,9 +144,61 @@ internal class BrowserStorePlayer(
         return Futures.immediateVoidFuture()
     }
 
+    override fun handleSeek(
+        mediaItemIndex: Int,
+        positionMs: Long,
+        seekCommand: Int,
+    ): ListenableFuture<*> {
+        val controller =
+            store.state.findActiveMediaTab()?.mediaSessionState?.controller ?: return Futures.immediateVoidFuture()
+        when (seekCommand) {
+            Player.COMMAND_SEEK_TO_NEXT -> controller.nextTrack()
+            Player.COMMAND_SEEK_TO_PREVIOUS -> controller.previousTrack()
+            Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM ->
+                if (positionMs != C.TIME_UNSET) {
+                    controller.seekTo(positionMs / C.MILLIS_PER_SECOND.toDouble(), fast = false)
+                }
+            else -> Unit
+        }
+        return Futures.immediateVoidFuture()
+    }
+
     override fun handleRelease(): ListenableFuture<*> {
         scope.cancel()
         return Futures.immediateVoidFuture()
+    }
+
+    // Skip commands are advertised only when web content declares the matching
+    // MediaSession feature, so the system surfaces next/previous exactly when the
+    // page can act on them.
+    private fun commandsFor(tab: SessionState?): Player.Commands {
+        val features = tab?.mediaSessionState?.features
+        return Player.Commands.Builder()
+            .addAll(BASE_COMMANDS)
+            .addIf(
+                Player.COMMAND_SEEK_TO_NEXT,
+                features?.contains(MozMediaSession.Feature.NEXT_TRACK) == true,
+            )
+            .addIf(
+                Player.COMMAND_SEEK_TO_PREVIOUS,
+                features?.contains(MozMediaSession.Feature.PREVIOUS_TRACK) == true,
+            )
+            .addIf(Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM, tab?.mediaSessionState?.isSeekable() == true)
+            .build()
+    }
+
+    private fun trackStalePosition(tab: SessionState?) {
+        val mss = tab?.mediaSessionState ?: return
+        val newTitle = mss.metadata?.title
+        if (tab.id != lastTabId) {
+            stalePositionState = null
+        } else if (newTitle != lastTitle) {
+            stalePositionState = mss.positionState
+        } else if (mss.positionState != stalePositionState) {
+            stalePositionState = null
+        }
+        lastTabId = tab.id
+        lastTitle = newTitle
     }
 
     private fun buildMediaItemData(tab: SessionState): MediaItemData {
@@ -135,9 +211,12 @@ internal class BrowserStorePlayer(
             ?.takeIf { it.first == tab.id }
             ?.let { builder.setArtworkData(it.second, MediaMetadata.PICTURE_TYPE_FRONT_COVER) }
 
+        val mss = tab.mediaSessionState
         return MediaItemData.Builder(tab.id)
             .setMediaItem(MediaItem.Builder().setMediaId(tab.id).build())
             .setMediaMetadata(builder.build())
+            .setDurationUs(mss?.durationSeconds()?.let { (it * C.MICROS_PER_SECOND).toLong() } ?: C.TIME_UNSET)
+            .setIsSeekable(mss?.isSeekable() == true)
             .build()
     }
 
@@ -181,6 +260,12 @@ internal class BrowserStorePlayer(
                 .build()
     }
 }
+
+private fun MediaSessionState.durationSeconds(): Double? =
+    positionState.duration.takeIf { it > 0 } ?: elementMetadata?.duration?.takeIf { it > 0 }
+
+private fun MediaSessionState.isSeekable(): Boolean =
+    durationSeconds() != null || features.contains(MozMediaSession.Feature.SEEK_TO)
 
 // Ignored by PNG compression (lossless); required by the Bitmap.compress signature.
 private const val BITMAP_COMPRESSION_QUALITY = 100

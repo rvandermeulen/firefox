@@ -7,9 +7,11 @@ package mozilla.components.feature.media.player
 import android.graphics.Bitmap
 import android.os.HandlerThread
 import android.os.Looper
+import androidx.media3.common.C
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import java.time.Duration
 import kotlin.coroutines.ContinuationInterceptor
 import kotlin.test.assertNotNull
 import kotlinx.coroutines.CompletableDeferred
@@ -17,6 +19,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.test.runTest
 import mozilla.components.browser.state.action.MediaSessionAction
+import mozilla.components.browser.state.action.TabListAction
 import mozilla.components.browser.state.state.BrowserState
 import mozilla.components.browser.state.state.MediaSessionState
 import mozilla.components.browser.state.state.createTab
@@ -32,9 +35,12 @@ import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.ArgumentMatchers.anyBoolean
+import org.mockito.ArgumentMatchers.anyDouble
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.robolectric.Shadows.shadowOf
+import org.robolectric.shadows.ShadowSystemClock
 
 @RunWith(AndroidJUnit4::class)
 class BrowserStorePlayerTest {
@@ -827,5 +833,273 @@ class BrowserStorePlayerTest {
     private fun kotlinx.coroutines.test.TestScope.drain() {
         testScheduler.advanceUntilIdle()
         shadowOf(Looper.getMainLooper()).idle()
+    }
+
+    @Test
+    fun `GIVEN a tab advertising NEXT_TRACK THEN only the next-track seek command is advertised`() = runTest {
+        val tab =
+            createTab(
+                url = "https://www.mozilla.org",
+                mediaSessionState =
+                    MediaSessionState(
+                        controller = mock(),
+                        playbackState = MediaSession.PlaybackState.PLAYING,
+                        features = MediaSession.Feature(MediaSession.Feature.NEXT_TRACK),
+                    ),
+            )
+        val player = newPlayer(BrowserStore(BrowserState(tabs = listOf(tab))))
+        drain()
+
+        assertTrue(player.availableCommands.contains(Player.COMMAND_SEEK_TO_NEXT))
+        assertFalse(player.availableCommands.contains(Player.COMMAND_SEEK_TO_PREVIOUS))
+    }
+
+    @Test
+    fun `GIVEN a tab with no track features THEN no skip commands are advertised`() = runTest {
+        val tab =
+            createTab(
+                url = "https://www.mozilla.org",
+                mediaSessionState =
+                    MediaSessionState(
+                        controller = mock(),
+                        playbackState = MediaSession.PlaybackState.PLAYING,
+                    ),
+            )
+        val player = newPlayer(BrowserStore(BrowserState(tabs = listOf(tab))))
+        drain()
+
+        assertFalse(player.availableCommands.contains(Player.COMMAND_SEEK_TO_NEXT))
+        assertFalse(player.availableCommands.contains(Player.COMMAND_SEEK_TO_PREVIOUS))
+    }
+
+    @Test
+    fun `GIVEN a single-item playlist WHEN seeking to next or previous THEN the active tab's controller is used`() =
+        runTest {
+            val controller: MediaSession.Controller = mock()
+            val tab =
+                createTab(
+                    url = "https://www.mozilla.org",
+                    mediaSessionState =
+                        MediaSessionState(
+                            controller = controller,
+                            playbackState = MediaSession.PlaybackState.PLAYING,
+                            features =
+                                MediaSession.Feature(
+                                    MediaSession.Feature.NEXT_TRACK or MediaSession.Feature.PREVIOUS_TRACK
+                                ),
+                        ),
+                )
+            val player = newPlayer(BrowserStore(BrowserState(tabs = listOf(tab))))
+            drain()
+
+            player.seekToNext()
+            drain()
+            player.seekToPrevious()
+            drain()
+
+            verify(controller).nextTrack()
+            verify(controller).previousTrack()
+        }
+
+    @Test
+    fun `GIVEN a paused tab with position state THEN position, duration, speed and seekability are reported`() =
+        runTest {
+            val tab =
+                createTab(
+                    url = "https://www.mozilla.org",
+                    mediaSessionState =
+                        MediaSessionState(
+                            controller = mock(),
+                            playbackState = MediaSession.PlaybackState.PAUSED,
+                            positionState =
+                                MediaSession.PositionState(duration = 100.0, position = 30.0, playbackRate = 1.5),
+                        ),
+                )
+            val player = newPlayer(BrowserStore(BrowserState(tabs = listOf(tab))))
+            drain()
+
+            assertEquals(30_000L, player.currentPosition)
+            assertEquals(100_000L, player.duration)
+            assertEquals(1.5f, player.playbackParameters.speed)
+            assertTrue(player.isCurrentMediaItemSeekable)
+            assertTrue(player.availableCommands.contains(Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM))
+        }
+
+    @Test
+    fun `GIVEN a tab with neither a duration nor the SEEK_TO feature THEN it is not seekable`() = runTest {
+        val tab =
+            createTab(
+                url = "https://www.mozilla.org",
+                mediaSessionState =
+                    MediaSessionState(controller = mock(), playbackState = MediaSession.PlaybackState.PLAYING),
+            )
+        val player = newPlayer(BrowserStore(BrowserState(tabs = listOf(tab))))
+        drain()
+
+        assertEquals(C.TIME_UNSET, player.duration)
+        assertEquals(1f, player.playbackParameters.speed)
+        assertFalse(player.isCurrentMediaItemSeekable)
+        assertFalse(player.availableCommands.contains(Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM))
+    }
+
+    @Test
+    fun `GIVEN a tab advertising SEEK_TO without a duration THEN the seek command is still advertised`() = runTest {
+        val tab =
+            createTab(
+                url = "https://www.mozilla.org",
+                mediaSessionState =
+                    MediaSessionState(
+                        controller = mock(),
+                        playbackState = MediaSession.PlaybackState.PLAYING,
+                        features = MediaSession.Feature(MediaSession.Feature.SEEK_TO),
+                    ),
+            )
+        val player = newPlayer(BrowserStore(BrowserState(tabs = listOf(tab))))
+        drain()
+
+        assertTrue(player.isCurrentMediaItemSeekable)
+        assertTrue(player.availableCommands.contains(Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM))
+    }
+
+    @Test
+    fun `GIVEN a seekable tab WHEN seeking to a position THEN the controller seeks to that time in seconds`() =
+        runTest {
+            val controller: MediaSession.Controller = mock()
+            val tab =
+                createTab(
+                    url = "https://www.mozilla.org",
+                    mediaSessionState =
+                        MediaSessionState(
+                            controller = controller,
+                            playbackState = MediaSession.PlaybackState.PLAYING,
+                            positionState = MediaSession.PositionState(duration = 100.0, position = 30.0),
+                        ),
+                )
+            val player = newPlayer(BrowserStore(BrowserState(tabs = listOf(tab))))
+            drain()
+
+            player.seekTo(45_500L)
+            drain()
+
+            verify(controller).seekTo(45.5, fast = false)
+        }
+
+    @Test
+    fun `GIVEN the title changes WHEN the position state is still the old track's THEN position 0 is reported until it refreshes`() =
+        runTest {
+            val position = MediaSession.PositionState(duration = 100.0, position = 30.0)
+            val tab =
+                createTab(
+                    url = "https://www.mozilla.org",
+                    mediaSessionState =
+                        MediaSessionState(
+                            controller = mock(),
+                            metadata = MediaSession.Metadata(title = "A", getArtwork = null),
+                            playbackState = MediaSession.PlaybackState.PAUSED,
+                            positionState = position,
+                        ),
+                )
+            val store = BrowserStore(BrowserState(tabs = listOf(tab)))
+            val player = newPlayer(store)
+            drain()
+            assertEquals(30_000L, player.currentPosition)
+
+            store.dispatch(
+                MediaSessionAction.UpdateMediaMetadataAction(
+                    tab.id,
+                    MediaSession.Metadata(title = "B", getArtwork = null),
+                )
+            )
+            drain()
+            assertEquals(0L, player.currentPosition)
+
+            store.dispatch(MediaSessionAction.UpdateMediaPositionStateAction(tab.id, position.copy(position = 2.0)))
+            drain()
+            assertEquals(2_000L, player.currentPosition)
+        }
+
+    @Test
+    fun `GIVEN a seekable tab WHEN seeking to TIME_UNSET THEN the controller is not asked to seek`() = runTest {
+        val controller: MediaSession.Controller = mock()
+        val tab =
+            createTab(
+                url = "https://www.mozilla.org",
+                mediaSessionState =
+                    MediaSessionState(
+                        controller = controller,
+                        playbackState = MediaSession.PlaybackState.PLAYING,
+                        positionState = MediaSession.PositionState(duration = 100.0, position = 30.0),
+                    ),
+            )
+        val player = newPlayer(BrowserStore(BrowserState(tabs = listOf(tab))))
+        drain()
+
+        player.seekTo(C.TIME_UNSET)
+        drain()
+
+        verify(controller, never()).seekTo(anyDouble(), anyBoolean())
+    }
+
+    @Test
+    fun `GIVEN a playing tab WHEN the clock advances THEN the reported position advances at the playback rate`() =
+        runTest {
+            fun tabAt(state: MediaSession.PlaybackState, rate: Double) =
+                createTab(
+                    url = "https://www.mozilla.org",
+                    mediaSessionState =
+                        MediaSessionState(
+                            controller = mock(),
+                            playbackState = state,
+                            positionState =
+                                MediaSession.PositionState(duration = 100.0, position = 30.0, playbackRate = rate),
+                        ),
+                )
+            val playing =
+                newPlayer(BrowserStore(BrowserState(tabs = listOf(tabAt(MediaSession.PlaybackState.PLAYING, 2.0)))))
+            val paused =
+                newPlayer(BrowserStore(BrowserState(tabs = listOf(tabAt(MediaSession.PlaybackState.PAUSED, 2.0)))))
+            drain()
+
+            ShadowSystemClock.advanceBy(Duration.ofSeconds(5))
+            drain()
+
+            assertEquals(40_000L, playing.currentPosition)
+            assertEquals(30_000L, paused.currentPosition)
+        }
+
+    @Test
+    fun `GIVEN the active media tab changes THEN the new tab's position is reported immediately`() = runTest {
+        val tabA =
+            createTab(
+                url = "https://a.example",
+                mediaSessionState =
+                    MediaSessionState(
+                        controller = mock(),
+                        metadata = MediaSession.Metadata(title = "A", getArtwork = null),
+                        playbackState = MediaSession.PlaybackState.PAUSED,
+                        positionState = MediaSession.PositionState(duration = 100.0, position = 30.0),
+                    ),
+            )
+        val tabB =
+            createTab(
+                url = "https://b.example",
+                mediaSessionState =
+                    MediaSessionState(
+                        controller = mock(),
+                        metadata = MediaSession.Metadata(title = "B", getArtwork = null),
+                        playbackState = MediaSession.PlaybackState.PLAYING,
+                        positionState = MediaSession.PositionState(duration = 200.0, position = 50.0),
+                    ),
+            )
+        val store = BrowserStore(BrowserState(tabs = listOf(tabA)))
+        val player = newPlayer(store)
+        drain()
+        assertEquals(30_000L, player.currentPosition)
+
+        store.dispatch(TabListAction.AddTabAction(tabB))
+        drain()
+
+        assertEquals(tabB.id, player.currentMediaItem?.mediaId)
+        assertEquals(50_000L, player.currentPosition)
     }
 }
